@@ -7,7 +7,7 @@ export const PRODUCTS = [
     priceFrom: 500,
     images: ["/src/assets/entero_1.jpg","/src/assets/entero_2.jpg","/src/assets/entero_3.jpg"],
     variants: [
-      { id:"ent-unique", label:"Pieza única", price: 500, priceId: "price_ENT_UNIQUE_REPLACE" }
+      { id:"ent-unique", label:"Pieza única", price: 500, priceId: "price_1SBNqiRPLp0YiQTHu36Jac2s" }
     ]
   },
   {
@@ -18,7 +18,7 @@ export const PRODUCTS = [
     priceFrom: 530,
     images: ["/src/assets/loncheado_1.jpg","/src/assets/loncheado_2.jpg"],
     variants: [
-      { id:"lon-unique", label:"Formato loncheado", price: 530, priceId: "price_LON_UNIQUE_REPLACE" }
+      { id:"lon-unique", label:"Formato loncheado", price: 530, priceId: "price_1SBNsDRPLp0YiQTHAwdqrQE4" }
     ]
   },
   {
@@ -29,8 +29,8 @@ export const PRODUCTS = [
     priceFrom: 40,
     images: ["/src/assets/suscrip_1.jpg"],
     variants: [
-      { id:"sub-500", label:"500 g / mes", price: 40, priceId: "price_SUB_500_REPLACE" },
-      { id:"sub-1000", label:"1 kg / mes", price: 70, priceId: "price_SUB_1000_REPLACE" }
+      { id:"sub-500", label:"500 g / mes", price: 40, priceId: "price_1SBNszRPLp0YiQTHO3EGpjcv" },
+      { id:"sub-1000", label:"1 kg / mes", price: 70, priceId: "price_1SBNtdRPLp0YiQTHrhnTXCr7" }
     ]
   }
 ];
