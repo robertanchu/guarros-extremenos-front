@@ -1,17 +1,1 @@
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: ["./index.html","./src/**/*.{js,jsx}"],
-  theme: {
-    extend: {
-      colors: {
-        brand: "#d2232a", // rojo gorra
-        dorado: "#d4af37"
-      },
-      container: {
-        center: true,
-        padding: "1rem"
-      }
-    },
-  },
-  plugins: [],
-}
+export default { content:["./index.html","./src/**/*.{js,jsx}"], theme:{ extend:{ colors:{ brand:"#a22e24", dorado:"#d4af37" } } }, plugins:[] }

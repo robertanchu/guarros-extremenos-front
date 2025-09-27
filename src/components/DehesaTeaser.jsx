@@ -1,10 +1,11 @@
 import React from "react";
 import { MEDIA } from "@/data/media";
 import { Link } from "react-router-dom";
+
 export default function DehesaTeaser(){
   return (
     <section className="relative my-12">
-      <div className="shell">
+      <div className="container">
         <div className="relative overflow-hidden rounded-2xl border border-white/10">
           <img src={MEDIA.og.dehesa} alt="La Dehesa" className="w-full h-[360px] md:h-[420px] object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/10" />

@@ -9,15 +9,19 @@ export default function Marquee(){
     </>
   );
   return (
-    <div className="overflow-hidden border-y border-black/20 bg-brand text-white full-bleed">
-      <div className="shell">
-        <div className="relative">
-          <div className="flex whitespace-nowrap py-3" style={{animation:'marquee 22s linear infinite'}}>
-            <div className="flex">{content}{content}</div>
-          </div>
+    <div className="overflow-hidden border-y border-white/10 bg-black/40">
+      <div className="relative">
+        <div className="flex whitespace-nowrap py-3 text-zinc-300"
+             style={{ animation: "marquee 22s linear infinite" }}>
+          <div className="flex">{content}{content}</div>
         </div>
       </div>
-      <style>{`@keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}`}</style>
+      <style>{`
+        @keyframes marquee {
+          0%   { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
+        }
+      `}</style>
     </div>
   );
 }
