@@ -31,9 +31,15 @@ export default function Header(){
           <Link to="/contacto" className="px-2 py-1 rounded-lg hover:text-white hover:bg-white/5">Contacto</Link>
         </nav>
 
-        <button onClick={openCart}
-          className={"relative px-3.5 py-2.5 rounded-xl text-zinc-100 hover:bg-white/10 transition " + (cartPulse ? "cart-pulse" : "")}
-          data-cart-target="true" aria-label="Abrir carrito">
+        <button
+          onClick={openCart}
+          className={
+            "relative px-3.5 py-2.5 rounded-xl text-zinc-100 hover:bg-white/10 transition " +
+            (cartPulse ? "cart-pulse" : "")
+          }
+          data-cart-target="true"
+          aria-label="Abrir carrito"
+        >
           <svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M7 6h13l-1.5 9h-11zM6 6l-1-2H2v2h3zM7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm10 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg>
           {total>0 && <span className="absolute -top-1 -right-1 text-[11px] bg-brand text-white rounded-full px-1.5">{total}</span>}
         </button>
@@ -41,4 +47,4 @@ export default function Header(){
       <MobileMenuDrawer open={open} onClose={()=> setOpen(false)} />
     </header>
   );
-}\n
+}
