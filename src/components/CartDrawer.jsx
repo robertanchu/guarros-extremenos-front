@@ -1,53 +1,44 @@
+
+// src/components/CartDrawer.jsx
 import React from "react";
 import { useCart } from "@/store/cart";
 import { useUI } from "@/store/ui";
-import { gaBeginCheckout } from "@/lib/analytics";
 
-const API = import.meta.env.VITE_BACKEND_URL; // ej: https://guarros-extremenos-api.onrender.com
-const SHIPPING_RATE = import.meta.env.VITE_SHIPPING_RATE_ID || "shr_1SBOWZRPLp0YiQTHa4ClyIOc"; // tu rate
+const API = import.meta.env.VITE_BACKEND_URL; // e.g. https://guarros-extremenos-api.onrender.com
+const SHIPPING_RATE = import.meta.env.VITE_SHIPPING_RATE_ID || "shr_1SBOWZRPLp0YiQTHa4ClyIOc";
 
 export default function CartDrawer(){
   const { items, removeItem, clear } = useCart();
   const cartOpen = useUI(s=>s.cartOpen);
   const close = ()=> useUI.getState().closeCart();
-  const subtotal = items.reduce((a,b)=> a + b.price*b.qty, 0);
+  const subtotal = items.reduce((a,b)=> a + (Number(b.price)||0)*(b.qty||0), 0);
 
   const handleCheckout = async ()=>{
-    try {
+    try{
       if (!API) {
         alert("Falta VITE_BACKEND_URL en el entorno del frontend.");
         return;
       }
-      gaBeginCheckout(items);
-
       const res = await fetch(`${API}/create-checkout-session`, {
         method: "POST",
         headers: { "Content-Type":"application/json" },
         body: JSON.stringify({
-          items: items.map(it=>({
-            price: it.priceId, // tus price_xxx
-            quantity: it.qty
-          })),
+          items: items.map(it=>({ price: it.priceId, quantity: it.qty })),
           shipping_rate: SHIPPING_RATE,
           success_url: `${window.location.origin}/exito`,
           cancel_url: `${window.location.origin}/jamones`,
         }),
       });
-
-      if (!res.ok) {
-        const err = await res.json().catch(()=> ({}));
+      if (!res.ok){
+        const err = await res.json().catch(()=>({}));
         console.error("Checkout error:", err);
         alert(`Error iniciando pago: ${err.error || res.statusText}`);
         return;
       }
-
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url; // Redirección a Stripe Checkout
-      } else {
-        alert("No se recibió URL de Stripe. Revisa el backend.");
-      }
-    } catch (e) {
+      if (data.url) window.location.href = data.url;
+      else alert("No se recibió URL de Stripe. Revisa el backend.");
+    }catch(e){
       console.error(e);
       alert("No se pudo iniciar el pago. Revisa CORS/Stripe en el backend.");
     }
@@ -76,14 +67,20 @@ export default function CartDrawer(){
         ) : (
           <ul className="space-y-3">
             {items.map((it)=> (
-              <li key={it.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-3">
-                <div>
-                  <div className="text-white">{it.name}</div>
+              <li key={it.id || it.priceId} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-3">
+                <div className="min-w-0">
+                  <div className="text-white truncate">{it.name}</div>
                   <div className="text-sm text-zinc-400">x{it.qty}</div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="text-white">{(it.price*it.qty).toFixed(2)} €</div>
-                  <button onClick={()=> removeItem(it.id)} className="px-3 py-2 rounded-xl text-white bg-brand/90 hover:bg-brand">Eliminar</button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="text-white">{((Number(it.price)||0)*(it.qty||0)).toFixed(2)} €</div>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(it.id || it.priceId)}
+                    className="px-3 py-2 rounded-xl text-white bg-brand/90 hover:bg-brand"
+                  >
+                    Eliminar
+                  </button>
                 </div>
               </li>
             ))}
@@ -91,7 +88,7 @@ export default function CartDrawer(){
         )}
       </div>
 
-      {/* Footer fijo */}
+      {/* Footer */}
       <div className="p-4 border-t border-white/10 bg-zinc-950/90 backdrop-blur">
         <div className="flex items-center justify-between text-sm mb-3">
           <span className="text-zinc-300">Subtotal</span>
