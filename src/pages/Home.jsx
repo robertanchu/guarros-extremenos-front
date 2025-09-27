@@ -1,17 +1,18 @@
 import React from "react";
 import Meta from "../lib/Meta";
-import Hero from "../components/Hero";
-import { MEDIA } from "../data/media.js";
+import Hero from "@/components/Hero";
+import { Link } from "react-router-dom";
 export default function Home(){
   return (
     <>
-      <Meta title="Jamón Ibérico 100% Bellota D.O.P Extremadura" description="TAN GUARROS QUE SÓLO COMEN BELLOTAS. Jamón ibérico 100% bellota D.O.P. Extremadura, sin postureo y con toda la verdad del sabor." image={MEDIA.og.home} url="/" />
+      <Meta title="Jamón Ibérico 100% Bellota" />
       <Hero />
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-6">
-          <a href="/jamones" className="group relative overflow-hidden rounded-2xl border border-white/10"><img src={MEDIA.banners.entero} alt="Jamón entero" className="w-full h-full object-cover group-hover:scale-[1.02] transition" /></a>
-          <a href="/jamones" className="group relative overflow-hidden rounded-2xl border border-white/10"><img src={MEDIA.banners.loncheado} alt="Jamón loncheado" className="w-full h-full object-cover group-hover:scale-[1.02] transition" /></a>
-          <a href="/suscripcion" className="group relative overflow-hidden rounded-2xl border border-white/10"><img src={MEDIA.banners.suscripcion} alt="Suscripción" className="w-full h-full object-cover group-hover:scale-[1.02] transition" /></a>
+      <section className="py-20 text-center">
+        <h1 className="text-4xl md:text-6xl font-stencil text-brand">TAN GUARROS QUE SÓLO COMEN BELLOTAS</h1>
+        <p className="text-zinc-300 mt-4">Jamón 100% bellota · D.O.P Extremadura</p>
+        <div className="mt-8 flex gap-4 justify-center">
+          <Link to="/jamones" className="btn-primary">Ver Jamones</Link>
+          <Link to="/suscripcion" className="btn-secondary">Suscripción</Link>
         </div>
       </section>
     </>

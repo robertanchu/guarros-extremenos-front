@@ -2,6 +2,7 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import CheckoutBar from "./components/CheckoutBar";
 import Home from "./pages/Home";
 import Jamones from "./pages/Jamones";
 import Producto from "./pages/Producto";
@@ -13,7 +14,6 @@ import Cancel from "./pages/Cancel";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Cookies from "./pages/Cookies";
-import CookieBanner from "./components/CookieBanner";
 
 export default function App(){
   return (
@@ -33,8 +33,8 @@ export default function App(){
           <Route path="/privacidad" element={<Privacy />} />
           <Route path="/cookies" element={<Cookies />} />
         </Routes>
-        <CookieBanner />
       </main>
+      <CheckoutBar />
       <Footer />
     </div>
   );

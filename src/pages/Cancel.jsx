@@ -1,1 +1,1 @@
-export default ()=> (<section className='py-20 text-center'><h1 className='text-3xl'>Pago cancelado</h1><p className='text-zinc-300 mt-2'>Puedes intentarlo de nuevo cuando quieras.</p></section>);
+export default ()=> (<section className='py-20 text-center'><h1 className='text-3xl'>Pago cancelado</h1></section>);

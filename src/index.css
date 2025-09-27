@@ -5,3 +5,4 @@
 .font-stencil { text-transform: uppercase; letter-spacing: .02em; }
 .btn-primary{ @apply px-6 py-3 rounded-2xl bg-brand text-white shadow-lg hover:brightness-110 transition; }
 .btn-secondary{ @apply px-6 py-3 rounded-2xl border border-dorado/70 text-amber-300 hover:bg-amber-400/10 transition; }
+.container{ @apply max-w-7xl mx-auto px-6; }

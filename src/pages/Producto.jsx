@@ -1,34 +1,27 @@
 import React from "react";
-import { useParams } from "react-router-dom";
 import Meta from "../lib/Meta";
-import ProductGallery from "../components/ProductGallery";
-import { MEDIA } from "../data/media.js";
+import { useParams } from "react-router-dom";
 import { PRODUCTS } from "../data/products.js";
+import { MEDIA } from "../data/media.js";
 import { useCart } from "../store/cart";
 
 export default function Producto(){
   const { slug } = useParams();
   const product = PRODUCTS.find(p => p.slug === slug);
   const add = useCart(s => s.addItem);
-  if (!product) return null;
-  const key = slug === "jamon-entero" ? "entero" : slug === "jamon-loncheado" ? "loncheado" : null;
-  const url = `/producto/${slug}`;
+  if (!product) return <section className="py-20 text-center">Producto no encontrado.</section>;
+  const img = MEDIA.products[product.id] || MEDIA.og.jamones;
   return (
     <>
-      <Meta title={product.name} description={product.description} image={(MEDIA[key]?.gallery||[])[0]} url={url} />
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-10">
-          <ProductGallery images={MEDIA[key]?.gallery} />
+      <Meta title={product.name} />
+      <section className="py-16 container">
+        <div className="grid md:grid-cols-2 gap-8">
+          <img src={img} alt={product.name} className="w-full rounded-2xl border border-white/10" />
           <div>
             <h1 className="text-3xl md:text-5xl font-stencil text-brand">{product.name}</h1>
-            <p className="mt-4 text-zinc-300">{product.description}</p>
-            <div className="mt-6 text-2xl text-amber-300">{product.priceFrom} €</div>
-            <button className="mt-6 btn-primary" onClick={()=> add({ id: product.id, name: product.name, priceId: product.priceId, price: product.priceFrom, qty: 1 })}>
-              Añadir al carrito
-            </button>
-            <ul className="mt-8 text-zinc-300 space-y-2">
-              {product.features?.map((f,i)=>(<li key={i}>• {f}</li>))}
-            </ul>
+            <p className="text-zinc-300 mt-4">{product.description}</p>
+            <div className="mt-6 text-amber-300 text-2xl">{product.priceFrom} €</div>
+            <button className="mt-6 btn-primary" onClick={()=> add({ id: product.id, name: product.name, priceId: product.priceId, price: product.priceFrom, qty: 1 })}>Añadir al carrito</button>
           </div>
         </div>
       </section>
