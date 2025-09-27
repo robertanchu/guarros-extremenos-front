@@ -19,12 +19,12 @@ export default function CartDrawer(){
   const onPay = async ()=>{ try{ await createCheckout(items) }catch(e){ alert(e.message||"Error al iniciar pago") } };
   return (<>
     <div className={"fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 "+(cartOpen?"opacity-100 pointer-events-auto":"opacity-0 pointer-events-none")} onClick={closeCart} />
-    <aside className={"fixed top-0 right-0 h-full w-full max-w-md bg-zinc-950 border-l border-white/10 shadow-2xl transition-transform duration-300 "+(cartOpen?"translate-x-0":"translate-x-full")} aria-hidden={!cartOpen} aria-label="Carrito">
+    <aside className={"fixed top-0 right-0 h-full w-full max-w-md bg-zinc-950 border-l border-white/10 shadow-2xl transition-transform duration-300 "+(cartOpen?"translate-x-0":"translate-x-full")} aria-hidden={!cartOpen} aria-label="Carrito" style={{display:"flex",flexDirection:"column"}}>
       <div className="flex items-center justify-between px-5 h-14 border-b border-white/10">
         <h3 className="font-stencil text-lg tracking-wider">Tu carrito</h3>
         <button className="p-2 hover:bg-white/10 rounded-xl" onClick={closeCart} aria-label="Cerrar carrito"><CloseIcon/></button>
       </div>
-      <div className="p-5 space-y-4 overflow-y-auto h-[calc(100%-7.5rem)]">
+      <div className="p-5 space-y-4 overflow-y-auto flex-1">
         {items.length===0 ? (<p className="text-zinc-400">Tu carrito está vacío.</p>) : items.map((it)=>(
           <div key={it.id} className="flex items-center gap-4 py-3 border-b border-white/10">
             <div className="flex-1"><div className="text-white font-medium">{it.name}</div><div className="text-amber-300 text-sm">{it.price.toFixed(2)} €</div></div>
@@ -33,11 +33,11 @@ export default function CartDrawer(){
               <span className="min-w-[2ch] text-center">{it.qty}</span>
               <button className="px-2 py-1 rounded bg-white/10 hover:bg-white/20" onClick={()=> inc(it.id)}>+</button>
             </div>
-            <button className="text-zinc-400 hover:text-white" onClick={()=> remove(it.id)} aria-label="Eliminar">Eliminar</button>
+            <button className="text-brand hover:brightness-110" onClick={()=> remove(it.id)} aria-label="Eliminar">Eliminar</button>
           </div>
         ))}
       </div>
-      <div className="border-t border-white/10 p-5">
+      <div className="border-t border-white/10 p-5 bg-zinc-950/95 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/70">
         <div className="flex items-center justify-between text-sm text-zinc-300"><span>Subtotal</span><span className="text-amber-300">{subtotal.toFixed(2)} €</span></div>
         <div className="mt-4 flex gap-3"><button className="btn-secondary flex-1" onClick={clear}>Vaciar</button><button className="btn-primary flex-1" onClick={onPay}>Pagar</button></div>
       </div>
