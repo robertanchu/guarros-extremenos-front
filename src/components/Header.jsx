@@ -14,8 +14,8 @@ export default function Header(){
 
   return (
     <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur border-b border-white/10 full-bleed">
-      <div className="shell py-2 md:py-3 flex items-center justify-between min-h-[56px]">
-        <div className="h-10 md:h-12 lg:h-14 flex items-center">
+      <div className="shell py-2 md:py-3 flex items-center justify-between min-h-[88px]">
+        <div className="h-20 md:h-24 lg:h-28 flex items-center">
           <Brand />
         </div>
 

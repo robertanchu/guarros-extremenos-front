@@ -27,7 +27,7 @@ export default function Brand(){
       <img
         src={src1}
         alt="Guarros Extremeños"
-        className="h-10 md:h-12 lg:h-14 w-auto select-none block"
+        className="h-20 md:h-24 lg:h-28 w-auto select-none block"
         width={168}
         height={56}
         draggable="false"
