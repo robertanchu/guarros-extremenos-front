@@ -1,3 +1,4 @@
+import { gaBeginCheckout } from "@/lib/analytics";
 import React from "react";
 import { useCart } from "@/store/cart";
 import { useUI } from "@/store/ui";

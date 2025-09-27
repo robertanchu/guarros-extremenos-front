@@ -1,3 +1,5 @@
+import { flyToCart, findCartTarget } from "@/lib/flyToCart";
+import { gaAddToCart } from "@/lib/analytics";
 import { useUI } from "@/store/ui";
 import React from "react";
 import { PRODUCTS } from "@/data/products";
@@ -27,7 +29,7 @@ export default function FeaturedProducts(){
                     <div className="flex gap-2">
                       <Link to={`/producto/${p.slug}`} className="px-3 py-2 rounded-xl border border-white/15 hover:bg-white/10">Ver</Link>
                       <button className="btn-primary px-4 py-2"
-                        onClick={()=> { add({ id:p.id, name:p.name, priceId:p.priceId, price:p.priceFrom, qty:1 }); useUI.getState().pulseCart(); }}>
+                        onClick={(e)=> { const card = e.currentTarget.closest(".group"); const img = card?.querySelector("img"); flyToCart(img, findCartTarget()); add({ id:p.id, name:p.name, priceId:p.priceId, price:p.priceFrom, qty:1 }); useUI.getState().pulseCart(); gaAddToCart(p,1); }}>
                         Añadir
                       </button>
                     </div>

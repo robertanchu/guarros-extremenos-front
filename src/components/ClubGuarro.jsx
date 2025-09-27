@@ -15,7 +15,7 @@ export default function ClubGuarro(){
     setOk(true);
   };
   return (
-    <section className="py-16">
+    <section id="club-guarro" className="py-16">
       <div className="container grid md:grid-cols-2 gap-8 items-center">
         <div>
           <p className="text-amber-300 text-sm">Club Guarro</p>
