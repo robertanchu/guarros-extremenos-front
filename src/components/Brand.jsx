@@ -38,4 +38,4 @@ export default function Brand(){
       </span>
     </a>
   );
-}\n
+}
