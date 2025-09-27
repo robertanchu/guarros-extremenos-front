@@ -1,4 +1,3 @@
-
 // src/store/cart.js
 import { create } from "zustand";
 
@@ -48,6 +47,18 @@ export const useCart = create((set, get) => ({
         return { items };
       }
       items.splice(idx, 1);
+      return { items };
+    });
+  },
+
+  increment: (matcher) => {
+    set((s) => {
+      const items = s.items.map((x) => ({ ...x }));
+      const idx = items.findIndex(
+        (x) => x.id === matcher || x.priceId === matcher
+      );
+      if (idx === -1) return { items };
+      items[idx].qty += 1;
       return { items };
     });
   },

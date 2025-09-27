@@ -1,4 +1,3 @@
-
 // src/components/CartDrawer.jsx
 import React from "react";
 import { useCart } from "@/store/cart";
@@ -8,7 +7,7 @@ const API = import.meta.env.VITE_BACKEND_URL; // e.g. https://guarros-extremenos
 const SHIPPING_RATE = import.meta.env.VITE_SHIPPING_RATE_ID || "shr_1SBOWZRPLp0YiQTHa4ClyIOc";
 
 export default function CartDrawer(){
-  const { items, removeItem, clear } = useCart();
+  const { items, removeItem, clear, decrement, increment } = useCart();
   const cartOpen = useUI(s=>s.cartOpen);
   const close = ()=> useUI.getState().closeCart();
   const subtotal = items.reduce((a,b)=> a + (Number(b.price)||0)*(b.qty||0), 0);
@@ -66,24 +65,49 @@ export default function CartDrawer(){
           <p className="text-zinc-400">Tu carrito está vacío.</p>
         ) : (
           <ul className="space-y-3">
-            {items.map((it)=> (
-              <li key={it.id || it.priceId} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-3">
-                <div className="min-w-0">
-                  <div className="text-white truncate">{it.name}</div>
-                  <div className="text-sm text-zinc-400">x{it.qty}</div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <div className="text-white">{((Number(it.price)||0)*(it.qty||0)).toFixed(2)} €</div>
-                  <button
-                    type="button"
-                    onClick={() => removeItem(it.id || it.priceId)}
-                    className="px-3 py-2 rounded-xl text-white bg-brand/90 hover:bg-brand"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </li>
-            ))}
+            {items.map((it)=> {
+              const key = it.id || it.priceId;
+              const lineTotal = ((Number(it.price)||0)*(it.qty||0)).toFixed(2);
+              return (
+                <li key={key} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div className="min-w-0">
+                    <div className="text-white truncate">{it.name}</div>
+                    <div className="text-sm text-zinc-400">x{it.qty}</div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {/* Stepper */}
+                    <div className="flex items-center rounded-xl overflow-hidden border border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => decrement(key)}
+                        className="px-2 py-1 text-white hover:bg-white/10"
+                        aria-label="Restar uno"
+                      >–</button>
+                      <div className="px-2 text-white/90 select-none">{it.qty}</div>
+                      <button
+                        type="button"
+                        onClick={() => increment(key)}
+                        className="px-2 py-1 text-white hover:bg-white/10"
+                        aria-label="Sumar uno"
+                      >+</button>
+                    </div>
+
+                    {/* Precio línea */}
+                    <div className="text-white tabular-nums w-[72px] text-right">{lineTotal} €</div>
+
+                    {/* Eliminar */}
+                    <button
+                      type="button"
+                      onClick={() => removeItem(key)}
+                      className="px-3 py-2 rounded-xl text-white bg-brand/90 hover:bg-brand"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
