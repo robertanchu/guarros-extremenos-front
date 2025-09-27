@@ -1,1 +1,32 @@
-import React from 'react';import Meta from '../lib/Meta';import {MEDIA} from '../data/media';import {PRODUCTS} from '../data/products';import {useCart} from '../store/cart';export default function Suscripcion(){const add=useCart(s=>s.addItem);const sub500=PRODUCTS.find(p=>p.slug==='suscripcion-500');const sub1000=PRODUCTS.find(p=>p.slug==='suscripcion-1000');return(<><Meta title='Suscripción de Jamón · 500 g o 1 kg/mes' description='Cada mes jamón ibérico 100% bellota en tu puerta. Sin permanencia, sin dramas, con más hambre que vergüenza.' image={MEDIA.og.suscripcion} url='/suscripcion'/><section className='py-16'><div className='max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-8'> {[sub500,sub1000].map((p,i)=>(<div key={i} className='rounded-2xl overflow-hidden border border-white/10'><img src={i===0?MEDIA.sub_500.gallery[0]:MEDIA.sub_1000.gallery[0]} alt={p.name} className='w-full h-64 object-cover'/><div className='p-6'><h2 className='text-2xl font-stencil text-brand'>{p.name}</h2><p className='text-zinc-300 mt-2'>{p.description}</p><div className='mt-4 text-amber-300 text-xl'>{p.priceFrom} €/mes</div><button className='mt-4 btn-secondary' onClick={()=>add({id:p.id,name:p.name,priceId:p.priceId,price:p.priceFrom,qty:1})}>Activar suscripción</button></div></div>))} </div></section></>);}
+import React from "react";
+import Meta from "../lib/Meta";
+import { MEDIA } from "../data/media.js";
+import { PRODUCTS } from "../data/products.js";
+import { useCart } from "../store/cart";
+export default function Suscripcion(){
+  const add = useCart(s => s.addItem);
+  const sub500 = PRODUCTS.find(p=>p.slug==="suscripcion-500");
+  const sub1000 = PRODUCTS.find(p=>p.slug==="suscripcion-1000");
+  return (
+    <>
+      <Meta title="Suscripción de Jamón · 500 g o 1 kg/mes" description="Cada mes jamón ibérico 100% bellota en tu puerta. Sin permanencia, sin dramas, con más hambre que vergüenza." image={MEDIA.og.suscripcion} url="/suscripcion" />
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-8">
+          {[sub500,sub1000].map((p,i)=>(
+            <div key={i} className="rounded-2xl overflow-hidden border border-white/10">
+              <img src={i===0? MEDIA.sub_500.gallery[0] : MEDIA.sub_1000.gallery[0]} alt={p.name} className="w-full h-64 object-cover"/>
+              <div className="p-6">
+                <h2 className="text-2xl font-stencil text-brand">{p.name}</h2>
+                <p className="text-zinc-300 mt-2">{p.description}</p>
+                <div className="mt-4 text-amber-300 text-xl">{p.priceFrom} €/mes</div>
+                <button className="mt-4 btn-secondary" onClick={()=> add({ id: p.id, name: p.name, priceId: p.priceId, price: p.priceFrom, qty: 1 })}>
+                  Activar suscripción
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </>
+  );
+}

@@ -1,1 +1,37 @@
-import React from 'react';import {useParams} from 'react-router-dom';import Meta from '../lib/Meta';import ProductGallery from '../components/ProductGallery';import {MEDIA} from '../data/media';import {PRODUCTS} from '../data/products';import {useCart} from '../store/cart';export default function Producto(){const {slug}=useParams();const product=PRODUCTS.find(p=>p.slug===slug);const add=useCart(s=>s.addItem);if(!product)return null;const key=slug==='jamon-entero'?'entero':slug==='jamon-loncheado'?'loncheado':null;const url=`/producto/${slug}`;return(<><Meta title={product.name} description={product.description} image={(MEDIA[key]?.gallery||[])[0]} url={url}/><section className='py-16'><div className='max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-10'><ProductGallery images={MEDIA[key]?.gallery}/><div><h1 className='text-3xl md:text-5xl font-stencil text-brand'>{product.name}</h1><p className='mt-4 text-zinc-300'>{product.description}</p><div className='mt-6 text-2xl text-amber-300'>{product.priceFrom} €</div><button className='mt-6 btn-primary' onClick={()=>add({id:product.id,name:product.name,priceId:product.priceId,price:product.priceFrom,qty:1})}>Añadir al carrito</button><ul className='mt-8 text-zinc-300 space-y-2'>{product.features?.map((f,i)=>(<li key={i}>• {f}</li>))}</ul></div></div></section></>);}
+import React from "react";
+import { useParams } from "react-router-dom";
+import Meta from "../lib/Meta";
+import ProductGallery from "../components/ProductGallery";
+import { MEDIA } from "../data/media.js";
+import { PRODUCTS } from "../data/products.js";
+import { useCart } from "../store/cart";
+
+export default function Producto(){
+  const { slug } = useParams();
+  const product = PRODUCTS.find(p => p.slug === slug);
+  const add = useCart(s => s.addItem);
+  if (!product) return null;
+  const key = slug === "jamon-entero" ? "entero" : slug === "jamon-loncheado" ? "loncheado" : null;
+  const url = `/producto/${slug}`;
+  return (
+    <>
+      <Meta title={product.name} description={product.description} image={(MEDIA[key]?.gallery||[])[0]} url={url} />
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-10">
+          <ProductGallery images={MEDIA[key]?.gallery} />
+          <div>
+            <h1 className="text-3xl md:text-5xl font-stencil text-brand">{product.name}</h1>
+            <p className="mt-4 text-zinc-300">{product.description}</p>
+            <div className="mt-6 text-2xl text-amber-300">{product.priceFrom} €</div>
+            <button className="mt-6 btn-primary" onClick={()=> add({ id: product.id, name: product.name, priceId: product.priceId, price: product.priceFrom, qty: 1 })}>
+              Añadir al carrito
+            </button>
+            <ul className="mt-8 text-zinc-300 space-y-2">
+              {product.features?.map((f,i)=>(<li key={i}>• {f}</li>))}
+            </ul>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
