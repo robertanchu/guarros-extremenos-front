@@ -1,14 +1,27 @@
 import React from "react";
 export default function Marquee(){
+  const content = (
+    <>
+      <span className="mx-6">TAN GUARROS QUE SÓLO COMEN BELLOTAS</span>·
+      <span className="mx-6">Jamón 100% bellota</span>·
+      <span className="mx-6">D.O.P Dehesa de Extremadura</span>·
+      <span className="mx-6">Curación lenta</span>·
+    </>
+  );
   return (
-    <div className="overflow-hidden border-y border-white/10">
-      <div className="animate-[marquee_22s_linear_infinite] whitespace-nowrap py-3 text-zinc-300">
-        <span className="mx-6">TAN GUARROS QUE SÓLO COMEN BELLOTAS</span>·
-        <span className="mx-6">Jamón 100% bellota</span>·
-        <span className="mx-6">D.O.P Dehesa de Extremadura</span>·
-        <span className="mx-6">Curación lenta</span>·
+    <div className="overflow-hidden border-y border-white/10 bg-black/40">
+      <div className="relative">
+        <div className="flex whitespace-nowrap py-3 text-zinc-300"
+             style={{ animation: "marquee 22s linear infinite" }}>
+          <div className="flex">{content}{content}</div>
+        </div>
       </div>
-      <style>{`@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}`}</style>
+      <style>{`
+        @keyframes marquee {
+          0%   { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
+        }
+      `}</style>
     </div>
   );
 }
