@@ -1,37 +1,25 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { MEDIA } from "@/data/media";
 
 export default function HeroPlus(){
-  // Fallbacks seguros si no hay media específico
-  const poster =
-    MEDIA?.hero?.poster ||
-    MEDIA?.og?.dehesa ||
-    MEDIA?.og?.jamones;
-
-  const video = MEDIA?.hero?.video; // si no hay video, renderizamos imagen
+  // Rutas estáticas servidas desde /public
+  const poster = "/media/hero-poster.jpg";
+  const video = "/media/hero.mp4"; // si no existe, veremos solo la imagen
 
   return (
     <section className="relative h-[72vh] min-h-[520px] w-full overflow-hidden border-b border-white/10 full-bleed">
       {/* Video si está disponible, si no imagen */}
-      {video ? (
-        <video
-          className="absolute inset-0 w-full h-full object-cover"
-          autoPlay
-          muted
-          loop
-          playsInline
-          poster={poster}
-        >
-          <source src={video} type="video/mp4" />
-        </video>
-      ) : (
-        <img
-          src={poster}
-          alt="Dehesa"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-      )}
+      <video
+        key={video}            // fuerza re-carga si cambia la ruta
+        className="absolute inset-0 w-full h-full object-cover"
+        autoPlay
+        muted
+        loop
+        playsInline
+        poster={poster}
+      >
+        <source src={video} type="video/mp4" />
+      </video>
 
       <div className="absolute inset-0 bg-black/35" />
       <div className="relative h-full shell flex items-center">
