@@ -1,33 +1,28 @@
-@tailwind base;@tailwind components;@tailwind utilities;
-:root{ --brand:#a22e24; --brandGold:#d4af37; }
-.font-stencil{ text-transform:uppercase; letter-spacing:.02em; }
-.btn-primary{ @apply px-6 py-3 rounded-2xl bg-brand text-white shadow-lg hover:brightness-110 transition; }
-.btn-secondary{ @apply px-6 py-3 rounded-2xl border border-dorado/70 text-amber-300 hover:bg-amber-400/10 transition; }
-.container{ @apply max-w-7xl mx-auto px-6; }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* logo visibility */
-.logo-on-dark{ filter: drop-shadow(0 1px 6px rgba(0,0,0,.55)); }
+.font-stencil { font-weight: 800; letter-spacing: .5px; text-transform: uppercase; }
 
-/* --- Micro-animaciones & pulse --- */
-@keyframes cart-pulse { 0%{ transform: scale(1); } 50%{ transform: scale(1.18); } 100%{ transform: scale(1); } }
+@keyframes cart-pulse { 0%{ transform: scale(1);} 50%{ transform: scale(1.18);} 100%{ transform: scale(1);} }
 @keyframes subtle-float { 0%{ transform: translateY(0);} 50%{ transform: translateY(-3px);} 100%{ transform: translateY(0);} }
 @keyframes btn-shimmer { 0%{ background-position: -200% 0;} 100%{ background-position: 200% 0;} }
 
-.btn-primary { 
-  @apply px-6 py-3 rounded-2xl bg-brand text-white shadow-lg transition;
-}
+.btn-primary { @apply px-6 py-3 rounded-2xl bg-brand text-white shadow-lg transition; }
 .btn-primary:hover { @apply brightness-110; }
-
-.btn-secondary { 
-  @apply px-6 py-3 rounded-2xl border border-dorado/70 text-amber-300 transition;
-}
+.btn-secondary { @apply px-6 py-3 rounded-2xl border border-dorado/70 text-amber-300 transition; }
 .btn-secondary:hover { @apply bg-amber-400/10; }
-
 .card-float:hover { animation: subtle-float .9s ease-in-out 1; }
 .cart-pulse { animation: cart-pulse .55s ease-in-out 1; }
-
-.btn-shiny {
-  background-image: linear-gradient(110deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.18) 20%, rgba(255,255,255,0.08) 40%);
-  background-size: 200% 100%;
-}
+.btn-shiny { background-image: linear-gradient(110deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.18) 20%, rgba(255,255,255,0.08) 40%); background-size: 200% 100%; }
 .btn-shiny:hover { animation: btn-shimmer 1.2s linear infinite; }
+
+/* ——— Estética & accesibilidad añadidas ——— */
+:focus-visible { outline: 2px solid #d2232a; outline-offset: 2px; }
+.glass       { @apply bg-white/5 backdrop-blur border border-white/10; }
+.panel       { @apply rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.35)] glass; }
+.card-hover  { @apply transition hover:border-white/20 hover:shadow-2xl; }
+.btn-danger  { @apply px-3 py-2 rounded-xl text-white bg-brand/90 hover:bg-brand; }
+.btn-ghost   { @apply px-3 py-2 rounded-xl hover:bg-white/10; }
+.img-rounded { @apply rounded-2xl border border-white/10 object-cover; }
+.h-title     { @apply font-stencil text-white; }
