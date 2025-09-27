@@ -1,2 +1,22 @@
-import React from "react"; import Meta from "../lib/Meta"; import Hero from "@/components/Hero"; import { Link } from "react-router-dom";
-export default function Home(){ return (<><Meta title="Jamón Ibérico 100% Bellota" /><Hero/><section className="py-20 text-center"><h2 className="text-3xl md:text-4xl font-stencil text-brand">Jamón 100% bellota · D.O.P Extremadura</h2><div className="mt-8 flex gap-4 justify-center"><Link to="/jamones" className="btn-primary">Ver Jamones</Link><Link to="/suscripcion" className="btn-secondary">Suscripción</Link></div></section></>); }
+import React from "react";
+import Meta from "../lib/Meta";
+import HeroPlus from "@/components/HeroPlus";
+import TrustBar from "@/components/TrustBar";
+import FeaturedProducts from "@/components/FeaturedProducts";
+import DehesaTeaser from "@/components/DehesaTeaser";
+import Reviews from "@/components/Reviews";
+import Marquee from "@/components/Marquee";
+
+export default function Home(){
+  return (
+    <>
+      <Meta title="Jamón Ibérico 100% Bellota · D.O.P" />
+      <HeroPlus />
+      <TrustBar />
+      <FeaturedProducts />
+      <DehesaTeaser />
+      <Reviews />
+      <Marquee />
+    </>
+  );
+}
