@@ -2,8 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* fuente display simulada */
 .font-stencil { font-weight: 800; letter-spacing: .5px; text-transform: uppercase; }
 
+/* Botones & efectos */
 @keyframes cart-pulse { 0%{ transform: scale(1);} 50%{ transform: scale(1.18);} 100%{ transform: scale(1);} }
 @keyframes subtle-float { 0%{ transform: translateY(0);} 50%{ transform: translateY(-3px);} 100%{ transform: translateY(0);} }
 @keyframes btn-shimmer { 0%{ background-position: -200% 0;} 100%{ background-position: 200% 0;} }
@@ -16,43 +18,3 @@
 .cart-pulse { animation: cart-pulse .55s ease-in-out 1; }
 .btn-shiny { background-image: linear-gradient(110deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.18) 20%, rgba(255,255,255,0.08) 40%); background-size: 200% 100%; }
 .btn-shiny:hover { animation: btn-shimmer 1.2s linear infinite; }
-
-/* ——— Estética & accesibilidad añadidas ——— */
-:focus-visible { outline: 2px solid #d2232a; outline-offset: 2px; }
-.glass       { @apply bg-white/5 backdrop-blur border border-white/10; }
-.panel       { @apply rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.35)] glass; }
-.card-hover  { @apply transition hover:border-white/20 hover:shadow-2xl; }
-.btn-danger  { @apply px-3 py-2 rounded-xl text-white bg-brand/90 hover:bg-brand; }
-.btn-ghost   { @apply px-3 py-2 rounded-xl hover:bg-white/10; }
-.img-rounded { @apply rounded-2xl border border-white/10 object-cover; }
-.h-title     { @apply font-stencil text-white; }
-
-/* —— Normalización y centrado seguro —— */
-* { box-sizing: border-box; }
-html, body { width: 100%; height: 100%; margin: 0; padding: 0; }
-html { overflow-x: hidden; } /* evita desplazamientos por animaciones (marquee, fly-to-cart) */
-body { background-color: #0a0a0a; }
-
-/* Forzamos el contenedor a estar centrado y con ancho máximo estable */
-.container { margin-left: auto; margin-right: auto; }
-
-/* Imágenes y vídeos nunca desbordan */
-img, video { max-width: 100%; height: auto; display: block; }
-
-/* ===== CENTRADO GLOBAL ROBUSTO ===== */
-:root { --shell-max: 1200px; --shell-pad: 1rem; }
-.shell      { max-width: var(--shell-max); margin-inline: auto; padding-inline: var(--shell-pad); }
-.full-bleed { width: 100%; margin-inline: 0; padding-inline: 0; }
-
-/* Normalización base */
-* { box-sizing: border-box; }
-html, body { height: 100%; margin: 0; }
-html { overflow-x: hidden; }
-img, video { max-width: 100%; height: auto; display: block; }
-
-/* Asegura centrado también si alguien usa .container */
-.container { margin-inline: auto !important; padding-inline: var(--shell-pad); max-width: var(--shell-max); }
-
-/* Secciones a ancho completo con contenido centrado */
-.section { width: 100%; }
-.section > .inner { max-width: var(--shell-max); margin-inline: auto; padding-inline: var(--shell-pad); }
