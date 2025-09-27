@@ -1,2 +1,17 @@
-/* —— Contenedor consistente y centrado (sin depender de tailwind.config) —— */
-.shell { max-width: 1200px; margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; }
+/* ===== CENTRADO GLOBAL ROBUSTO ===== */
+:root { --shell-max: 1200px; --shell-pad: 1rem; }
+.shell      { max-width: var(--shell-max); margin-inline: auto; padding-inline: var(--shell-pad); }
+.full-bleed { width: 100%; margin-inline: 0; padding-inline: 0; }
+
+/* Normalización base */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+html { overflow-x: hidden; }
+img, video { max-width: 100%; height: auto; display: block; }
+
+/* Asegura centrado también si alguien usa .container */
+.container { margin-inline: auto !important; padding-inline: var(--shell-pad); max-width: var(--shell-max); }
+
+/* Secciones a ancho completo con contenido centrado */
+.section { width: 100%; }
+.section > .inner { max-width: var(--shell-max); margin-inline: auto; padding-inline: var(--shell-pad); }

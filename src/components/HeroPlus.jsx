@@ -1,10 +1,10 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { HERO } from "@/data/media";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { HERO } from '@/data/media';
 
 export default function HeroPlus(){
   return (
-    <section className="relative h-[72vh] min-h-[520px] w-full overflow-hidden border-b border-white/10">
+    <section className="relative h-[72vh] min-h-[520px] w-full overflow-hidden border-b border-white/10 full-bleed">
       <img src={HERO.poster} alt="Dehesa" className="absolute inset-0 w-full h-full object-cover" />
       <div className="absolute inset-0 bg-black/35" />
       <div className="relative h-full shell flex items-center">
@@ -18,7 +18,7 @@ export default function HeroPlus(){
           </div>
         </div>
       </div>
-      <div className="pointer-events-none absolute -top-10 -left-10 w-60 h-60 rounded-full blur-3xl opacity-20" style={{background: "radial-gradient(circle, #d4af37 0%, rgba(0,0,0,0) 70%)"}} />
+      <div className="pointer-events-none absolute -top-10 -left-10 w-60 h-60 rounded-full blur-3xl opacity-20" style={{background:'radial-gradient(circle, #d4af37 0%, rgba(0,0,0,0) 70%)'}}/>
     </section>
   );
 }

@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import Brand from "./Brand";
-import { useCart } from "@/store/cart";
-import { useUI } from "@/store/ui";
-import MobileMenuDrawer from "./MobileMenuDrawer";
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import Brand from './Brand';
+import { useCart } from '@/store/cart';
+import { useUI } from '@/store/ui';
+import MobileMenuDrawer from './MobileMenuDrawer';
 
 export default function Header(){
   const items = useCart(s=>s.items);
@@ -13,7 +13,7 @@ export default function Header(){
   const [open,setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur border-b border-white/10">
+    <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur border-b border-white/10 full-bleed">
       <div className="shell py-2 md:py-3 flex items-center justify-between">
         <Brand />
         <button className="md:hidden p-2 rounded-xl hover:bg-white/10" onClick={()=> setOpen(true)} aria-label="Abrir menú">
