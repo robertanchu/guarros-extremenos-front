@@ -4,3 +4,6 @@
 .btn-primary{ @apply px-6 py-3 rounded-2xl bg-brand text-white shadow-lg hover:brightness-110 transition; }
 .btn-secondary{ @apply px-6 py-3 rounded-2xl border border-dorado/70 text-amber-300 hover:bg-amber-400/10 transition; }
 .container{ @apply max-w-7xl mx-auto px-6; }
+
+/* logo visibility */
+.logo-on-dark{ filter: drop-shadow(0 1px 6px rgba(0,0,0,.55)); }
