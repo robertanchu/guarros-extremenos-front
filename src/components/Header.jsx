@@ -10,14 +10,14 @@ function CartIcon({className=""}){
     </svg>
   );
 }
-export default function Header(){ const items = useCart(s=>s.items); const total = items.reduce((a,b)=>a+b.qty,0); const [open,setOpen]=useState(false);
+export default function Header(){ const items = useCart(s=>s.items); const total = items.reduce((a,b)=>a+b.qty,0); const cartPulse = useUI(s=>s.cartPulse); const [open,setOpen]=useState(false);
   return (<header className="sticky top-0 z-50 bg-black/70 backdrop-blur border-b border-white/10"><div className="container py-2 md:py-3 flex items-center justify-between">
     <Brand/>
     <button className="md:hidden p-2 rounded-xl hover:bg-white/10" onClick={()=> setOpen(o=>!o)} aria-label="Abrir menú">
       <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h16v2H4v-2Z"/></svg>
     </button>
     <nav className="hidden md:flex gap-6 text-sm text-gray-200"><Link to="/" className="hover:text-white">Home</Link><Link to="/jamones" className="hover:text-white">Jamones</Link><Link to="/suscripcion" className="hover:text-white">Suscripción</Link><Link to="/dehesa" className="hover:text-white">La Dehesa</Link><Link to="/contacto" className="hover:text-white">Contacto</Link></nav>
-    <button onClick={()=> useUI.getState().toggleCart()} className="relative px-3 py-2 rounded-xl text-zinc-100 hover:bg-white/10 transition" aria-label="Carrito"><CartIcon/><span className="absolute -top-2 -right-2 text-[11px] bg-dorado text-black rounded-full px-2 py-0.5">{total}</span></button>
+    <button onClick={()=> useUI.getState().toggleCart()} className={"relative px-3 py-2 rounded-xl text-zinc-100 hover:bg-white/10 transition " + (cartPulse ? "cart-pulse" : "")} aria-label="Carrito"><CartIcon/><span className="absolute -top-2 -right-2 text-[11px] bg-dorado text-black rounded-full px-2 py-0.5">{total}</span></button>
   </div>
   {/* Mobile menu */}
   {open && (

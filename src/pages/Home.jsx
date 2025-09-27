@@ -6,6 +6,7 @@ import FeaturedProducts from "@/components/FeaturedProducts";
 import DehesaTeaser from "@/components/DehesaTeaser";
 import Reviews from "@/components/Reviews";
 import Marquee from "@/components/Marquee";
+import ClubGuarro from "@/components/ClubGuarro";
 
 export default function Home(){
   return (
@@ -16,6 +17,7 @@ export default function Home(){
       <FeaturedProducts />
       <DehesaTeaser />
       <Reviews />
+      <ClubGuarro />
       <Marquee />
     </>
   );
