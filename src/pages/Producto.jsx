@@ -1,20 +1,28 @@
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { PRODUCTS } from "@/data/products";
 import { MEDIA } from "@/data/media";
 import { useCart } from "@/store/cart";
+import { useUI } from "@/store/ui";
 
 export default function Producto(){
   const { slug } = useParams();
   const add = useCart(s => s.addItem);
+  const imgRef = useRef(null);
 
-  // Buscar el producto por slug (seguro)
   const product = useMemo(() => PRODUCTS.find(p => p.slug === slug), [slug]);
 
-  // (Opcional) Si tienes analytics, podrías dejar aquí tu useEffect de view_item
-  // useEffect(() => { if (product) gaViewItem(product); }, [product]);
+  useEffect(() => {
+    // Si usas GA4/GTM se lanza sin romper si no existe
+    try {
+      if (product && window.gtag) {
+        window.gtag("event","view_item",{items:[{item_id:product.id,item_name:product.name,price:product.priceFrom}]});
+      } else if (product && window.dataLayer) {
+        window.dataLayer.push({event:"view_item",items:[{item_id:product.id,item_name:product.name,price:product.priceFrom}]});
+      }
+    } catch {}
+  }, [product]);
 
-  // Si no hay producto, no rompemos la página
   if (!product) {
     return (
       <div className="container py-14">
@@ -24,12 +32,58 @@ export default function Producto(){
     );
   }
 
-  // Fallback de imagen: intenta products[id] y luego og.jamones
   const heroImg =
     (MEDIA?.products && MEDIA.products[product.id]) ||
     (MEDIA?.og && MEDIA.og.jamones);
 
+  // --- Efectos locales (sin tocar otros archivos) ---
+  const flyToCart = (fromEl) => {
+    try {
+      const toEl =
+        document.querySelector('[data-cart-target="true"]') ||
+        document.querySelector("#cart-button");
+      if (!fromEl || !toEl) return;
+
+      const a = fromEl.getBoundingClientRect();
+      const b = toEl.getBoundingClientRect();
+      const clone = fromEl.cloneNode(true);
+      Object.assign(clone.style, {
+        position: "fixed",
+        left: a.left + "px",
+        top: a.top + "px",
+        width: a.width + "px",
+        height: a.height + "px",
+        borderRadius: "16px",
+        transition:
+          "transform .7s cubic-bezier(.22,.61,.36,1), opacity .7s",
+        zIndex: 9999,
+        pointerEvents: "none",
+      });
+      document.body.appendChild(clone);
+      const dx = b.left - a.left;
+      const dy = b.top - a.top;
+      const scale = Math.max(0.15, Math.min(0.25, b.width / a.width));
+      requestAnimationFrame(() => {
+        clone.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+        clone.style.opacity = "0.4";
+      });
+      setTimeout(() => clone.remove(), 800);
+    } catch {}
+  };
+
+  const pulseCart = () => {
+    try {
+      // sólo si tu store tiene pulseCart
+      useUI.getState().pulseCart?.();
+    } catch {}
+  };
+
   const handleAdd = () => {
+    // Animaciones
+    flyToCart(imgRef.current);
+    pulseCart();
+
+    // Añadir al carrito (sin cambios en estructura)
     add({
       id: product.id,
       name: product.name,
@@ -37,6 +91,20 @@ export default function Producto(){
       price: product.priceFrom,
       qty: 1,
     });
+
+    // Analytics seguro (opcional)
+    try {
+      if (window.gtag) {
+        window.gtag("event","add_to_cart",{
+          items:[{item_id:product.id,item_name:product.name,price:product.priceFrom,quantity:1}]
+        });
+      } else if (window.dataLayer) {
+        window.dataLayer.push({
+          event:"add_to_cart",
+          items:[{item_id:product.id,item_name:product.name,price:product.priceFrom,quantity:1}]
+        });
+      }
+    } catch {}
   };
 
   return (
@@ -44,6 +112,7 @@ export default function Producto(){
       <div className="grid md:grid-cols-2 gap-8">
         <div>
           <img
+            ref={imgRef}
             src={heroImg}
             alt={product.name}
             className="w-full h-96 md:h-[520px] object-cover rounded-2xl border border-white/10"
