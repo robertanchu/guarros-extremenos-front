@@ -1,13 +1,1 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-@layer utilities{
-  .font-stencil{font-family:"Staatliches",sans-serif;letter-spacing:.04em}
-  .text-dorado{color:#d4af37}
-  .border-dorado{border-color:#d4af37}
-}
-.header-blur{backdrop-filter:blur(6px);background:rgba(0,0,0,.65)}
-.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
-.reveal.in{opacity:1;transform:translateY(0)}
-.drawer{transform:translateX(100%);transition:transform .3s ease}
-.drawer.open{transform:translateX(0)}
+@tailwind base;@tailwind components;@tailwind utilities;:root{--brand:#a22e24;--brandGold:#d4af37}:focus-visible{outline:2px solid var(--brandGold);outline-offset:2px}@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}.font-stencil{text-transform:uppercase;letter-spacing:.02em}.btn-primary{@apply px-6 py-3 rounded-2xl bg-brand text-white shadow-lg hover:brightness-110 transition}.btn-secondary{@apply px-6 py-3 rounded-2xl border border-dorado/70 text-amber-300 hover:bg-amber-400/10 transition}

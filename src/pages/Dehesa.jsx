@@ -1,11 +1,1 @@
-import React from "react";
-export default function Dehesa(){
-  return (
-    <section className="py-16">
-      <div className="max-w-5xl mx-auto px-6">
-        <h1 className="text-4xl font-stencil text-dorado mb-6">La Dehesa</h1>
-        <p className="text-gray-300">Cerdos ibéricos 100% criados en libertad, alimentados con bellota y cuidados con tradición.</p>
-      </div>
-    </section>
-  );
-}
+import React from 'react';import Meta from '../lib/Meta';import {MEDIA} from '../data/media';export default function Dehesa(){return(<><Meta title='La Dehesa · Origen de los Guarros Extremeños' description='Dehesa, bellota, tiempo y descaro. Así se cría el sabor.' image={MEDIA.og.dehesa} url='/dehesa'/><section className='py-16'><div className='max-w-7xl mx-auto px-6 space-y-6'><div className='grid md:grid-cols-2 gap-6'>{MEDIA.dehesa.map((src,i)=>(<div key={i} className='relative overflow-hidden rounded-2xl border border-white/10'><img src={src} alt={`Dehesa ${i+1}`} className='w-full h-full object-cover'/><div className='absolute inset-0 opacity-20 mix-blend-overlay' style={{backgroundImage:'url(/src/assets/textures/grain_overlay.png)'}}/></div>))}</div></div></section></>);}
