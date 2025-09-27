@@ -14,18 +14,15 @@ export default function Header(){
 
   return (
     <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur border-b border-white/10 full-bleed">
-      <div className="shell py-2 md:py-3 flex items-center justify-between">
-        {/* Logo más grande (altura responsiva) */}
+      <div className="shell py-2 md:py-3 flex items-center justify-between min-h-[56px]">
         <div className="h-10 md:h-12 lg:h-14 flex items-center">
           <Brand />
         </div>
 
-        {/* Menú hamburguesa mobile */}
         <button className="md:hidden p-2.5 rounded-xl hover:bg-white/10" onClick={()=> setOpen(true)} aria-label="Abrir menú">
           <svg width="26" height="26" viewBox="0 0 24 24"><path fill="currentColor" d="M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h16v2H4v-2Z"/></svg>
         </button>
 
-        {/* Navegación desktop más grande */}
         <nav className="hidden md:flex gap-8 text-base md:text-lg text-gray-100">
           <Link to="/" className="px-2 py-1 rounded-lg hover:text-white hover:bg-white/5">Home</Link>
           <Link to="/jamones" className="px-2 py-1 rounded-lg hover:text-white hover:bg-white/5">Jamones</Link>
@@ -34,7 +31,6 @@ export default function Header(){
           <Link to="/contacto" className="px-2 py-1 rounded-lg hover:text-white hover:bg-white/5">Contacto</Link>
         </nav>
 
-        {/* Carrito ligeramente más grande */}
         <button onClick={openCart}
           className={"relative px-3.5 py-2.5 rounded-xl text-zinc-100 hover:bg-white/10 transition " + (cartPulse ? "cart-pulse" : "")}
           data-cart-target="true" aria-label="Abrir carrito">
@@ -45,4 +41,4 @@ export default function Header(){
       <MobileMenuDrawer open={open} onClose={()=> setOpen(false)} />
     </header>
   );
-}
+}\n
