@@ -1,27 +1,63 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
+// Usa rutas ESTÁTICAS desde /public (Vercel es case-sensitive)
+const VIDEO_SRC  = "/media/hero.mp4";
+const POSTER_SRC = "/media/hero-poster.jpg";
+
 export default function HeroPlus(){
-  // Rutas estáticas servidas desde /public
-  const poster = "/media/hero-poster.jpg";
-  const video = "/media/hero.mp4"; // si no existe, veremos solo la imagen
+  const videoRef = useRef(null);
+  const [usePosterOnly, setUsePosterOnly] = useState(false);
+
+  // Intento de autoplay robusto (iOS/Safari/Chrome móvil)
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+
+    // Si falla autoplay por cualquier política del navegador, caemos a poster
+    const tryPlay = async () => {
+      try {
+        v.muted = true;      // obligatorio para autoplay
+        v.playsInline = true;
+        await v.play();
+      } catch {
+        setUsePosterOnly(true);
+      }
+    };
+    // Comprobamos que el src resuelve
+    fetch(VIDEO_SRC, { method: "HEAD" })
+      .then(r => { if (!r.ok) throw new Error(); return tryPlay(); })
+      .catch(() => setUsePosterOnly(true));
+  }, []);
 
   return (
     <section className="relative h-[72vh] min-h-[520px] w-full overflow-hidden border-b border-white/10 full-bleed">
-      {/* Video si está disponible, si no imagen */}
-      <video
-        key={video}            // fuerza re-carga si cambia la ruta
-        className="absolute inset-0 w-full h-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-        poster={poster}
-      >
-        <source src={video} type="video/mp4" />
-      </video>
+      {/* Capa de media */}
+      {!usePosterOnly ? (
+        <video
+          ref={videoRef}
+          className="absolute inset-0 w-full h-full object-cover block"
+          muted
+          loop
+          playsInline
+          autoPlay
+          preload="auto"
+          poster={POSTER_SRC}
+        >
+          <source src={VIDEO_SRC} type="video/mp4" />
+        </video>
+      ) : (
+        <img
+          src={POSTER_SRC}
+          alt="Dehesa"
+          className="absolute inset-0 w-full h-full object-cover block"
+        />
+      )}
 
+      {/* Overlay oscuro para legibilidad */}
       <div className="absolute inset-0 bg-black/35" />
+
+      {/* Contenido centrado */}
       <div className="relative h-full shell flex items-center">
         <div className="max-w-3xl">
           <p className="text-amber-300 tracking-wide text-sm">
@@ -40,6 +76,7 @@ export default function HeroPlus(){
         </div>
       </div>
 
+      {/* Glow sutil dorado */}
       <div
         className="pointer-events-none absolute -top-10 -left-10 w-60 h-60 rounded-full blur-3xl opacity-20"
         style={{ background: "radial-gradient(circle, #d4af37 0%, rgba(0,0,0,0) 70%)" }}
