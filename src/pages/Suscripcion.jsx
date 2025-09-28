@@ -1,145 +1,130 @@
-import React, { useRef } from "react";
+// src/pages/Suscripcion.jsx
+import React from "react";
 import { useCart } from "@/store/cart";
 import { useUI } from "@/store/ui";
-import { MEDIA } from "@/data/media";
-import { PRODUCTS } from "@/data/products";
+import { isSubscription } from "@/lib/subscription";
+
+// Planes (usa tus Price IDs reales o variables de entorno)
+const PLANS = [
+  {
+    slug: "sub-500",
+    name: "Suscripción 500 g / mes",
+    desc: "Cada mes, 500 gramos de jamón ibérico 100% bellota D.O.P. cortado, en sobres listos para disfrutar.",
+    priceText: "40 €/mes",
+    price: 40,
+    priceId: import.meta.env.VITE_SUB_500_PRICE_ID || "price_1SBNszRPLp0YiQTHO3EGpjcv",
+    isSubscription: true,
+    kind: "subscription",
+  },
+  {
+    slug: "sub-1000",
+    name: "Suscripción 1 kg / mes",
+    desc: "Para los muy guarros: 1 kilo al mes, sobres al vacío, corte fino y listo para volar de la tabla.",
+    priceText: "70 €/mes",
+    price: 70,
+    priceId: import.meta.env.VITE_SUB_1000_PRICE_ID || "price_1SBNtdRPLp0YiQTHrhnTXCr7",
+    isSubscription: true,
+    kind: "subscription",
+  },
+];
 
 export default function Suscripcion(){
-  const add = useCart(s => s.addItem);
+  const { items, addItem } = useCart();
+  const openCart = () => useUI.getState().openCart();
 
-  // Local helpers (no cambian otros archivos)
-  const flyToCart = (fromEl) => {
-    try {
-      const toEl =
-        document.querySelector('[data-cart-target="true"]') ||
-        document.querySelector("#cart-button");
-      if (!fromEl || !toEl) return;
-      const a = fromEl.getBoundingClientRect();
-      const b = toEl.getBoundingClientRect();
-      const clone = fromEl.cloneNode(true);
-      Object.assign(clone.style, {
-        position: "fixed",
-        left: a.left + "px",
-        top: a.top + "px",
-        width: a.width + "px",
-        height: a.height + "px",
-        borderRadius: "16px",
-        transition: "transform .7s cubic-bezier(.22,.61,.36,1), opacity .7s",
-        zIndex: 9999,
-        pointerEvents: "none",
-      });
-      document.body.appendChild(clone);
-      const dx = b.left - a.left;
-      const dy = b.top - a.top;
-      const scale = Math.max(0.15, Math.min(0.25, b.width / a.width));
-      requestAnimationFrame(() => {
-        clone.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
-        clone.style.opacity = "0.4";
-      });
-      setTimeout(() => clone.remove(), 800);
-    } catch {}
-  };
+  const hasSubscription = items.some(isSubscription);
 
-  const pulseCart = () => {
-    try { useUI.getState().pulseCart?.(); } catch {}
-  };
-
-  // Productos de suscripción (ya están en PRODUCTS y MEDIA)
-  const sub500 = PRODUCTS.find(p => p.id === "sub_500");
-  const sub1000 = PRODUCTS.find(p => p.id === "sub_1000");
-  const img500 = (MEDIA.products && MEDIA.products.sub_500) || MEDIA.og?.jamones;
-  const img1000 = (MEDIA.products && MEDIA.products.sub_1000) || MEDIA.og?.jamones;
-
-  // Refs para animación
-  const ref500 = useRef(null);
-  const ref1000 = useRef(null);
-
-  const handleAdd = (product, imgRef) => {
-    flyToCart(imgRef?.current);
-    pulseCart();
-    add({
-      id: product.id,
-      name: product.name,
-      priceId: product.priceId,
-      price: product.priceFrom,
+  const handleSubscribe = (p) => {
+    if (hasSubscription) {
+      openCart();
+      return;
+    }
+    addItem({
+      ...p,
       qty: 1,
+      kind: "subscription",
+      isSubscription: true,
     });
-
-    // Analytics (no rompe si no hay gtag/dataLayer)
-    try {
-      if (window.gtag) {
-        window.gtag("event", "add_to_cart", {
-          items: [{ item_id: product.id, item_name: product.name, price: product.priceFrom, quantity: 1 }],
-        });
-      } else if (window.dataLayer) {
-        window.dataLayer.push({
-          event: "add_to_cart",
-          items: [{ item_id: product.id, item_name: product.name, price: product.priceFrom, quantity: 1 }],
-        });
-      }
-    } catch {}
+    openCart();
   };
 
   return (
-    <div className="container py-10">
-      <h1 className="text-3xl md:text-4xl text-white font-stencil">Suscripción</h1>
-      <p className="mt-3 text-zinc-300">
-        Elige tu dosis mensual de jamón 100% bellota. Sin permanencia, pausa cuando quieras.
-      </p>
+    <main className="shell py-10 md:py-12">
+      <header className="mb-6 md:mb-8 text-center">
+        <p className="text-amber-300 tracking-wide text-sm">Guarros Extremeños Club</p>
+        <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-white">Suscripción Jamón Canalla</h1>
+        <p className="mt-4 text-zinc-300 max-w-3xl mx-auto">
+          El sabor que manda, cada mes en tu casa. Sin postureo, sin esperas y con la pureza del 100% ibérico D.O.P Dehesa de Extremadura.
+        </p>
+      </header>
 
-      <div className="mt-8 grid md:grid-cols-2 gap-6">
-        {/* 500 g / mes */}
-        {sub500 && (
-          <div className="group rounded-2xl overflow-hidden border border-white/10 bg-black/40 transition hover:border-white/20">
-            <img
-              ref={ref500}
-              src={img500}
-              alt={sub500.name}
-              className="w-full h-56 object-cover"
-              loading="lazy"
-            />
-            <div className="p-5">
-              <h3 className="text-lg text-white">{sub500.name}</h3>
-              <p className="text-zinc-400 mt-1">{sub500.description}</p>
-              <div className="flex items-center justify-between mt-4">
-                <span className="text-amber-300">{sub500.priceFrom} €/mes</span>
-                <button
-                  className="btn-primary px-4 py-2 btn-shiny"
-                  onClick={() => handleAdd(sub500, ref500)}
-                >
-                  Añadir
-                </button>
-              </div>
-            </div>
+      {/* Banner si ya hay suscripción en carrito */}
+      {hasSubscription && (
+        <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-300 p-4">
+          <div className="font-semibold">Ya tienes una suscripción en el carrito.</div>
+          <div className="text-sm opacity-90">Solo puede haber una por carrito. Puedes cambiar de plan eliminando la actual.</div>
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={openCart}
+              className="btn-secondary"
+              aria-label="Ver carrito"
+            >
+              Ver carrito
+            </button>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* 1 kg / mes */}
-        {sub1000 && (
-          <div className="group rounded-2xl overflow-hidden border border-white/10 bg-black/40 transition hover:border-white/20">
-            <img
-              ref={ref1000}
-              src={img1000}
-              alt={sub1000.name}
-              className="w-full h-56 object-cover"
-              loading="lazy"
-            />
-            <div className="p-5">
-              <h3 className="text-lg text-white">{sub1000.name}</h3>
-              <p className="text-zinc-400 mt-1">{sub1000.description}</p>
-              <div className="flex items-center justify-between mt-4">
-                <span className="text-amber-300">{sub1000.priceFrom} €/mes</span>
-                <button
-                  className="btn-primary px-4 py-2 btn-shiny"
-                  onClick={() => handleAdd(sub1000, ref1000)}
-                >
-                  Añadir
-                </button>
-              </div>
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+        {PLANS.map((p) => (
+          <article key={p.slug} className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7 flex flex-col">
+            <div className="flex-1">
+              <h3 className="text-2xl font-stencil text-white">{p.name}</h3>
+              <p className="mt-2 text-zinc-300">{p.desc}</p>
+              <div className="mt-4 text-2xl text-brand font-semibold">{p.priceText}</div>
             </div>
-          </div>
-        )}
-      </div>
-    </div>
+
+            <div className="mt-6">
+              {hasSubscription ? (
+                <button
+                  type="button"
+                  className="w-full btn-secondary"
+                  onClick={openCart}
+                  aria-label="Ver carrito"
+                  title="Ya tienes una suscripción en el carrito"
+                >
+                  Ya tienes una suscripción — Ver carrito
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="w-full btn-primary btn-shiny"
+                  onClick={() => handleSubscribe(p)}
+                  aria-label="Añadir suscripción al carrito"
+                >
+                  Suscribirme
+                </button>
+              )}
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <section className="mt-12 md:mt-16 grid md:grid-cols-3 gap-6 text-zinc-300">
+        <div className="rounded-2xl border border-white/10 p-5 bg-white/[0.03]">
+          <h4 className="text-white font-semibold">Pausa o cambia cuando quieras</h4>
+          <p className="mt-2 text-sm">Sin ataduras. Gestiona tu suscripción con un solo click.</p>
+        </div>
+        <div className="rounded-2xl border border-white/10 p-5 bg-white/[0.03]">
+          <h4 className="text-white font-semibold">Corte perfecto</h4>
+          <p className="mt-2 text-sm">Loncheado fino, sobres al vacío y el punto de curación que nos hace canallas.</p>
+        </div>
+        <div className="rounded-2xl border border-white/10 p-5 bg-white/[0.03]">
+          <h4 className="text-white font-semibold">D.O.P Dehesa de Extremadura</h4>
+          <p className="mt-2 text-sm">Garantía de origen y de bellota. Tan guarros que sólo comen bellotas.</p>
+        </div>
+      </section>
+    </main>
   );
 }
