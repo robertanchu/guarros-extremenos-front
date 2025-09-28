@@ -3,7 +3,8 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 /**
- * Fuerza siempre el <title> a la marca, sin subtítulos.
+ * Fuerza SIEMPRE el <title> a la marca, vigilando todo el <head>.
+ * Esto neutraliza Helmet/react-helmet, cambios de páginas y cualquier seteo posterior.
  */
 const BRAND = "Guarros Extremeños";
 
@@ -11,18 +12,44 @@ export default function TitleKeeper(){
   const location = useLocation();
 
   useEffect(() => {
-    document.title = BRAND;
+    // Forzar en cada navegación
+    if (document.title !== BRAND) document.title = BRAND;
   }, [location]);
 
-  // Defensa extra: si algún código intenta cambiar el título, lo reponemos al siguiente tick.
   useEffect(() => {
-    const observer = new MutationObserver(() => {
+    const ensure = () => {
       if (document.title !== BRAND) {
-        Promise.resolve().then(() => { document.title = BRAND; });
+        document.title = BRAND;
       }
+      // si no hay <title>, lo creamos
+      let t = document.head.querySelector("title");
+      if (!t) {
+        t = document.createElement("title");
+        t.textContent = BRAND;
+        document.head.appendChild(t);
+      }
+    };
+
+    // 1) Asegurar ahora mismo
+    ensure();
+
+    // 2) Observar TODO el head (subtree) para cualquier cambio
+    const observer = new MutationObserver(() => {
+      ensure();
     });
-    observer.observe(document.querySelector("title"), { childList: true });
-    return () => observer.disconnect();
+    observer.observe(document.head, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+
+    // 3) Tick corto por si alguna librería reescribe justo después
+    const id = setInterval(ensure, 200);
+
+    return () => {
+      observer.disconnect();
+      clearInterval(id);
+    };
   }, []);
 
   return null;
