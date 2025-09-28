@@ -1,5 +1,6 @@
 // src/store/cart.js
 import { create } from "zustand";
+import { toast } from "@/store/toast";
 
 const isSubscription = (x={}) => {
   const n = (x.name || "").toLowerCase();
@@ -28,9 +29,11 @@ export const useCart = create((set, get) => ({
 
     // 🔒 Global guard: si ya hay una suscripción en el carrito, impedir añadir otra
     if (sub && state.items.some(isSubscription)) {
-      if (typeof window !== "undefined") {
-        window.alert("Ya tienes una suscripción en el carrito. Puedes gestionarla desde ahí.");
-      }
+      toast({
+        title: "Suscripción ya añadida",
+        message: "Gestiona la suscripción actual desde el carrito.",
+        variant: "warning",
+      });
       return; // no modifica el estado
     }
 
