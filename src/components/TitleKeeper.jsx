@@ -13,13 +13,13 @@ export default function TitleKeeper(){
 
   useEffect(() => {
     // Forzar en cada navegación
-    if (document.title !== BRAND) document.title = BRAND;
+    if (document.title !== BRAND) 
   }, [location]);
 
   useEffect(() => {
     const ensure = () => {
       if (document.title !== BRAND) {
-        document.title = BRAND;
+        
       }
       // si no hay <title>, lo creamos
       let t = document.head.querySelector("title");
