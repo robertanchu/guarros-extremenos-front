@@ -12,6 +12,7 @@ export default function CartDrawer(){
   const cartOpen = useUI(s=>s.cartOpen);
   const close = ()=> useUI.getState().closeCart();
   const subtotal = items.reduce((a,b)=> a + (Number(b.price)||0)*(b.qty||0), 0);
+  const hasSub = items.some(isSubscription);
 
   const handleCheckout = async ()=>{
     try{
@@ -68,54 +69,65 @@ export default function CartDrawer(){
         {items.length===0 ? (
           <p className="text-zinc-400">Tu carrito está vacío.</p>
         ) : (
-          <ul className="space-y-3">
-            {items.map((it)=> {
-              const key = it.id || it.priceId;
-              const lineTotal = ((Number(it.price)||0)*(it.qty||0)).toFixed(2);
-              const sub = isSubscription(it);
-              return (
-                <li key={key} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                  <div className="min-w-0">
-                    <div className="text-white truncate">{it.name}</div>
-                    <div className="text-sm text-zinc-400">{sub ? "Suscripción" : `x${it.qty}`}</div>
-                  </div>
+          <>
+            {hasSub && (
+              <div className="mb-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-300 text-sm p-3">
+                <span className="font-semibold">Suscripción única:</span> solo puede haber una por carrito. Edita o elimina si quieres cambiar el plan.
+              </div>
+            )}
+            <ul className="space-y-3">
+              {items.map((it)=> {
+                const key = it.id || it.priceId;
+                const lineTotal = ((Number(it.price)||0)*(it.qty||0)).toFixed(2);
+                const sub = isSubscription(it);
+                return (
+                  <li key={key} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <div className="min-w-0">
+                      <div className="text-white truncate">{it.name}</div>
+                      {sub ? (
+                        <div className="text-xs mt-1 text-amber-300">Suscripción — cantidad fija (1)</div>
+                      ) : (
+                        <div className="text-sm text-zinc-400">x{it.qty}</div>
+                      )}
+                    </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    {/* Stepper solo si NO es suscripción */}
-                    {!sub && (
-                      <div className="flex items-center rounded-xl overflow-hidden border border-white/10">
-                        <button
-                          type="button"
-                          onClick={() => decrement(key)}
-                          className="px-2 py-1 text-white hover:bg-white/10"
-                          aria-label="Restar uno"
-                        >–</button>
-                        <div className="px-2 text-white/90 select-none">{it.qty}</div>
-                        <button
-                          type="button"
-                          onClick={() => increment(key)}
-                          className="px-2 py-1 text-white hover:bg-white/10"
-                          aria-label="Sumar uno"
-                        >+</button>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {/* Stepper solo si NO es suscripción */}
+                      {!sub && (
+                        <div className="flex items-center rounded-xl overflow-hidden border border-white/10">
+                          <button
+                            type="button"
+                            onClick={() => decrement(key)}
+                            className="px-2 py-1 text-white hover:bg-white/10"
+                            aria-label="Restar uno"
+                          >–</button>
+                          <div className="px-2 text-white/90 select-none">{it.qty}</div>
+                          <button
+                            type="button"
+                            onClick={() => increment(key)}
+                            className="px-2 py-1 text-white hover:bg-white/10"
+                            aria-label="Sumar uno"
+                          >+</button>
+                        </div>
+                      )}
 
-                    {/* Precio línea */}
-                    <div className="text-white tabular-nums w-[72px] text-right">{lineTotal} €</div>
+                      {/* Precio línea */}
+                      <div className="text-white tabular-nums w-[72px] text-right">{lineTotal} €</div>
 
-                    {/* Eliminar */}
-                    <button
-                      type="button"
-                      onClick={() => removeItem(key)}
-                      className="px-3 py-2 rounded-xl text-white bg-brand/90 hover:bg-brand"
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+                      {/* Eliminar */}
+                      <button
+                        type="button"
+                        onClick={() => removeItem(key)}
+                        className="px-3 py-2 rounded-xl text-white bg-brand/90 hover:bg-brand"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
       </div>
 
