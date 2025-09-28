@@ -1,12 +1,7 @@
 // src/store/cart.js
 import { create } from "zustand";
 import { toast } from "@/store/toast";
-
-const isSubscription = (x={}) => {
-  const n = (x.name || "").toLowerCase();
-  const s = (x.slug || "").toLowerCase();
-  return x.isSubscription === true || x.kind === "subscription" || /suscrip/.test(n) || /suscrip/.test(s);
-};
+import { isSubscription } from "@/lib/subscription";
 
 const makeId = (seed) => {
   try {
@@ -27,17 +22,15 @@ export const useCart = create((set, get) => ({
     const sub = isSubscription(it);
     const state = get();
 
-    // 🔒 Global guard: si ya hay una suscripción en el carrito, impedir añadir otra
     if (sub && state.items.some(isSubscription)) {
       toast({
         title: "Suscripción ya añadida",
-        message: "Gestiona la suscripción actual desde el carrito.",
+        message: "Gestiona tu plan desde el carrito.",
         variant: "warning",
       });
-      return; // no modifica el estado
+      return;
     }
 
-    // clave para mergear líneas iguales (evita duplicados)
     const key = (x) => `${x.priceId || ""}::${x.slug || x.name || ""}`;
 
     set((s) => {
@@ -45,14 +38,12 @@ export const useCart = create((set, get) => ({
       if (idx >= 0) {
         const items = s.items.slice();
         if (sub) {
-          // suscripción: siempre 1 unidad
           items[idx] = { ...items[idx], qty: 1, isSubscription: true };
         } else {
           items[idx] = { ...items[idx], qty: items[idx].qty + (it.qty || 1) };
         }
         return { items };
       }
-      // nueva línea
       return { items: [...s.items, { ...it, qty: sub ? 1 : (it.qty || 1), isSubscription: sub }] };
     });
   },
@@ -71,7 +62,6 @@ export const useCart = create((set, get) => ({
       );
       if (idx === -1) return { items };
       if (isSubscription(items[idx])) {
-        // no-op para suscripciones
         return { items };
       }
       if (items[idx].qty > 1) {
@@ -91,7 +81,6 @@ export const useCart = create((set, get) => ({
       );
       if (idx === -1) return { items };
       if (isSubscription(items[idx])) {
-        // no-op para suscripciones
         return { items };
       }
       items[idx].qty += 1;
