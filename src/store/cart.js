@@ -1,6 +1,12 @@
 // src/store/cart.js
 import { create } from "zustand";
 
+const isSubscription = (x={}) => {
+  const n = (x.name || "").toLowerCase();
+  const s = (x.slug || "").toLowerCase();
+  return x.isSubscription === true || x.kind === "subscription" || /suscrip/.test(n) || /suscrip/.test(s);
+};
+
 const makeId = (seed) => {
   try {
     if (seed?.priceId && seed?.slug) return `line-${seed.priceId}-${seed.slug}`;
@@ -17,15 +23,34 @@ export const useCart = create((set, get) => ({
     const it = { qty: 1, ...payload };
     if (!it.id) it.id = makeId(it);
 
+    const sub = isSubscription(it);
+    const state = get();
+
+    // 🔒 Global guard: si ya hay una suscripción en el carrito, impedir añadir otra
+    if (sub && state.items.some(isSubscription)) {
+      if (typeof window !== "undefined") {
+        window.alert("Ya tienes una suscripción en el carrito. Puedes gestionarla desde ahí.");
+      }
+      return; // no modifica el estado
+    }
+
+    // clave para mergear líneas iguales (evita duplicados)
     const key = (x) => `${x.priceId || ""}::${x.slug || x.name || ""}`;
+
     set((s) => {
       const idx = s.items.findIndex((x) => key(x) === key(it));
       if (idx >= 0) {
         const items = s.items.slice();
-        items[idx] = { ...items[idx], qty: items[idx].qty + (it.qty || 1) };
+        if (sub) {
+          // suscripción: siempre 1 unidad
+          items[idx] = { ...items[idx], qty: 1, isSubscription: true };
+        } else {
+          items[idx] = { ...items[idx], qty: items[idx].qty + (it.qty || 1) };
+        }
         return { items };
       }
-      return { items: [...s.items, it] };
+      // nueva línea
+      return { items: [...s.items, { ...it, qty: sub ? 1 : (it.qty || 1), isSubscription: sub }] };
     });
   },
 
@@ -42,6 +67,10 @@ export const useCart = create((set, get) => ({
         (x) => x.id === matcher || x.priceId === matcher
       );
       if (idx === -1) return { items };
+      if (isSubscription(items[idx])) {
+        // no-op para suscripciones
+        return { items };
+      }
       if (items[idx].qty > 1) {
         items[idx].qty -= 1;
         return { items };
@@ -58,6 +87,10 @@ export const useCart = create((set, get) => ({
         (x) => x.id === matcher || x.priceId === matcher
       );
       if (idx === -1) return { items };
+      if (isSubscription(items[idx])) {
+        // no-op para suscripciones
+        return { items };
+      }
       items[idx].qty += 1;
       return { items };
     });
