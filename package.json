@@ -3,13 +3,12 @@
   "version": "2.0.0",
   "private": true,
   "type": "module",
-"scripts": {
-  "prebuild": "node scripts/clean-dist.cjs",
-  "build": "node scripts/run-vite-build.cjs",
-  "dev": "vite",
-  "preview": "vite preview"
-}
-,
+  "scripts": {
+    "prebuild": "node scripts/clean-dist.cjs",
+    "build": "node scripts/run-vite-build.cjs",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

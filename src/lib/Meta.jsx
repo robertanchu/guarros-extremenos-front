@@ -1,2 +1,6 @@
-import React from "react"; import { Helmet } from "react-helmet-async";
-export default function Meta({ title, description }){ const site="Guarros Extremeños"; const full=title?`${title} · ${site}`:site; return (); }
+﻿import { useEffect } from "react";
+const BRAND = "Guarros Extremeños";
+export default function Meta() {
+  useEffect(() => { if (document?.title !== BRAND) document.title = BRAND; }, []);
+  return null;
+}
