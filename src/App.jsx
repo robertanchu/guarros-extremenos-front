@@ -11,6 +11,7 @@ import CartDrawer from "@/components/CartDrawer";
 
 import { useCart } from "@/store/cart";
 import { useUI } from "@/store/ui";
+import { useHydrateCatalog } from "@/hooks/useHydrateCatalog"; // <-- nuevo
 
 // Pages
 import Home from "@/pages/Home";
@@ -25,6 +26,9 @@ import CookiePreferences from "@/components/CookiePreferences";
 import Producto from "@/pages/Producto";
 
 function Layout(){
+  // Hidrata catálogo para que /producto/:slug funcione también con refresh/URL directa
+  useHydrateCatalog();
+
   const { items, removeItem, checkout, increment, decrement } = useCart();
   const { cartOpen, closeCart } = useUI();
 
