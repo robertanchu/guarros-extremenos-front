@@ -10,15 +10,15 @@ function BrandLogo(){
     <Link to="/" className="flex items-center gap-3" aria-label="Ir al inicio">
       {imgOk ? (
         <img
-          src="/logo/logo_pig.png"   // Archivo en public/logo/logo_pig.png
+          src="/logo/logo_pig.png"
           alt="Guarros Extremeños"
-          className="h-8 w-auto md:h-9"
+          className="w-auto h-16 md:h-[4.5rem]"  // 2rem -> 4rem | 2.25rem -> 4.5rem (doble)
           onError={() => setImgOk(false)}
           loading="eager"
           decoding="async"
         />
       ) : (
-        <span className="text-white font-semibold tracking-wide text-lg">Guarros Extremeños</span>
+        <span className="text-white font-semibold tracking-wide text-xl md:text-2xl">Guarros Extremeños</span>
       )}
     </Link>
   );
@@ -33,7 +33,7 @@ export default function Header(){
 
   return (
     <header className="sticky top-0 z-50 w-full bg-black/70 backdrop-blur border-b border-white/10">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 h-14 md:h-16">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 h-20 md:h-24">
         {/* Logo */}
         <BrandLogo />
 
@@ -49,10 +49,10 @@ export default function Header(){
         {/* Carrito */}
         <button
           onClick={openCart}
-          className="relative ml-3 inline-flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-all h-11 w-11 md:h-12 md:w-12"
+          className="relative ml-3 inline-flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-all h-12 w-12 md:h-14 md:w-14"
           aria-label="Abrir carrito"
         >
-          <ShoppingCart className="h-6 w-6 text-white" />
+          <ShoppingCart className="h-6 w-6 md:h-7 md:w-7 text-white" />
           {itemsCount > 0 && (
             <span className="absolute -top-1 -right-1 text-[11px] font-bold leading-none bg-[#E53935] text-white rounded-full px-1.5 py-0.5 shadow">
               {itemsCount}
