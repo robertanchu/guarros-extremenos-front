@@ -9,7 +9,7 @@ export default function CartDrawer({
 }) {
   return (
     <aside
-      className={\`fixed top-0 right-0 h-full w-[94%] sm:w-[28rem] bg-black/95 border-l border-white/10 transition-transform \${isOpen ? "translate-x-0" : "translate-x-full"}\`}
+      className={`fixed top-0 right-0 h-full w-[94%] sm:w-[28rem] bg-black/95 border-l border-white/10 transition-transform ${isOpen ? "translate-x-0" : "translate-x-full"}`}
     >
       {/* Header del drawer */}
       <div className="flex items-center justify-between p-4 border-b border-white/10">
