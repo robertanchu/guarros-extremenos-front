@@ -79,7 +79,7 @@ export default function Terminos(){
 
       <h2 className="text-xl font-bold mt-8 mb-2">13. Protección de datos</h2>
       <p>
-        Tratamos tus datos conforme a nuestra <a className="text-red-600" href="/privacidad">Política de Privacidad</a>.
+        Tratamos tus datos conforme a nuestra <a className="text-[#E53935]" href="/privacidad">Política de Privacidad</a>.
       </p>
 
       <h2 className="text-xl font-bold mt-8 mb-2">14. Atención al cliente</h2>

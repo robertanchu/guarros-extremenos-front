@@ -14,11 +14,11 @@ export default function CookieBanner(){
       <h4 className="text-white font-black mb-2">¿Te damos jamón… y cookies?</h4>
       <p className="text-white/80 text-sm">
         Usamos cookies necesarias y, si aceptas, analíticas y de marketing.
-        <a className="text-red-600 ml-1 underline" href="/cookies">Saber más</a>
+        <a className="text-[#E53935] ml-1 underline" href="/cookies">Saber más</a>
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
         <button onClick={rejectAll} className="px-4 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10">Rechazar</button>
-        <button onClick={acceptAll} className="px-4 py-2 rounded-lg bg-red-600 text-black font-bold hover:bg-red-700">Aceptar todo</button>
+        <button onClick={acceptAll} className="px-4 py-2 rounded-lg bg-[#E53935] text-black font-bold hover:bg-[#d23431]">Aceptar todo</button>
         <button onClick={() => save({})} className="px-4 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10">
           Aceptar solo necesarias
         </button>

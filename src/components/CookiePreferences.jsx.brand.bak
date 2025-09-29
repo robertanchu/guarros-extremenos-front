@@ -35,7 +35,7 @@ export default function CookiePreferences(){
       </div>
 
       <div className="mt-6 flex gap-3">
-        <button onClick={apply} className="px-5 py-2 rounded-lg bg-red-600 text-black font-bold hover:bg-red-700">Guardar</button>
+        <button onClick={apply} className="px-5 py-2 rounded-lg bg-[#E53935] text-black font-bold hover:bg-[#d23431]">Guardar</button>
         <a href="/cookies" className="px-5 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10">Ver política de cookies</a>
       </div>
     </section>
