@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node node_modules/vite/bin/vite.js build",
+    "build": "node scripts/run-vite-build.js",
     "preview": "vite preview",
-    "postinstall": "chmod +x node_modules/.bin/* || true"
+    "postinstall": "chmod +x node_modules/.bin/* || true",
+    "prebuild": "rimraf dist || (rm -rf dist || true)"
   },
   "dependencies": {
     "react": "^18.3.1",
