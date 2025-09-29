@@ -12,6 +12,7 @@ import CartDrawer from "@/components/CartDrawer";
 import { useCart } from "@/store/cart";
 import { useUI } from "@/store/ui";
 
+// Pages
 import Home from "@/pages/Home";
 import Jamones from "@/pages/Jamones";
 import Suscripcion from "@/pages/Suscripcion";
@@ -30,21 +31,19 @@ function Layout(){
   return (
     <>
       <Header />
-      {/* Fallback de centrado por si Tailwind no carga */}
-      <div style={{ maxWidth: "1280px", margin: "0 auto" }} className="max-w-7xl mx-auto">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/jamones" element={<Jamones />} />
-          <Route path="/producto/:slug" element={<Producto />} />
-          <Route path="/suscripcion" element={<Suscripcion />} />
-          <Route path="/dehesa" element={<Dehesa />} />
-          <Route path="/contacto" element={<Contacto />} />
-          <Route path="/terminos" element={<Terminos />} />
-          <Route path="/privacidad" element={<Privacidad />} />
-          <Route path="/cookies" element={<><CookiesPage /><CookiePreferences /></>} />
-          <Route path="*" element={<Home />} />
-        </Routes>
-      </div>
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/jamones" element={<Jamones />} />
+        <Route path="/producto/:slug" element={<Producto />} />
+        <Route path="/suscripcion" element={<Suscripcion />} />
+        <Route path="/dehesa" element={<Dehesa />} />
+        <Route path="/contacto" element={<Contacto />} />
+        <Route path="/terminos" element={<Terminos />} />
+        <Route path="/privacidad" element={<Privacidad />} />
+        <Route path="/cookies" element={<><CookiesPage /><CookiePreferences /></>} />
+        <Route path="*" element={<Home />} />
+      </Routes>
 
       <CartDrawer
         isOpen={cartOpen}

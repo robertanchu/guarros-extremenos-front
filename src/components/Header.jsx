@@ -8,31 +8,35 @@ export default function Header(){
   const { openCart } = useUI();
   const itemsCount = items.reduce((a, x) => a + (x.qty ?? 1), 0);
 
-  return (
-    <header
-      className="sticky top-0 z-50 w-full bg-black/70 backdrop-blur border-b border-white/10"
-      style={{ position: "sticky", top: 0, zIndex: 50, width: "100%", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}
-    >
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 h-14 md:h-16"
-           style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 1rem", height: "64px" }}>
-        {/* Logo + Home (fallback) */}
-        <div className="flex items-center gap-3">
-          <Link to="/" className="text-white font-semibold">Home</Link>
-        </div>
+  const linkBase = "text-white/80 hover:text-white transition-colors px-2 py-1 rounded-lg";
+  const active = ({ isActive }) => isActive ? "text-white font-semibold" : "text-white/80";
 
-        {/* Botón carrito */}
+  return (
+    <header className="sticky top-0 z-50 w-full bg-black/70 backdrop-blur border-b border-white/10">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 h-14 md:h-16">
+        {/* Logo */}
+        <Link to="/" className="text-white font-semibold tracking-wide">
+          Guarros Extremeños
+        </Link>
+
+        {/* NAV */}
+        <nav className="hidden md:flex items-center gap-4">
+          <NavLink to="/" className={({isActive}) => `${linkBase} ${isActive ? "text-white" : ""}`}>Inicio</NavLink>
+          <NavLink to="/jamones" className={({isActive}) => `${linkBase} ${isActive ? "text-white" : ""}`}>Jamones</NavLink>
+          <NavLink to="/suscripcion" className={({isActive}) => `${linkBase} ${isActive ? "text-white" : ""}`}>Suscripción</NavLink>
+          <NavLink to="/dehesa" className={({isActive}) => `${linkBase} ${isActive ? "text-white" : ""}`}>Dehesa</NavLink>
+          <NavLink to="/contacto" className={({isActive}) => `${linkBase} ${isActive ? "text-white" : ""}`}>Contacto</NavLink>
+        </nav>
+
+        {/* Carrito */}
         <button
           onClick={openCart}
           className="relative ml-3 inline-flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-all h-11 w-11 md:h-12 md:w-12"
-          style={{ position: "relative", marginLeft: "0.75rem", display: "inline-flex", alignItems: "center", justifyContent: "center", borderRadius: "0.75rem", background: "rgba(255,255,255,0.05)", height: "44px", width: "44px" }}
           aria-label="Abrir carrito"
         >
           <ShoppingCart className="h-6 w-6 text-white" />
           {itemsCount > 0 && (
-            <span
-              className="absolute -top-1 -right-1 text-[11px] font-bold leading-none bg-[#E53935] text-white rounded-full px-1.5 py-0.5 shadow"
-              style={{ position: "absolute", top: "-6px", right: "-6px", fontSize: "11px", fontWeight: 700, background: "#E53935", color: "#fff", borderRadius: "999px", padding: "2px 6px" }}
-            >
+            <span className="absolute -top-1 -right-1 text-[11px] font-bold leading-none bg-[#E53935] text-white rounded-full px-1.5 py-0.5 shadow">
               {itemsCount}
             </span>
           )}
