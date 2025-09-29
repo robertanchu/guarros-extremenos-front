@@ -2,6 +2,27 @@ import { Link, NavLink } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { useUI } from "@/store/ui";
+import React from "react";
+
+function BrandLogo(){
+  const [imgOk, setImgOk] = React.useState(true);
+  return (
+    <Link to="/" className="flex items-center gap-3" aria-label="Ir al inicio">
+      {imgOk ? (
+        <img
+          src="/logo_pig.png"    // Tu logo en /public/logo_pig.png
+          alt="Guarros Extremeños"
+          className="h-8 w-auto md:h-9"
+          onError={() => setImgOk(false)}
+          loading="eager"
+          decoding="async"
+        />
+      ) : (
+        <span className="text-white font-semibold tracking-wide text-lg">Guarros Extremeños</span>
+      )}
+    </Link>
+  );
+}
 
 export default function Header(){
   const { items } = useCart();
@@ -9,15 +30,12 @@ export default function Header(){
   const itemsCount = items.reduce((a, x) => a + (x.qty ?? 1), 0);
 
   const linkBase = "text-white/80 hover:text-white transition-colors px-2 py-1 rounded-lg";
-  const active = ({ isActive }) => isActive ? "text-white font-semibold" : "text-white/80";
 
   return (
     <header className="sticky top-0 z-50 w-full bg-black/70 backdrop-blur border-b border-white/10">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 h-14 md:h-16">
         {/* Logo */}
-        <Link to="/" className="text-white font-semibold tracking-wide">
-          Guarros Extremeños
-        </Link>
+        <BrandLogo />
 
         {/* NAV */}
         <nav className="hidden md:flex items-center gap-4">
