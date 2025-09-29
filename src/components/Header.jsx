@@ -12,7 +12,7 @@ function BrandLogo(){
         <img
           src="/logo/logo_pig.png"
           alt="Guarros Extremeños"
-          className="w-auto h-16 md:h-[4.5rem]"  // 2rem -> 4rem | 2.25rem -> 4.5rem (doble)
+          className="w-auto h-14 md:h-16"  // 1.75× en móvil (3.5rem), 2× en md+ (4rem)
           onError={() => setImgOk(false)}
           loading="eager"
           decoding="async"
