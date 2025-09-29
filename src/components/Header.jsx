@@ -10,7 +10,7 @@ function BrandLogo(){
     <Link to="/" className="flex items-center gap-3" aria-label="Ir al inicio">
       {imgOk ? (
         <img
-          src="/logo/logo_solo.png"
+          src="/logo/logo_horizontal.png"
           alt="Guarros Extremeños"
           className="w-auto h-16 md:h-[4.5rem]"  // 2rem -> 4rem | 2.25rem -> 4.5rem (doble)
           onError={() => setImgOk(false)}
