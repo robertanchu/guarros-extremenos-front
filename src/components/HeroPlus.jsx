@@ -28,7 +28,7 @@ export default function HeroPlus(){
             className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight text-white"
           >
             TAN GUARROS QUE{" "}
-            <span className="text-red-600">SÓLO COMEN BELLOTAS</span>
+            <span className="text-[#E53935]">SÓLO COMEN BELLOTAS</span>
           </motion.h1>
 
           <motion.p
@@ -45,10 +45,10 @@ export default function HeroPlus(){
           <div className="mt-8 flex gap-4">
             <Link
               to="/jamones"
-              className="relative inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-extrabold text-black bg-red-600 hover:bg-red-700 transition shadow-lg"
+              className="relative inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-extrabold text-black bg-[#E53935] hover:bg-[#d23431] transition shadow-lg"
             >
               <span className="relative z-10">Ver Jamones</span>
-              <span className="absolute inset-0 rounded-xl animate-[pulse_2.2s_ease-out_infinite] ring-2 ring-red-600/50"></span>
+              <span className="absolute inset-0 rounded-xl animate-[pulse_2.2s_ease-out_infinite] ring-2 ring-[#E53935]/50"></span>
             </Link>
             <Link
               to="/suscripcion"
@@ -75,7 +75,7 @@ function Ticker(){
     "Club Guarro",
   ];
   return (
-    <div className="relative bg-red-600 py-2 overflow-hidden border-t border-[#ff6a66]">
+    <div className="relative bg-[#E53935] py-2 overflow-hidden border-t border-[#ff6a66]">
       <motion.div
         className="whitespace-nowrap font-black tracking-wide text-black/90"
         initial={{ x: "100%" }}

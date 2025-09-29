@@ -57,7 +57,7 @@ export default function Privacidad(){
       <h2 className="text-xl font-bold mt-8 mb-2">9. Cookies</h2>
       <p>
         Usamos cookies técnicas y, con tu consentimiento, analíticas/marketing. 
-        Detalles y opciones en la <a className="text-red-600" href="/cookies">Política de Cookies</a>.
+        Detalles y opciones en la <a className="text-[#E53935]" href="/cookies">Política de Cookies</a>.
       </p>
 
       <h2 className="text-xl font-bold mt-8 mb-2">10. Cambios</h2>
