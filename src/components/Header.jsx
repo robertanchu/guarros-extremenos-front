@@ -1,55 +1,56 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import Brand from './Brand';
-import { useCart } from '@/store/cart';
-import { useUI } from '@/store/ui';
-import MobileMenuDrawer from './MobileMenuDrawer';
+// src/components/Header.jsx
+import { Link, NavLink } from "react-router-dom";
+import { ShoppingCart } from "lucide-react";
+import { useCart } from "@/store/cart"; // Ajusta si tu store tiene otro path
 
 export default function Header(){
-  const items = useCart(s=>s.items);
-  const total = items.reduce((a,b)=>a+b.qty,0);
-  const cartPulse = useUI(s=>s.cartPulse);
-  const openCart = ()=> useUI.getState().openCart();
-  const [open,setOpen] = useState(false);
+  const { openCart, itemsCount } = useCart?.() ?? { openCart: () => {}, itemsCount: 0 };
 
   return (
-    <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur border-b border-white/10 full-bleed">
-      {/* aire extra en lados del header */}
-      <div className="shell py-2 md:py-3 px-4 md:px-6 flex items-center justify-between min-h-[84px]">
-        {/* logo 1.5x */}
-        <div className="h-[3.75rem] md:h-[4.5rem] lg:h-[5.25rem] flex items-center">
-          <Brand />
+    <header className="sticky top-0 z-50 w-full bg-black/70 backdrop-blur border-b border-white/10">
+      <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
+        <div className="h-16 flex items-center justify-between">
+          {/* Marca */}
+          <Link to="/" className="flex items-center gap-3 group">
+            <img
+              src="/logo/Logo_final_sinletras.png"
+              alt="Guarros Extremeños"
+              className="h-10 w-auto md:h-12 group-hover:scale-[1.02] transition-transform"
+              loading="eager"
+              fetchpriority="high"
+            />
+            <span className="text-white tracking-wide font-black text-lg md:text-xl lg:text-2xl">
+              Guarros Extremeños
+            </span>
+          </Link>
+
+          {/* Navegación */}
+          <nav className="hidden md:flex items-center gap-8">
+            <NavLink to="/" className="text-sm md:text-base lg:text-lg text-white/90 hover:text-white transition-colors">Home</NavLink>
+            <NavLink to="/jamones" className="text-sm md:text-base lg:text-lg text-white/90 hover:text-white transition-colors">Jamones</NavLink>
+            <NavLink to="/suscripcion" className="text-sm md:text-base lg:text-lg text-white/90 hover:text-white transition-colors">Suscripción</NavLink>
+            <NavLink to="/dehesa" className="text-sm md:text-base lg:text-lg text-white/90 hover:text-white transition-colors">La Dehesa</NavLink>
+            <NavLink to="/contacto" className="text-sm md:text-base lg:text-lg text-white/90 hover:text-white transition-colors">Contacto</NavLink>
+            <NavLink to="/terminos" className="text-sm md:text-base lg:text-lg text-white/90 hover:text-white transition-colors">Términos</NavLink>
+            <NavLink to="/privacidad" className="text-sm md:text-base lg:text-lg text-white/90 hover:text-white transition-colors">Privacidad</NavLink>
+            <NavLink to="/cookies" className="text-sm md:text-base lg:text-lg text-white/90 hover:text-white transition-colors">Cookies</NavLink>
+          </nav>
+
+          {/* Carrito */}
+          <button
+            onClick={openCart}
+            className="relative ml-3 inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 hover:bg-white/10 transition-all h-11 w-11 md:h-12 md:w-12"
+            aria-label="Abrir carrito"
+          >
+            <ShoppingCart className="h-6 w-6 text-white" />
+            {itemsCount > 0 && (
+              <span className="absolute -top-1 -right-1 text-[11px] font-bold leading-none bg-[#E53935] text-white rounded-full px-1.5 py-0.5 shadow">
+                {itemsCount}
+              </span>
+            )}
+          </button>
         </div>
-
-        {/* menú mobile */}
-        <button className="md:hidden p-2.5 rounded-xl hover:bg-white/10" onClick={()=> setOpen(true)} aria-label="Abrir menú">
-          <svg width="26" height="26" viewBox="0 0 24 24"><path fill="currentColor" d="M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h16v2H4v-2Z"/></svg>
-        </button>
-
-        {/* nav desktop */}
-        <nav className="hidden md:flex gap-8 text-base md:text-lg text-gray-100">
-          <Link to="/" className="px-2 py-1 rounded-lg hover:text-white hover:bg-white/5">Home</Link>
-          <Link to="/jamones" className="px-2 py-1 rounded-lg hover:text-white hover:bg-white/5">Jamones</Link>
-          <Link to="/suscripcion" className="px-2 py-1 rounded-lg hover:text-white hover:bg-white/5">Suscripción</Link>
-          <Link to="/dehesa" className="px-2 py-1 rounded-lg hover:text-white hover:bg-white/5">La Dehesa</Link>
-          <Link to="/contacto" className="px-2 py-1 rounded-lg hover:text-white hover:bg-white/5">Contacto</Link>
-        </nav>
-
-        {/* carrito más grande y con más padding */}
-        <button
-          onClick={openCart}
-          className={"relative px-4 py-3 rounded-xl text-zinc-100 hover:bg-white/10 transition " + (cartPulse ? "cart-pulse" : "")}
-          data-cart-target="true"
-          aria-label="Abrir carrito"
-        >
-          <svg width="28" height="28" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M7 6h13l-1.5 9h-11zM6 6l-1-2H2v2h3zM7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm10 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/>
-          </svg>
-          {total>0 && <span className="absolute -top-1 -right-1 text-[11px] bg-brand text-white rounded-full px-1.5">{total}</span>}
-        </button>
       </div>
-
-      <MobileMenuDrawer open={open} onClose={()=> setOpen(false)} />
     </header>
   );
 }

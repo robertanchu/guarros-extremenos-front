@@ -1,144 +1,52 @@
 // src/components/CartDrawer.jsx
-import React from "react";
-import { useCart } from "@/store/cart";
-import { useUI } from "@/store/ui";
-import { isSubscription } from "@/lib/subscription";
-
-const API = import.meta.env.VITE_BACKEND_URL;
-const SHIPPING_RATE = import.meta.env.VITE_SHIPPING_RATE_ID || "shr_1SBOWZRPLp0YiQTHa4ClyIOc";
-
-export default function CartDrawer(){
-  const { items, removeItem, clear, decrement, increment } = useCart();
-  const cartOpen = useUI(s=>s.cartOpen);
-  const close = ()=> useUI.getState().closeCart();
-  const subtotal = items.reduce((a,b)=> a + (Number(b.price)||0)*(b.qty||0), 0);
-  const hasSub = items.some(isSubscription);
-
-  const handleCheckout = async ()=>{
-    try{
-      if (!API) {
-        alert("Falta VITE_BACKEND_URL en el entorno del frontend.");
-        return;
-      }
-      const res = await fetch(`${API}/create-checkout-session`, {
-        method: "POST",
-        headers: { "Content-Type":"application/json" },
-        body: JSON.stringify({
-          items: items.map(it=>({
-            price: it.priceId,
-            quantity: isSubscription(it) ? 1 : it.qty
-          })),
-          shipping_rate: SHIPPING_RATE,
-          success_url: `${window.location.origin}/exito`,
-          cancel_url: `${window.location.origin}/jamones`,
-        }),
-      });
-      if (!res.ok){
-        const err = await res.json().catch(()=>({}));
-        console.error("Checkout error:", err);
-        alert(`Error iniciando pago: ${err.error || res.statusText}`);
-        return;
-      }
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else alert("No se recibió URL de Stripe. Revisa el backend.");
-    }catch(e){
-      console.error(e);
-      alert("No se pudo iniciar el pago. Revisa CORS/Stripe en el backend.");
-    }
-  };
-
+export default function CartDrawer({ isOpen, onClose, items = [], removeItem = () => {}, checkout = () => {} }) {
   return (
-    <aside
-      className={
-        "fixed top-0 right-0 h-full w-[92%] sm:w-[420px] bg-zinc-950 border-l border-white/10 shadow-xl " +
-        "transition-transform duration-300 z-50 grid grid-rows-[auto,1fr,auto] " +
-        (cartOpen ? "translate-x-0" : "translate-x-full")
-      }
-    >
-      {/* Header */}
-      <div className="p-4 border-b border-white/10 flex items-center justify-between bg-zinc-950/90 backdrop-blur">
-        <h3 className="text-white font-stencil text-xl">Tu carrito</h3>
-        <button onClick={close} className="p-2 rounded-lg hover:bg-white/10" aria-label="Cerrar">
-          <svg width="22" height="22" viewBox="0 0 24 24"><path fill="currentColor" d="M6.4 5l12.2 12.2-1.4 1.4L5 6.4 6.4 5Zm12.2 1.4L6.4 18.6 5 17.2 17.2 5l1.4 1.4Z"/></svg>
-        </button>
+    <aside className={`fixed top-0 right-0 h-full w-[94%] sm:w-[420px] bg-[#0c0c0c] border-l border-white/10 shadow-2xl transition-transform ${isOpen ? "translate-x-0" : "translate-x-full"}`}>
+      <div className="flex items-center justify-between px-5 h-14 border-b border-white/10">
+        <h3 className="text-white font-black">Tu carrito</h3>
+        <button onClick={onClose} className="text-white/70 hover:text-white" aria-label="Cerrar carrito">✕</button>
       </div>
 
-      {/* Lista */}
-      <div className="p-4 overflow-y-auto">
-        {items.length===0 ? (
-          <p className="text-zinc-400">Tu carrito está vacío.</p>
-        ) : (
-          <>
-            {hasSub && (
-              <div className="mb-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-300 text-sm p-3">
-                <span className="font-semibold">Suscripción única:</span> solo puede haber una por carrito. Edita o elimina si quieres cambiar el plan.
+      <div className="p-5 space-y-4 overflow-y-auto h-[calc(100%-7.5rem)]">
+        {items.length === 0 ? (
+          <p className="text-white/60">Tu carrito está tristemente vacío.</p>
+        ) : items.map((it) => (
+          <div key={it.id} className="flex items-start gap-3 rounded-xl border border-white/10 p-3">
+            <img src={it.image || "/og/og-default.jpg"} alt={it.name} className="h-16 w-16 object-cover rounded-lg" />
+            <div className="flex-1">
+              <div className="flex items-center justify_between justify-between">
+                <h4 className="text-white font-bold">{it.name}</h4>
+                <span className="text-white/80 font-semibold">{(it.price/100).toFixed(2)}€</span>
               </div>
-            )}
-            <ul className="space-y-3">
-              {items.map((it)=> {
-                const key = it.id || it.priceId;
-                const lineTotal = ((Number(it.price)||0)*(it.qty||0)).toFixed(2);
-                const sub = isSubscription(it);
-                return (
-                  <li key={key} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-                    <div className="min-w-0">
-                      <div className="text-white truncate">{it.name}</div>
-                      {sub ? (
-                        <div className="text-xs mt-1 text-amber-300">Suscripción — cantidad fija (1)</div>
-                      ) : (
-                        <div className="text-sm text-zinc-400">x{it.qty}</div>
-                      )}
-                    </div>
+              <p className="text-xs text-white/50 mt-1">{it.variant || "Producto"}</p>
 
-                    <div className="flex items-center gap-2 shrink-0">
-                      {/* Stepper solo si NO es suscripción */}
-                      {!sub && (
-                        <div className="flex items-center rounded-xl overflow-hidden border border-white/10">
-                          <button
-                            type="button"
-                            onClick={() => decrement(key)}
-                            className="px-2 py-1 text-white hover:bg-white/10"
-                            aria-label="Restar uno"
-                          >–</button>
-                          <div className="px-2 text-white/90 select-none">{it.qty}</div>
-                          <button
-                            type="button"
-                            onClick={() => increment(key)}
-                            className="px-2 py-1 text-white hover:bg-white/10"
-                            aria-label="Sumar uno"
-                          >+</button>
-                        </div>
-                      )}
+              {/* Sin +/- si es suscripción */}
+              {it.type !== "subscription" && (
+                <div className="mt-2 flex items-center gap-2">
+                  <button onClick={() => it.decrease?.(it.id)} className="h-7 w-7 rounded-lg border border-white/15 text-white/80 hover:bg-white/10">−</button>
+                  <span className="text-white/90">{it.qty ?? 1}</span>
+                  <button onClick={() => it.increase?.(it.id)} className="h-7 w-7 rounded-lg border border-white/15 text-white/80 hover:bg-white/10">+</button>
+                </div>
+              )}
 
-                      {/* Precio línea */}
-                      <div className="text-white tabular-nums w-[72px] text-right">{lineTotal} €</div>
-
-                      {/* Eliminar */}
-                      <button
-                        type="button"
-                        onClick={() => removeItem(key)}
-                        className="px-3 py-2 rounded-xl text-white bg-brand/90 hover:bg-brand"
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </>
-        )}
+              <button
+                onClick={() => removeItem(it.id)}
+                className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-white bg-[#E53935] hover:bg-[#d23431] rounded-lg px-3 py-1.5"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-white/10 bg-zinc-950/90 backdrop-blur">
-        <div className="flex items-center justify-between text-sm mb-3">
-          <span className="text-zinc-300">Subtotal</span>
-          <span className="text-white">{subtotal.toFixed(2)} €</span>
-        </div>
-        <button onClick={handleCheckout} className="w-full btn-primary btn-shiny">Pagar</button>
-        <button onClick={()=>{ clear(); close(); }} className="w-full mt-2 btn-secondary">Vaciar</button>
+      <div className="p-5 border-t border-white/10">
+        <button
+          onClick={checkout}
+          className="w-full inline-flex items-center justify-center rounded-xl px-5 py-3 text-base font-extrabold text-black bg-[#E53935] hover:bg-[#d23431] transition shadow-lg"
+        >
+          Pagar
+        </button>
       </div>
     </aside>
   );
