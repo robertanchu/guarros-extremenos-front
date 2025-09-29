@@ -1,4 +1,3 @@
-// src/components/Header.jsx
 import { Link, NavLink } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/store/cart"; // Ajusta si tu store tiene otro path
@@ -31,9 +30,6 @@ export default function Header(){
             <NavLink to="/suscripcion" className="text-sm md:text-base lg:text-lg text-white/90 hover:text-white transition-colors">Suscripción</NavLink>
             <NavLink to="/dehesa" className="text-sm md:text-base lg:text-lg text-white/90 hover:text-white transition-colors">La Dehesa</NavLink>
             <NavLink to="/contacto" className="text-sm md:text-base lg:text-lg text-white/90 hover:text-white transition-colors">Contacto</NavLink>
-            <NavLink to="/terminos" className="text-sm md:text-base lg:text-lg text-white/90 hover:text-white transition-colors">Términos</NavLink>
-            <NavLink to="/privacidad" className="text-sm md:text-base lg:text-lg text-white/90 hover:text-white transition-colors">Privacidad</NavLink>
-            <NavLink to="/cookies" className="text-sm md:text-base lg:text-lg text-white/90 hover:text-white transition-colors">Cookies</NavLink>
           </nav>
 
           {/* Carrito */}

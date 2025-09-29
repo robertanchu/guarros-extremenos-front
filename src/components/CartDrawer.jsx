@@ -1,5 +1,6 @@
-// src/components/CartDrawer.jsx
-export default function CartDrawer({ isOpen, onClose, items = [], removeItem = () => {}, checkout = () => {} }) {
+export default function CartDrawer({
+  isOpen, onClose, items = [], removeItem = () => {}, checkout = () => {}
+}) {
   return (
     <aside className={`fixed top-0 right-0 h-full w-[94%] sm:w-[420px] bg-[#0c0c0c] border-l border-white/10 shadow-2xl transition-transform ${isOpen ? "translate-x-0" : "translate-x-full"}`}>
       <div className="flex items-center justify-between px-5 h-14 border-b border-white/10">
@@ -14,7 +15,7 @@ export default function CartDrawer({ isOpen, onClose, items = [], removeItem = (
           <div key={it.id} className="flex items-start gap-3 rounded-xl border border-white/10 p-3">
             <img src={it.image || "/og/og-default.jpg"} alt={it.name} className="h-16 w-16 object-cover rounded-lg" />
             <div className="flex-1">
-              <div className="flex items-center justify_between justify-between">
+              <div className="flex items-center justify-between">
                 <h4 className="text-white font-bold">{it.name}</h4>
                 <span className="text-white/80 font-semibold">{(it.price/100).toFixed(2)}€</span>
               </div>
@@ -31,7 +32,7 @@ export default function CartDrawer({ isOpen, onClose, items = [], removeItem = (
 
               <button
                 onClick={() => removeItem(it.id)}
-                className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-white bg-[#E53935] hover:bg-[#d23431] rounded-lg px-3 py-1.5"
+                className="mt-3 inline-flex items-center gap-2 text-sm font-bold text_white bg-[#E53935] hover:bg-[#d23431] rounded-lg px-3 py-1.5"
               >
                 Eliminar
               </button>

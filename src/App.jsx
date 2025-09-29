@@ -7,26 +7,30 @@ import OgPerRoute from "@/components/OgPerRoute";
 import { ConsentProvider } from "@/consent/ConsentContext";
 import CookieBanner from "@/components/CookieBanner";
 
-// Tus páginas
-import Home from "@/pages/Home";
-import Jamones from "@/pages/Jamones";          // si existe
-import Suscripcion from "@/pages/Suscripcion";  // si existe
-import Dehesa from "@/pages/Dehesa";            // si existe
-import Contacto from "@/pages/Contacto";        // si existe
+import Header from "@/components/Header";
+import CartDrawer from "@/components/CartDrawer";
+import { useCart } from "@/store/cart"; // <-- tu store real
 
-// Legales
+// Páginas
+import Home from "@/pages/Home";
+import Jamones from "@/pages/Jamones";
+import Suscripcion from "@/pages/Suscripcion";
+import Dehesa from "@/pages/Dehesa";
+import Contacto from "@/pages/Contacto";
 import Terminos from "@/pages/legales/Terminos";
 import Privacidad from "@/pages/legales/Privacidad";
 import CookiesPage from "@/pages/legales/Cookies";
 import CookiePreferences from "@/components/CookiePreferences";
 
-export default function App() {
-  return (
-    <ConsentProvider>
-      <Meta />
-      <OgPerRoute />
+function Layout(){
+  // ADAPTA estos selectores a tu store real:
+  const {
+    isOpen, closeCart, items, removeItem, checkout
+  } = useCart?.() ?? { isOpen:false, closeCart:()=>{}, items:[], removeItem:()=>{}, checkout:()=>{} };
 
-      {/* Header aquí si lo tienes, y Footer al final */}
+  return (
+    <>
+      <Header />
 
       <Routes>
         <Route path="/" element={<Home />} />
@@ -35,18 +39,31 @@ export default function App() {
         <Route path="/dehesa" element={<Dehesa />} />
         <Route path="/contacto" element={<Contacto />} />
 
-        {/* Legales */}
         <Route path="/terminos" element={<Terminos />} />
         <Route path="/privacidad" element={<Privacidad />} />
         <Route path="/cookies" element={<><CookiesPage /><CookiePreferences /></>} />
 
-        {/* Fallback opcional */}
         <Route path="*" element={<Home />} />
       </Routes>
 
-      <CookieBanner />
-      {/* Footer */}
-    </ConsentProvider>
+      <CartDrawer
+        isOpen={isOpen}
+        onClose={closeCart}
+        items={items}
+        removeItem={removeItem}
+        checkout={checkout}
+      />
+    </>
   );
 }
 
+export default function App(){
+  return (
+    <ConsentProvider>
+      <Meta />
+      <OgPerRoute />
+      <Layout />
+      <CookieBanner />
+    </ConsentProvider>
+  );
+}
