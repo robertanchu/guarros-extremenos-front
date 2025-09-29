@@ -9,11 +9,9 @@ import CookieBanner from "@/components/CookieBanner";
 import Header from "@/components/Header";
 import CartDrawer from "@/components/CartDrawer";
 
-// stores correctos
 import { useCart } from "@/store/cart";
 import { useUI } from "@/store/ui";
 
-// Páginas
 import Home from "@/pages/Home";
 import Jamones from "@/pages/Jamones";
 import Suscripcion from "@/pages/Suscripcion";
@@ -23,32 +21,30 @@ import Terminos from "@/pages/legales/Terminos";
 import Privacidad from "@/pages/legales/Privacidad";
 import CookiesPage from "@/pages/legales/Cookies";
 import CookiePreferences from "@/components/CookiePreferences";
-// Nueva página de detalle
 import Producto from "@/pages/Producto";
 
 function Layout(){
-  // del carrito: items y acciones
   const { items, removeItem, checkout, increment, decrement } = useCart();
-  // del UI: estado de apertura del carrito
   const { cartOpen, closeCart } = useUI();
 
   return (
     <>
       <Header />
-
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/jamones" element={<Jamones />} />
-        {/* NUEVA RUTA PARA DETALLE DE PRODUCTO */}
-        <Route path="/producto/:slug" element={<Producto />} />
-        <Route path="/suscripcion" element={<Suscripcion />} />
-        <Route path="/dehesa" element={<Dehesa />} />
-        <Route path="/contacto" element={<Contacto />} />
-        <Route path="/terminos" element={<Terminos />} />
-        <Route path="/privacidad" element={<Privacidad />} />
-        <Route path="/cookies" element={<><CookiesPage /><CookiePreferences /></>} />
-        <Route path="*" element={<Home />} />
-      </Routes>
+      {/* Fallback de centrado por si Tailwind no carga */}
+      <div style={{ maxWidth: "1280px", margin: "0 auto" }} className="max-w-7xl mx-auto">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/jamones" element={<Jamones />} />
+          <Route path="/producto/:slug" element={<Producto />} />
+          <Route path="/suscripcion" element={<Suscripcion />} />
+          <Route path="/dehesa" element={<Dehesa />} />
+          <Route path="/contacto" element={<Contacto />} />
+          <Route path="/terminos" element={<Terminos />} />
+          <Route path="/privacidad" element={<Privacidad />} />
+          <Route path="/cookies" element={<><CookiesPage /><CookiePreferences /></>} />
+          <Route path="*" element={<Home />} />
+        </Routes>
+      </div>
 
       <CartDrawer
         isOpen={cartOpen}
