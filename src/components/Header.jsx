@@ -10,9 +10,9 @@ function BrandLogo(){
     <Link to="/" className="flex items-center gap-3" aria-label="Ir al inicio">
       {imgOk ? (
         <img
-          src="/logo/logo_horizontal2.png"
+          src="/logo/logo_pig.png"
           alt="Guarros Extremeños"
-          className="w-auto h-16 md:h-[4.5rem]"  // 2rem -> 4rem | 2.25rem -> 4.5rem (doble)
+          className="w-auto h-14 md:h-16"
           onError={() => setImgOk(false)}
           loading="eager"
           decoding="async"
@@ -54,7 +54,7 @@ export default function Header(){
         >
           <ShoppingCart className="h-6 w-6 md:h-7 md:w-7 text-white" />
           {itemsCount > 0 && (
-            <span className="absolute -top-1 -right-1 text-[11px] font-bold leading-none bg-[#E53935] text-white rounded-full px-1.5 py-0.5 shadow">
+            <span className="absolute -top-1 -right-1 text-[11px] font-bold leading-none bg-red-600 text-white rounded-full px-1.5 py-0.5 shadow">
               {itemsCount}
             </span>
           )}
