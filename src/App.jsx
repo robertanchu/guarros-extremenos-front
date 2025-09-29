@@ -1,4 +1,3 @@
-// src/App.jsx
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 
@@ -9,7 +8,10 @@ import CookieBanner from "@/components/CookieBanner";
 
 import Header from "@/components/Header";
 import CartDrawer from "@/components/CartDrawer";
-import { useCart } from "@/store/cart"; // <-- tu store real
+
+// stores correctos
+import { useCart } from "@/store/cart";
+import { useUI } from "@/store/ui";
 
 // Páginas
 import Home from "@/pages/Home";
@@ -21,12 +23,14 @@ import Terminos from "@/pages/legales/Terminos";
 import Privacidad from "@/pages/legales/Privacidad";
 import CookiesPage from "@/pages/legales/Cookies";
 import CookiePreferences from "@/components/CookiePreferences";
+// Nueva página de detalle
+import Producto from "@/pages/Producto";
 
 function Layout(){
-  // ADAPTA estos selectores a tu store real:
-  const {
-    isOpen, closeCart, items, removeItem, checkout
-  } = useCart?.() ?? { isOpen:false, closeCart:()=>{}, items:[], removeItem:()=>{}, checkout:()=>{} };
+  // del carrito: items y acciones
+  const { items, removeItem, checkout, increment, decrement } = useCart();
+  // del UI: estado de apertura del carrito
+  const { cartOpen, closeCart } = useUI();
 
   return (
     <>
@@ -35,23 +39,25 @@ function Layout(){
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/jamones" element={<Jamones />} />
+        {/* NUEVA RUTA PARA DETALLE DE PRODUCTO */}
+        <Route path="/producto/:slug" element={<Producto />} />
         <Route path="/suscripcion" element={<Suscripcion />} />
         <Route path="/dehesa" element={<Dehesa />} />
         <Route path="/contacto" element={<Contacto />} />
-
         <Route path="/terminos" element={<Terminos />} />
         <Route path="/privacidad" element={<Privacidad />} />
         <Route path="/cookies" element={<><CookiesPage /><CookiePreferences /></>} />
-
         <Route path="*" element={<Home />} />
       </Routes>
 
       <CartDrawer
-        isOpen={isOpen}
+        isOpen={cartOpen}
         onClose={closeCart}
         items={items}
         removeItem={removeItem}
         checkout={checkout}
+        increment={increment}
+        decrement={decrement}
       />
     </>
   );
