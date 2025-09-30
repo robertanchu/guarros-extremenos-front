@@ -1,27 +1,9 @@
 {
-  "name": "guarros-extremenos-front",
-  "version": "2.0.0",
+  "name": "guarros-brandify",
   "private": true,
-  "type": "module",
+  "version": "1.0.0",
   "scripts": {
-    "prebuild": "node scripts/clean-dist.cjs",
-    "build": "node scripts/run-vite-build.cjs",
-    "dev": "vite",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "framer-motion": "^12.23.22",
-    "lucide-react": "^0.544.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.23.1",
-    "zustand": "^4.5.7"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.1",
-    "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.7",
-    "vite": "^7.1.7"
+    "brandify:check": "node scripts/red-to-brand-codemod.js --dry",
+    "brandify:apply": "node scripts/red-to-brand-codemod.js"
   }
 }

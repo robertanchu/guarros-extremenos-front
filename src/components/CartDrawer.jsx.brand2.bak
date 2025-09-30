@@ -46,7 +46,7 @@ export default function CartDrawer({
                 </div>
                 <button
                   onClick={() => removeItem(it.id)}
-                  className="mt-3 inline-flex items-center gap-2 text-white bg-brand hover:bg-brand-700 rounded-lg px-3 py-1.5"
+                  className="mt-3 inline-flex items-center gap-2 text-white bg-red-600 hover:bg-red-700 rounded-lg px-3 py-1.5"
                 >
                   Eliminar
                 </button>
