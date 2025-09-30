@@ -60,7 +60,7 @@ export default function Jamones(){
           {/* Título EXACTO como Suscripción (tipografía/clases) */}
           <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              <h1 className="uppercase tracking-widest text-4xl md:text-5xl font-semibold text-white leading-tight">
+              <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-white">
                 Jamones
               </h1>
               <p className="text-white/70 mt-1">Elige y añádelo al carrito directamente.</p>
