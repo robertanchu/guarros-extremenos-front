@@ -1,0 +1,8 @@
+
+.legal-prose h2 { @apply text-xl md:text-2xl font-semibold text-white mt-8; }
+.legal-prose h3 { @apply text-lg md:text-xl font-semibold text-white mt-6; }
+.legal-prose p  { @apply text-white/80 leading-relaxed; }
+.legal-prose ul { @apply list-disc pl-5 space-y-2 text-white/80; }
+.legal-prose ol { @apply list-decimal pl-5 space-y-2 text-white/80; }
+.legal-prose a  { @apply text-brand hover:underline; }
+.legal-prose .muted { @apply text-white/60; }
