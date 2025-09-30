@@ -1,37 +1,26 @@
 import React, { useEffect } from "react";
 import Meta from "../lib/Meta";
+import FAQ from "@/components/FAQ";
 import "@/styles/effects.css";
 import { useCart } from "@/store/cart";
 import { useUI } from "@/store/ui";
 import { isSubscription } from "@/lib/subscription";
 
 const PLANS = [
-  {
-    slug: "sub-500",
-    name: "Suscripción 500 g / mes",
-    desc: "Cada mes, 500 gramos de jamón ibérico 100% bellota D.O.P. cortado, en sobres listos para disfrutar.",
-    priceText: "40 €/mes",
-    price: 40,
-    priceId: import.meta.env.VITE_SUB_500_PRICE_ID || "price_sub_500",
-    isSubscription: true,
-    kind: "subscription",
-  },
-  {
-    slug: "sub-1000",
-    name: "Suscripción 1 kg / mes",
-    desc: "Para los muy guarros: 1 kilo al mes, sobres al vacío, corte fino y listo para volar de la tabla.",
-    priceText: "70 €/mes",
-    price: 70,
-    priceId: import.meta.env.VITE_SUB_1000_PRICE_ID || "price_sub_1000",
-    isSubscription: true,
-    kind: "subscription",
-  },
+  { slug: "sub-500", name: "Suscripción 500 g / mes", desc: "Cada mes, 500 gramos de jamón ibérico 100% bellota D.O.P. cortado, en sobres listos para disfrutar.", priceText: "40 €/mes", price: 40, priceId: import.meta.env.VITE_SUB_500_PRICE_ID || "price_sub_500", isSubscription: true, kind: "subscription" },
+  { slug: "sub-1000", name: "Suscripción 1 kg / mes", desc: "Para los muy guarros: 1 kilo al mes, sobres al vacío, corte fino y listo para volar de la tabla.", priceText: "70 €/mes", price: 70, priceId: import.meta.env.VITE_SUB_1000_PRICE_ID || "price_sub_1000", isSubscription: true, kind: "subscription" },
 ];
 
 const BENEFITS = [
   "Pausa o cambia cuando quieras",
   "Corte fino, sobres al vacío",
   "100% Ibérico D.O.P Dehesa de Extremadura",
+];
+
+const FAQS = [
+  { q: "¿Hay compromiso de permanencia?", a: "No. Puedes pausar o cancelar cuando quieras desde tu cuenta o escribiéndonos." },
+  { q: "¿Los sobres son al vacío?", a: "Sí, para preservar sabor y textura. Abre y sirve." },
+  { q: "¿Puedo cambiar de plan más adelante?", a: "Claro, cambia de 500 g a 1 kg o al revés en un clic." },
 ];
 
 export default function Suscripcion(){
@@ -45,7 +34,6 @@ export default function Suscripcion(){
     openCart();
   };
 
-  // No root mousemove: el glow es por tarjeta (coordenadas locales)
   const handleCardMove = (e) => {
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
@@ -60,6 +48,32 @@ export default function Suscripcion(){
     card.style.removeProperty('--ly');
   };
 
+  // Robust reveal for cards
+  useEffect(() => {
+    const grid = document.getElementById("plans-grid");
+    if (!grid) return;
+    const els = Array.from(grid.querySelectorAll("[data-reveal]"));
+    els.forEach((el, i) => {
+      el.classList.add("reveal");
+      el.classList.remove("revealed");
+      el.style.transitionDelay = (Math.min(i, 8) * 60) + "ms";
+    });
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+      els.forEach(el => el.classList.add("revealed"));
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add("revealed");
+          io.unobserve(e.target);
+        }
+      });
+    }, { rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
+    els.forEach(el => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
   return (
     <main className="shell py-10 md:py-12">
       <Meta title="Suscripción Jamón Canalla | Guarros Extremeños" description="Tu jamón favorito en suscripción mensual, sin ataduras." />
@@ -70,7 +84,7 @@ export default function Suscripcion(){
         </p>
       </header>
 
-      {/* Banner global si ya hay suscripción en carrito (formateado) */}
+      {/* Banner global si ya hay suscripción en carrito (estilos previos) */}
       {hasSubscription && (
         <div className="alert mb-6">
           <div className="flex items-start gap-3">
@@ -84,9 +98,7 @@ export default function Suscripcion(){
               <div className="alert-desc">Solo puede haber una por carrito. Puedes cambiar de plan eliminando la actual.</div>
             </div>
             <div>
-              <button type="button" onClick={openCart} className="btn-secondary" aria-label="Ver carrito">
-                Ver carrito
-              </button>
+              <button type="button" onClick={openCart} className="btn-secondary" aria-label="Ver carrito">Ver carrito</button>
             </div>
           </div>
         </div>
@@ -97,6 +109,7 @@ export default function Suscripcion(){
         {PLANS.map((p) => (
           <article
             key={p.slug}
+            data-reveal
             className="relative rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7 flex flex-col card-hover"
             onMouseMove={handleCardMove}
             onMouseLeave={handleCardLeave}
@@ -107,7 +120,7 @@ export default function Suscripcion(){
               <p className="mt-2 text-zinc-300">{p.desc}</p>
               <div className="mt-4 text-2xl text-brand font-semibold">{p.priceText}</div>
               <ul className="mt-4 space-y-2 text-white/85 text-sm">
-                {BENEFITS.map((b) => (
+                {["Pausa o cambia cuando quieras","Corte fino, sobres al vacío","100% Ibérico D.O.P Dehesa de Extremadura"].map((b) => (
                   <li key={b} className="flex items-start gap-2">
                     <svg className="mt-[3px] h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-8 8a1 1 0 01-1.408 0l-4-4a1 1 0 111.408-1.42L8 12.58l7.296-7.29a1 1 0 011.408 0z" clipRule="evenodd"/>
@@ -127,27 +140,24 @@ export default function Suscripcion(){
                     </svg>
                     <span className="font-medium">Suscripción en el carrito</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={openCart}
-                    className="inline-flex items-center justify-center h-9 px-3 rounded-lg border border-brand/40 text-brand-100 hover:bg-brand/20 transition-colors"
-                  >
+                  <button type="button" onClick={openCart} className="inline-flex items-center justify-center h-9 px-3 rounded-lg border border-brand/40 text-brand-100 hover:bg-brand/20 transition-colors">
                     Ver carrito
                   </button>
                 </div>
               ) : (
-                <button
-                  type="button"
-                  className="w-full btn-primary btn-shiny"
-                  onClick={() => handleSubscribe(p)}
-                  aria-label="Añadir suscripción al carrito"
-                >
+                <button type="button" className="w-full btn-primary btn-shiny" onClick={() => handleSubscribe(p)} aria-label="Añadir suscripción al carrito">
                   Suscribirme
                 </button>
               )}
             </div>
           </article>
         ))}
+      </section>
+
+      {/* FAQ (collapsed by default) */}
+      <section className="mt-12 md:mt-16">
+        <h2 className="text-xl md:text-2xl font-semibold text-white mb-4">Preguntas frecuentes</h2>
+        <FAQ items={FAQS} />
       </section>
     </main>
   );

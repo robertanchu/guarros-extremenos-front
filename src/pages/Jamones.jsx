@@ -29,6 +29,7 @@ export default function Jamones(){
   const [q, setQ] = useState("");
   const [sort, setSort] = useState("price-asc");
   const [activeFormats, setActiveFormats] = useState(new Set());
+  const gridRef = useRef(null);
 
   const toggleFormat = (val) => {
     setActiveFormats(prev => {
@@ -53,27 +54,31 @@ export default function Jamones(){
     }
   }, [base, q, sort, activeFormats]);
 
-  // Scroll reveal for cards
-  const gridRef = useRef(null);
+  // Robust reveal: mark items, then observe
   useEffect(() => {
     const root = gridRef.current;
-    if (!root || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const els = Array.from(root.querySelectorAll('[data-reveal]'));
+    if (!root) return;
+    const els = Array.from(root.querySelectorAll("[data-reveal]"));
     els.forEach((el, i) => {
-      el.classList.add('reveal');
-      el.style.transitionDelay = (Math.min(i, 6) * 60) + 'ms';
+      el.classList.add("reveal");
+      el.classList.remove("revealed");
+      el.style.transitionDelay = (Math.min(i, 8) * 60) + "ms";
     });
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+      els.forEach(el => el.classList.add("revealed"));
+      return;
+    }
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
         if (e.isIntersecting) {
-          e.target.classList.add('revealed');
+          e.target.classList.add("revealed");
           io.unobserve(e.target);
         }
       });
-    }, { threshold: 0.18 });
+    }, { rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
     els.forEach(el => io.observe(el));
     return () => io.disconnect();
-  }, [filtered]);
+  }, [filtered.length]);
 
   return (
     <>
@@ -82,7 +87,6 @@ export default function Jamones(){
         <div className="container max-w-7xl px-4 mx-auto">
           <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              {/* Título sin barra degradada */}
               <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Jamones</h1>
               <p className="text-white/70 mt-1">Elige y añádelo al carrito directamente.</p>
             </div>
@@ -104,12 +108,10 @@ export default function Jamones(){
                 <button
                   key={f.value}
                   onClick={() => toggleFormat(f.value)}
-                  className={
-                    (active
+                  className={(active
                       ? "bg-brand text-white border-transparent "
                       : "bg-black/40 text-white/80 border-white/15 hover:bg-white/10 ")
-                    + "h-9 px-3 rounded-full border text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-                  }
+                    + "h-9 px-3 rounded-full border text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"}
                 >
                   {f.label}
                 </button>
@@ -129,7 +131,7 @@ export default function Jamones(){
             <p className="text-white/70">No hay jamones con esos filtros.</p>
           ) : (
             <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {filtered.map((p, i) => (
+              {filtered.map((p) => (
                 <div key={p.id ?? p.slug ?? p.name} data-reveal>
                   <JamonCard product={p} />
                 </div>

@@ -1,18 +1,17 @@
-
 import React from "react";
 
 export default function FAQ({ items = [] }){
   return (
     <div className="divide-y divide-white/10 rounded-2xl border border-white/10 bg-white/[0.03]">
       {items.map((it, idx) => (
-        <Disclosure key={idx} question={it.q} answer={it.a} defaultOpen={idx === 0} />
+        <Disclosure key={idx} question={it.q} answer={it.a} />
       ))}
     </div>
   );
 }
 
-function Disclosure({ question, answer, defaultOpen = false }){
-  const [open, setOpen] = React.useState(defaultOpen);
+function Disclosure({ question, answer }){
+  const [open, setOpen] = React.useState(false);
   const id = React.useId();
   return (
     <div>
