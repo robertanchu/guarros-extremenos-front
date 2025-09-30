@@ -1,18 +1,12 @@
 // src/store/cart.js
-// Checkout redirige usando el backend LEGACY con VITE_BACKEND_URL (/create-checkout-session).
-// Usa priceId+qty como esperaba tu API antigua (ver lib/api.js:createCheckout).
+// Checkout con backend legacy: import estático de createCheckout y fallback si no existe.
+// Incluye logs y mapeo robusto de priceId.
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-// Intentamos usar tu helper si existe en el proyecto.
-// Asegúrate de que el archivo esté en src/lib/api.js y exporte createCheckout.
-let createCheckout = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  createCheckout = (await import("@/lib/api")).createCheckout;
-} catch (_) {
-  // fallback local si no existe el helper importado
-}
+import * as API from "@/lib/api"; // debe exportar createCheckout(items, opts)
+
+const createCheckout = API?.createCheckout; // si no existe, usamos fallback
 
 const isSubscriptionItem = (it) => it?.kind === "subscription" || it?.isSubscription === true;
 
@@ -56,35 +50,38 @@ const findIndexByMatcher = (items, matcher) => {
 const calcSubtotal = (items) =>
   items.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.qty) || 1), 0);
 
-// Fallback local de createCheckout si no existe en @/lib/api
+// Fallback local si no hay API.createCheckout
 async function legacyCreateCheckout(items, opts = {}){
   const BASE = import.meta.env.VITE_BACKEND_URL?.replace(/\/$/,'') || "";
+  console.debug("[checkout] fallback BASE:", BASE);
   if(!BASE) throw new Error("VITE_BACKEND_URL no configurado");
   const success_url = opts.success_url || `${window.location.origin}/success`;
   const cancel_url  = opts.cancel_url  || `${window.location.origin}/cancel`;
   const shipping_rate = opts.shipping_rate || "shr_1SBOWZRPLp0YiQTHa4ClyIOc";
-  // Tu backend esperaba priceId+quantity
-  const payload = {
-    items: items.map(i => ({ price: i.priceId, quantity: i.qty })),
-    success_url, cancel_url, shipping_rate
-  };
+  const payload = { items: items.map(i=>({ price:i.priceId, quantity:i.qty })), success_url, cancel_url, shipping_rate };
+  console.debug("[checkout] POST", `${BASE}/create-checkout-session`, payload);
   const res = await fetch(`${BASE}/create-checkout-session`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
   if(!res.ok){
-    let msg = "Error al crear la sesión de pago";
-    try { const j = await res.json(); msg = j.error || msg; } catch {}
-    throw new Error(msg);
+    let msg="Error al crear la sesión de pago";
+    try { const j = await res.json(); msg=j.error||msg; } catch {}
+    throw new Error(msg + " (" + res.status + ")");
   }
   const data = await res.json();
+  console.debug("[checkout] response:", data);
   if(data?.url){ window.location.assign(data.url); return; }
   throw new Error("Respuesta sin URL de checkout");
 }
 
 const callCreateCheckout = async (items, opts) => {
-  if (createCheckout) return createCheckout(items, opts);
+  if (typeof createCheckout === "function") {
+    console.debug("[checkout] using API.createCheckout");
+    return createCheckout(items, opts);
+  }
+  console.debug("[checkout] using fallback legacyCreateCheckout");
   return legacyCreateCheckout(items, opts);
 };
 
@@ -163,37 +160,41 @@ export const useCart = create(
 
       clear: () => set({ items: [] }),
 
-      // --- Checkout: llama al backend legacy ---
       checkout: async () => {
         const state = get();
-        // Verificación rápida: todos los items deben tener priceId para la API legacy
         const items = state.items.map((it) => ({
           ...it,
-          // si tu catálogo trae el campo stripe price como 'priceId' ya estamos ok.
-          // Si fuese otro nombre (p.ej. stripePriceId), añádelo aquí:
-          priceId: it.priceId ?? it.stripePriceId ?? it.price_id ?? it.priceID
+          // Mapeos posibles para priceId
+          priceId: it.priceId ?? it.stripePriceId ?? it.price_id ?? it.priceID ?? it.priceid,
+          lineId: composeLineId(it),
         }));
 
         const missing = items.filter(i => !i.priceId);
         if (missing.length) {
           console.error("[checkout] Faltan priceId en:", missing);
-          throw new Error("Hay productos sin priceId de Stripe. No se puede crear la sesión de pago.");
+          alert("Hay productos sin 'priceId' de Stripe. No se puede crear la sesión de pago.");
+          return null;
         }
 
-        // Éxito -> redirige (dentro de createCheckout)
-        await callCreateCheckout(items, {
-          // Puedes personalizar estas rutas:
+        const opts = {
           success_url: `${window.location.origin}/success`,
           cancel_url: `${window.location.origin}/cancel`,
-          // shipping_rate: "shr_XXXX" // opcional si quieres cambiarlo
-        });
+          // shipping_rate: "shr_XXXX"
+        };
 
+        try {
+          console.debug("[checkout] items ->", items);
+          await callCreateCheckout(items, opts); // redirige internamente si ok
+        } catch (e) {
+          console.error("[checkout] error:", e);
+          alert(e?.message || "No se pudo iniciar el pago.");
+        }
         return null;
       },
     }),
     {
       name: "guarros-cart",
-      version: 5,
+      version: 6,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ items: state.items }),
     }
