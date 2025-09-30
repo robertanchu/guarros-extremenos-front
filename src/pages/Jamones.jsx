@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Meta from "../lib/Meta";
 import JamonCard from "@/components/JamonCard";
 import SortSelect from "@/components/SortSelect";
 import { PRODUCTS } from "@/data/products.js";
 import { getFormat } from "@/utils/format";
+import "@/styles/effects.css";
 
 const getCatalog = () => {
   if (Array.isArray(PRODUCTS) && PRODUCTS.length) return PRODUCTS;
@@ -52,6 +53,28 @@ export default function Jamones(){
     }
   }, [base, q, sort, activeFormats]);
 
+  // Scroll reveal for cards
+  const gridRef = useRef(null);
+  useEffect(() => {
+    const root = gridRef.current;
+    if (!root || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const els = Array.from(root.querySelectorAll('[data-reveal]'));
+    els.forEach((el, i) => {
+      el.classList.add('reveal');
+      el.style.transitionDelay = (Math.min(i, 6) * 60) + 'ms';
+    });
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('revealed');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.18 });
+    els.forEach(el => io.observe(el));
+    return () => io.disconnect();
+  }, [filtered]);
+
   return (
     <>
       <Meta title="Jamones Ibéricos | Guarros Extremeños" description="Nuestra selección de jamón ibérico: piezas enteras y loncheado listo para disfrutar." />
@@ -59,10 +82,7 @@ export default function Jamones(){
         <div className="container max-w-7xl px-4 mx-auto">
           <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              {/* Título ahora en rojo de marca */}
-              <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">
-                Jamones
-              </h1>
+              <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand brand-underline">Jamones</h1>
               <p className="text-white/70 mt-1">Elige y añádelo al carrito directamente.</p>
             </div>
             <div className="flex items-center gap-3">
@@ -107,9 +127,11 @@ export default function Jamones(){
           {filtered.length === 0 ? (
             <p className="text-white/70">No hay jamones con esos filtros.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {filtered.map((p) => (
-                <JamonCard key={p.id ?? p.slug ?? p.name} product={p} />
+            <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+              {filtered.map((p, i) => (
+                <div key={p.id ?? p.slug ?? p.name} data-reveal>
+                  <JamonCard product={p} />
+                </div>
               ))}
             </div>
           )}

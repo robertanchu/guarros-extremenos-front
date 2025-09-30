@@ -7,6 +7,8 @@ export default function JamonCard({ product }){
   const { addItem } = useCart();
   const { openCart } = useUI();
   const [qty, setQty] = React.useState(1);
+  const ref = React.useRef(null);
+  const raf = React.useRef(0);
 
   const price = Number(product.priceFrom ?? product.price ?? 0);
   const img = product.image ?? product.cover ?? null;
@@ -26,14 +28,50 @@ export default function JamonCard({ product }){
     openCart();
   };
 
+  // Tilt effect on mouse move (skips when reduced motion)
+  const onMove = (e) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;  // 0..1
+    const y = (e.clientY - rect.top) / rect.height;  // 0..1
+    const rotY = (x - 0.5) * 6; // deg
+    const rotX = (0.5 - y) * 6; // deg
+    cancelAnimationFrame(raf.current);
+    raf.current = requestAnimationFrame(() => {
+      el.style.setProperty('--rx', rotX.toFixed(2) + 'deg');
+      el.style.setProperty('--ry', rotY.toFixed(2) + 'deg');
+      el.style.transform = 'perspective(900px) rotateX(var(--rx)) rotateY(var(--ry))';
+    });
+  };
+  const onLeave = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg)';
+  };
+
   return (
-    <article className="group h-full rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition-colors flex flex-col">
+    <article
+      ref={ref}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+      className="group h-full rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition-colors flex flex-col will-change-transform"
+      style={{ transform: 'perspective(900px) rotateX(0deg) rotateY(0deg)' }}
+    >
       {/* Media */}
-      <div className="aspect-square bg-gradient-to-br from-brand/15 via-black/10 to-transparent grid place-items-center">
+      <div className="aspect-square overflow-hidden">
         {img ? (
-          <img src={img} alt={product.name} className="h-full w-full object-cover" />
+          <img
+            src={img}
+            alt={product.name}
+            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
+            loading="lazy"
+          />
         ) : (
-          <span className="text-white/50 text-sm">Imagen</span>
+          <div className="h-full w-full bg-gradient-to-br from-brand/15 via-black/10 to-transparent grid place-items-center">
+            <span className="text-white/50 text-sm">Imagen</span>
+          </div>
         )}
       </div>
 
@@ -51,7 +89,6 @@ export default function JamonCard({ product }){
               <div className="text-brand font-semibold text-base md:text-lg leading-none">
                 {formatEUR(price)}
               </div>
-              {/* etiqueta pequeña opcional */}
               <div className="text-[11px] text-white/50 mt-1">IVA incl.</div>
             </div>
           )}
@@ -66,7 +103,7 @@ export default function JamonCard({ product }){
           </div>
           <button
             onClick={handleAdd}
-            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-brand hover:bg-brand-700 text-white font-medium px-4 h-10 md:h-11 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+            className="btn-shiny flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-brand hover:bg-brand-700 text-white font-medium px-4 h-10 md:h-11 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             aria-label={`Añadir ${product.name} al carrito`}
           >
             Añadir al carrito

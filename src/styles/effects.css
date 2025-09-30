@@ -1,0 +1,47 @@
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity .6s ease, transform .6s ease;
+  }
+  .revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .btn-shiny {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .btn-shiny::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.18) 30%, transparent 60%);
+    transform: translateX(-120%);
+    transition: transform .8s ease;
+    pointer-events: none;
+    z-index: -1;
+  }
+  .btn-shiny:hover::after { transform: translateX(120%); }
+}
+/* Subtle gradient underline under titles */
+.brand-underline {
+  position: relative;
+}
+.brand-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -10px;
+  width: 72px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--brand-600, #C3342E), rgba(195,52,46,.2));
+  border-radius: 9999px;
+  opacity: .9;
+}
+@media (min-width: 768px) {
+  .brand-underline::after { width: 96px; height: 4px; }
+}
