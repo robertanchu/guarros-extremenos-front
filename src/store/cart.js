@@ -1,14 +1,42 @@
 // src/store/cart.js
-// Estado del carrito con Zustand + persistencia.
-// Fix: addItem ahora respeta qty cuando viene dentro del objeto (p.ej. desde JamonCard)
+// Fix: no agrupar piezas con mismo id pero distinto formato (entero vs loncheado)
+// - Genera un lineId compuesto (id + variante) y lo usa para identificar líneas.
+// - Respeta qty dentro de product (como v63).
+
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 // ---------- Utils
 const isSubscriptionItem = (it) => it?.kind === "subscription" || it?.isSubscription === true;
 
-const sameItem = (it, matcher) =>
-  it?.id === matcher || it?.priceId === matcher || it?.lineId === matcher || it?.slug === matcher;
+// clave de variante (intentamos cubrir los campos más usados en tu catálogo)
+const variantOf = (it = {}) => {
+  const cand =
+    it.variant ?? it.format ?? it.presentation ?? it.cut ?? it.size ?? it.weight ??
+    it.tipo ?? it.formato ?? it.opcion ?? it.option ?? it.options?.join?.("|") ?? "";
+  return String(cand).trim().toLowerCase();
+};
+
+const baseIdOf = (it = {}) => it.id ?? it.priceId ?? it.slug ?? it.sku ?? it.code ?? it.key ?? it.name;
+const safeBaseId = (it) => String(baseIdOf(it) ?? "").trim();
+
+const composeLineId = (it = {}) => {
+  // Si ya viene lineId, respetarlo
+  if (it.lineId) return String(it.lineId);
+  const base = safeBaseId(it);
+  const variant = variantOf(it);
+  return variant ? `${base}::${variant}` : `${base}`;
+};
+
+const sameItem = (a, b) => {
+  if (!a || !b) return false;
+  // Si tienen lineId, comparar por lineId
+  const la = composeLineId(a);
+  const lb = composeLineId(b);
+  if (la && lb) return la === lb;
+  // Fallback
+  return baseIdOf(a) === baseIdOf(b);
+};
 
 const clampQty = (n, min = 1, max = 99) => {
   const x = Number(n);
@@ -16,8 +44,26 @@ const clampQty = (n, min = 1, max = 99) => {
   return Math.min(Math.max(Math.trunc(x), min), max);
 };
 
-const findIndexByMatcher = (items, matcher) =>
-  items.findIndex((i) => sameItem(i, matcher));
+const findIndexByMatcher = (items, matcher) => {
+  // Soportar buscar por lineId explícito, luego por otras claves
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    if (String(it.lineId) === String(matcher)) return i;
+  }
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    if (
+      it.id === matcher ||
+      it.priceId === matcher ||
+      it.lineId === matcher ||
+      it.slug === matcher ||
+      it.sku === matcher ||
+      it.key === matcher ||
+      it.name === matcher
+    ) return i;
+  }
+  return -1;
+};
 
 const calcSubtotal = (items) =>
   items.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.qty) || 1), 0);
@@ -28,7 +74,6 @@ export const useCart = create(
     (set, get) => ({
       items: [],
 
-      // Selectores
       subtotal() {
         return calcSubtotal(get().items);
       },
@@ -39,26 +84,27 @@ export const useCart = create(
         return get().items.some((it) => isSubscriptionItem(it));
       },
 
-      // Acciones
-      // Nota: qty puede venir como 2º argumento o dentro de 'product.qty' (caso JamonCard).
       addItem: (product, qty) =>
         set((state) => {
           if (!product) return state;
           const isSub = isSubscriptionItem(product);
 
-          // Soportar qty dentro del objeto producto si no se pasó como arg
+          // qty puede venir como 2º arg o dentro de product
           const desiredQty = isSub ? 1 : clampQty(qty ?? product.qty ?? 1);
 
+          // La identidad de línea incluye variante (entero/loncheado...)
+          const incoming = { ...product };
+          incoming.lineId = composeLineId(incoming);
+
           const next = [...state.items];
-          const existingIdx =
-            findIndexByMatcher(next, product.id) !== -1
-              ? findIndexByMatcher(next, product.id)
-              : findIndexByMatcher(next, product.priceId);
+
+          // Buscar misma línea (mismo base id + misma variante)
+          const existingIdx = next.findIndex((it) => sameItem(it, incoming));
 
           // Suscripción: única y qty fija = 1
           if (isSub) {
             const alreadySubIdx = next.findIndex((it) => isSubscriptionItem(it));
-            const merged = { ...product, qty: 1 };
+            const merged = { ...incoming, qty: 1 };
             if (alreadySubIdx !== -1) {
               next[alreadySubIdx] = merged;
             } else {
@@ -74,7 +120,7 @@ export const useCart = create(
             next[existingIdx] = { ...curr, qty: newQty };
             return { items: next };
           } else {
-            next.push({ ...product, qty: desiredQty });
+            next.push({ ...incoming, qty: desiredQty });
             return { items: next };
           }
         }),
@@ -119,11 +165,13 @@ export const useCart = create(
         const state = get();
         const payload = {
           items: state.items.map((it) => ({
-            id: it.id ?? it.priceId ?? it.slug,
+            id: baseIdOf(it),
+            lineId: composeLineId(it),
             name: it.name,
             price: Number(it.price) || 0,
             qty: Number(it.qty) || 1,
             kind: it.kind,
+            variant: variantOf(it),
           })),
           subtotal: calcSubtotal(state.items),
           hasSubscription: state.items.some(isSubscriptionItem),
@@ -135,7 +183,7 @@ export const useCart = create(
     }),
     {
       name: "guarros-cart",
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ items: state.items }),
     }
