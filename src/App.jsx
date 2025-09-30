@@ -72,3 +72,15 @@ export default function App(){
     </ConsentProvider>
   );
 }
+
+import Footer from "@/components/Footer";
+
+function App() {
+  return (
+    <>
+      <Header />
+      <main>…</main>
+      <Footer /> {/* <- aquí */}
+    </>
+  );
+}
