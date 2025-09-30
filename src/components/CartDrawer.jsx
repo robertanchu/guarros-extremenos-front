@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 
 /**
- * CartDrawer robust: soporta distintas firmas de acciones del carrito.
- * Intentos por orden: fn(item), fn(item.id), fn(item.key), fn(item.lineId), fn(item.slug), fn(index)
+ * CartDrawer conectado a firmas reales de la store:
+ *   removeItem(matcher) — matcher puede ser item.id o item.priceId
+ *   increment(matcher)
+ *   decrement(matcher)
  */
 export default function CartDrawer({
   isOpen = false,
@@ -13,8 +15,6 @@ export default function CartDrawer({
   increment = () => {},
   decrement = () => {},
 }) {
-  const panelRef = useRef(null);
-
   // Close on ESC
   useEffect(() => {
     function onKey(e){
@@ -36,20 +36,8 @@ export default function CartDrawer({
   const subtotal = items.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.qty) || 1), 0);
   const hasItems = items && items.length > 0;
 
-  // Robust invoker: prueba varias firmas sin romper
-  const robustCall = (fn, item, index) => {
-    if (typeof fn !== "function") return;
-    const candidates = [item, item?.id, item?.key, item?.lineId, item?.slug, index];
-    for (let arg of candidates) {
-      try {
-        const ret = fn(arg);
-        // si la función no lanza, damos por bueno el intento
-        return ret;
-      } catch (e) {
-        // prueba siguiente
-      }
-    }
-  };
+  // matcher exacto según store
+  const keyOf = (it) => it?.id ?? it?.priceId;
 
   return (
     <div className={isOpen ? "pointer-events-auto" : "pointer-events-none"} aria-hidden={!isOpen}>
@@ -64,7 +52,6 @@ export default function CartDrawer({
 
       {/* Drawer Panel */}
       <aside
-        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label="Carrito"
@@ -100,9 +87,9 @@ export default function CartDrawer({
                 Tu carrito está vacío. Sigue explorando nuestros jamones y suscripciones.
               </div>
             ) : (
-              items.map((it, idx) => (
+              items.map((it) => (
                 <div
-                  key={(it.id ?? it.key ?? it.lineId ?? it.slug ?? it.name) + String(it.kind ?? "")}
+                  key={(it.id ?? it.priceId ?? it.slug ?? it.name) + String(it.kind ?? "")}
                   className="rounded-xl border border-white/10 p-3 sm:p-4 bg-white/[0.03]"
                 >
                   <div className="flex gap-3">
@@ -133,13 +120,13 @@ export default function CartDrawer({
 
                       <div className="mt-3 flex items-center justify-between gap-3">
                         <div className="inline-flex items-center rounded-xl border border-white/15 overflow-hidden">
-                          <button type="button" onClick={() => robustCall(decrement, it, idx)} className="h-9 w-9 text-white/80 hover:bg-white/10" aria-label="Disminuir">−</button>
+                          <button type="button" onClick={() => decrement(keyOf(it))} className="h-9 w-9 text-white/80 hover:bg-white/10" aria-label="Disminuir">−</button>
                           <span className="w-10 text-center text-white/90">{it.qty ?? 1}</span>
-                          <button type="button" onClick={() => robustCall(increment, it, idx)} className="h-9 w-9 text-white/80 hover:bg-white/10" aria-label="Aumentar">+</button>
+                          <button type="button" onClick={() => increment(keyOf(it))} className="h-9 w-9 text-white/80 hover:bg-white/10" aria-label="Aumentar">+</button>
                         </div>
                         <button
                           type="button"
-                          onClick={() => robustCall(removeItem, it, idx)}
+                          onClick={() => removeItem(keyOf(it))}
                           className="h-9 px-3 rounded-lg border border-white/15 text-white/70 hover:bg-white/10"
                           aria-label="Eliminar"
                         >
