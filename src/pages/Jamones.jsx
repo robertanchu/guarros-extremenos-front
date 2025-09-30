@@ -1,19 +1,28 @@
 import React, { useMemo, useState } from "react";
 import { useCart } from "@/store/cart";
-import { products as ALL_PRODUCTS } from "@/data/products"; // ajusta esta ruta si tu archivo difiere
+import { PRODUCTS } from "@/data/products"; // <- export real del catálogo
 
 export default function Jamones(){
   const { addItem } = useCart();
   const [qtyByKey, setQtyByKey] = useState({});
 
-  // Intento filtrar solo jamones si el catálogo lo permite; si no, muestro todo.
+  // Filtramos JAMONES (excluimos suscripciones)
   const list = useMemo(() => {
-    const src = Array.isArray(ALL_PRODUCTS) ? ALL_PRODUCTS : [];
-    const jamones = src.filter((p) => {
-      const cat = (p.category || p.categoria || p.type || "").toString().toLowerCase();
-      return cat.includes("jamon") || cat.includes("jamón");
-    });
-    return jamones.length > 0 ? jamones : src;
+    const src = Array.isArray(PRODUCTS) ? PRODUCTS : [];
+    const isSub = (p) => {
+      const id = (p.id || "").toString().toLowerCase();
+      const slug = (p.slug || "").toString().toLowerCase();
+      const name = (p.name || "").toString().toLowerCase();
+      return id.startsWith("sub_") || slug.includes("suscripcion") || name.includes("suscrip");
+    };
+    const isJamon = (p) => {
+      const id = (p.id || "").toString().toLowerCase();
+      const slug = (p.slug || "").toString().toLowerCase();
+      const name = (p.name || "").toString().toLowerCase();
+      return id.includes("jamon") || slug.includes("jamon") || name.includes("jamón") || name.includes("jamon");
+    };
+    const jamones = src.filter((p) => isJamon(p) && !isSub(p));
+    return jamones.length > 0 ? jamones : src.filter((p) => !isSub(p));
   }, []);
 
   const clamp = (n) => {
@@ -32,10 +41,17 @@ export default function Jamones(){
     addItem(p, getQty(p));
   };
 
+  const fmtEUR = (n) => {
+    const num = Number(n);
+    if (!Number.isFinite(num) || num <= 0) return "";
+    try { return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(num); }
+    catch { return num.toFixed(2) + " €"; }
+  };
+
   return (
     <main className="shell py-8 md:py-10">
       <header className="mb-6 md:mb-10 text-center">
-        <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">JAMONES</h1>
+        <h1 className="mt-2 text-3xl md:5xl font-stencil text-brand">JAMONES</h1>
       </header>
 
       {(!list || list.length === 0) ? (
@@ -49,7 +65,7 @@ export default function Jamones(){
             >
               {/* Imagen */}
               <div className="aspect-[4/3] overflow-hidden rounded-xl border border-white/10">
-                <img src={p.image} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
+                <img src={p.image || p.img || "/placeholder.jpg"} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
               </div>
 
               {/* Info */}
@@ -58,8 +74,8 @@ export default function Jamones(){
                 <p className="mt-1 text-white/70 text-sm line-clamp-2">{p.description}</p>
               )}
 
-              {/* Precio */}
-              <div className="mt-2 text-2xl font-semibold text-white">{Number(p.price) ? new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(p.price) : ""}</div>
+              {/* Precio (si existe) */}
+              <div className="mt-2 text-2xl font-semibold text-white">{fmtEUR(p.price || p.precio)}</div>
 
               {/* Spacer para pegar el CTA abajo */}
               <div className="flex-1" />
