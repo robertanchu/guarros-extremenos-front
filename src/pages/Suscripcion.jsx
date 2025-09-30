@@ -52,7 +52,8 @@ export default function Suscripcion(){
     <main className="shell py-10 md:py-12">
       <header className="mb-6 md:mb-8 text-center">
         <p className="text-amber-300 tracking-wide text-sm">Guarros Extremeños Club</p>
-        <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-white">Suscripción Jamón Canalla</h1>
+        {/* Título ahora en rojo de marca */}
+        <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Suscripción Jamón Canalla</h1>
         <p className="mt-4 text-zinc-300 max-w-3xl mx-auto">
           El sabor que manda, cada mes en tu casa. Sin postureo, sin esperas y con la pureza del 100% ibérico D.O.P Dehesa de Extremadura.
         </p>
