@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
 
 /**
- * CartDrawer — edición estética de marca (sin toast ni confirm)
- * - Full height, header y footer sticky
- * - Tipografía 'font-stencil' en el título y acentos en color de marca
- * - Controles minimal + accesibles
+ * CartDrawer — estilo de marca (v51)
+ * - Título "TU CARRITO" en color de marca
+ * - Controles de cantidad con borde que resalta al hover
+ * - Mini-resumen de envío (texto informativo, sin lógica de tarifas)
  * - Firmas store: increment(matcher), decrement(matcher), removeItem(matcher) con matcher = id || priceId
  */
 export default function CartDrawer({
@@ -16,7 +16,6 @@ export default function CartDrawer({
   increment = () => {},
   decrement = () => {},
 }) {
-  // Close on ESC
   useEffect(() => {
     function onKey(e){
       if (e.key === "Escape" && isOpen) onClose();
@@ -25,7 +24,6 @@ export default function CartDrawer({
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen, onClose]);
 
-  // Prevent body scroll when open
   useEffect(() => {
     if (isOpen) {
       const prev = document.body.style.overflow;
@@ -62,15 +60,30 @@ export default function CartDrawer({
           ].join(" ")}
         style={{ ["--sat"]: "env(safe-area-inset-bottom)" }}
       >
-        {/* Border accent top */}
+        {/* Inline styles for hover accents */}
+        <style>{`
+          .qty-pill {
+            border-radius: 9999px;
+            border: 1px solid rgba(255,255,255,.15);
+            background: rgba(255,255,255,.03);
+            transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+          }
+          .qty-pill:hover {
+            border-color: var(--brand-500, #C3342E);
+            box-shadow: 0 0 0 1px rgba(195,52,46,.25), 0 6px 18px rgba(195,52,46,.20);
+            background: rgba(195,52,46,.06);
+          }
+        `}</style>
+
+        {/* Accent line */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-brand" aria-hidden="true" />
 
-        {/* Shell: flex column */}
+        {/* Shell */}
         <div className="h-full flex flex-col relative">
           {/* Header */}
           <div className="flex-none sticky top-0 px-4 sm:px-5 py-4 border-b border-white/10 bg-black/95 z-10">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-white text-xl font-stencil tracking-wide">TU CARRITO</h2>
+              <h2 className="text-brand text-xl font-stencil tracking-wide">TU CARRITO</h2>
               <button
                 type="button"
                 onClick={onClose}
@@ -118,8 +131,8 @@ export default function CartDrawer({
                         </div>
 
                         <div className="mt-3 flex items-center justify-between gap-3">
-                          {/* Qty */}
-                          <div className="inline-flex items-center rounded-full border border-white/15 bg-white/[0.03] overflow-hidden">
+                          {/* Qty controls */}
+                          <div className="inline-flex items-center qty-pill overflow-hidden">
                             <button
                               type="button"
                               onClick={() => decrement(keyOf(it))}
@@ -171,7 +184,16 @@ export default function CartDrawer({
               <span className="text-sm text-white/70">Subtotal</span>
               <span className="text-xl font-semibold">{formatEUR(subtotal)}</span>
             </div>
-            <p className="text-xs text-white/50 mt-1">Impuestos incluidos. Gastos de envío calculados en el checkout.</p>
+
+            {/* Mini-resumen de envío — ajusta el texto a tu logística real */}
+            <div className="mt-2 flex items-center gap-2 text-xs text-white/65">
+              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M3 5a2 2 0 012-2h6a2 2 0 012 2v3h1.586a2 2 0 011.414.586l1.828 1.828A2 2 0 0119 11.828V14a2 2 0 01-2 2h-1a2 2 0 11-4 0H8a2 2 0 11-4 0H3a2 2 0 01-2-2V7a2 2 0 012-2zM6 16a1 1 0 100-2 1 1 0 000 2zm9 0a1 1 0 100-2 1 1 0 000 2z" />
+              </svg>
+              <span>Envío y descuentos se calculan en el checkout.</span>
+              {/* Ejemplo placeholder: <span>Entrega 24–72 h en península.</span> */}
+            </div>
+
             <button
               type="button"
               disabled={!hasItems}
