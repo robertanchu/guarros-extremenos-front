@@ -1,9 +1,18 @@
 // src/store/cart.js
-// Checkout con redirección a la pasarela (POST -> /api/checkout[ -subscription ] => { url } -> window.location)
-// Mantiene lineId/variantes como en v64.
+// Checkout redirige usando el backend LEGACY con VITE_BACKEND_URL (/create-checkout-session).
+// Usa priceId+qty como esperaba tu API antigua (ver lib/api.js:createCheckout).
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+// Intentamos usar tu helper si existe en el proyecto.
+// Asegúrate de que el archivo esté en src/lib/api.js y exporte createCheckout.
+let createCheckout = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  createCheckout = (await import("@/lib/api")).createCheckout;
+} catch (_) {
+  // fallback local si no existe el helper importado
+}
 
 const isSubscriptionItem = (it) => it?.kind === "subscription" || it?.isSubscription === true;
 
@@ -46,6 +55,38 @@ const findIndexByMatcher = (items, matcher) => {
 };
 const calcSubtotal = (items) =>
   items.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.qty) || 1), 0);
+
+// Fallback local de createCheckout si no existe en @/lib/api
+async function legacyCreateCheckout(items, opts = {}){
+  const BASE = import.meta.env.VITE_BACKEND_URL?.replace(/\/$/,'') || "";
+  if(!BASE) throw new Error("VITE_BACKEND_URL no configurado");
+  const success_url = opts.success_url || `${window.location.origin}/success`;
+  const cancel_url  = opts.cancel_url  || `${window.location.origin}/cancel`;
+  const shipping_rate = opts.shipping_rate || "shr_1SBOWZRPLp0YiQTHa4ClyIOc";
+  // Tu backend esperaba priceId+quantity
+  const payload = {
+    items: items.map(i => ({ price: i.priceId, quantity: i.qty })),
+    success_url, cancel_url, shipping_rate
+  };
+  const res = await fetch(`${BASE}/create-checkout-session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  if(!res.ok){
+    let msg = "Error al crear la sesión de pago";
+    try { const j = await res.json(); msg = j.error || msg; } catch {}
+    throw new Error(msg);
+  }
+  const data = await res.json();
+  if(data?.url){ window.location.assign(data.url); return; }
+  throw new Error("Respuesta sin URL de checkout");
+}
+
+const callCreateCheckout = async (items, opts) => {
+  if (createCheckout) return createCheckout(items, opts);
+  return legacyCreateCheckout(items, opts);
+};
 
 export const useCart = create(
   persist(
@@ -122,51 +163,37 @@ export const useCart = create(
 
       clear: () => set({ items: [] }),
 
-      // --- Checkout -> POST al backend y redirección a URL devuelta ---
+      // --- Checkout: llama al backend legacy ---
       checkout: async () => {
         const state = get();
-        const payload = {
-          items: state.items.map((it) => ({
-            id: baseIdOf(it),
-            lineId: composeLineId(it),
-            name: it.name,
-            price: Number(it.price) || 0,
-            qty: Number(it.qty) || 1,
-            kind: it.kind,
-            variant: variantOf(it),
-            // si tienes priceId de Stripe, añádelo aquí:
-            priceId: it.priceId,
-            image: it.image,
-          })),
-          subtotal: calcSubtotal(state.items),
-          hasSubscription: state.items.some(isSubscriptionItem),
-          currency: "EUR",
-        };
+        // Verificación rápida: todos los items deben tener priceId para la API legacy
+        const items = state.items.map((it) => ({
+          ...it,
+          // si tu catálogo trae el campo stripe price como 'priceId' ya estamos ok.
+          // Si fuese otro nombre (p.ej. stripePriceId), añádelo aquí:
+          priceId: it.priceId ?? it.stripePriceId ?? it.price_id ?? it.priceID
+        }));
 
-        const endpoint = payload.hasSubscription ? "/api/checkout-subscription" : "/api/checkout";
-
-        try {
-          const res = await fetch(endpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
-          if (!res.ok) throw new Error("Checkout API error: " + res.status);
-          const data = await res.json();
-          if (data?.url) {
-            window.location.assign(data.url);
-            return;
-          }
-          throw new Error("Respuesta sin URL de redirección");
-        } catch (err) {
-          console.error("[checkout] fallo:", err);
-          return null;
+        const missing = items.filter(i => !i.priceId);
+        if (missing.length) {
+          console.error("[checkout] Faltan priceId en:", missing);
+          throw new Error("Hay productos sin priceId de Stripe. No se puede crear la sesión de pago.");
         }
+
+        // Éxito -> redirige (dentro de createCheckout)
+        await callCreateCheckout(items, {
+          // Puedes personalizar estas rutas:
+          success_url: `${window.location.origin}/success`,
+          cancel_url: `${window.location.origin}/cancel`,
+          // shipping_rate: "shr_XXXX" // opcional si quieres cambiarlo
+        });
+
+        return null;
       },
     }),
     {
       name: "guarros-cart",
-      version: 4,
+      version: 5,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ items: state.items }),
     }
