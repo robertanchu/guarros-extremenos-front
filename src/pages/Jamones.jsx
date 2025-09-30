@@ -19,11 +19,6 @@ const SORT_OPTIONS = [
   { value: "name-desc",  label: "Nombre Z→A" },
 ];
 
-const FORMATS = [
-  { value: "entero", label: "Entero" },
-  { value: "loncheado", label: "Loncheado" },
-];
-
 export default function Jamones(){
   const base = useMemo(() => getCatalog().filter(p => p.type === "one_time"), []);
   const [q, setQ] = useState("");
@@ -87,7 +82,7 @@ export default function Jamones(){
                 <button
                   key={f.value}
                   onClick={() => toggleFormat(f.value)}
-                  className={\`h-9 px-3 rounded-full border text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 \${active ? "bg-brand text-white border-transparent" : "bg-black/40 text-white/80 border-white/15 hover:bg-white/10"}\`}
+                  className={`h-9 px-3 rounded-full border text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${active ? "bg-brand text-white border-transparent" : "bg-black/40 text-white/80 border-white/15 hover:bg-white/10"}`}
                 >
                   {f.label}
                 </button>
