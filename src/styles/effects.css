@@ -1,31 +1,5 @@
-/* Effects for Suscripción cards and alert */
+/* Effects for Suscripción cards and alert (per-card glow) */
 @media (prefers-reduced-motion: no-preference) {
-  .reveal {
-    opacity: 0;
-    transform: translateY(14px);
-    transition: opacity .6s ease, transform .6s ease;
-  }
-  .revealed {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .btn-shiny {
-    position: relative;
-    overflow: hidden;
-    isolation: isolate;
-  }
-  .btn-shiny::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.18) 30%, transparent 60%);
-    transform: translateX(-120%);
-    transition: transform .8s ease;
-    pointer-events: none;
-    z-index: -1;
-  }
-  .btn-shiny:hover::after { transform: translateX(120%); }
-
   .card-hover {
     transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease, background-color .28s ease;
     will-change: transform;
@@ -44,12 +18,13 @@
   position: absolute;
   inset: -1px;
   border-radius: 1.5rem;
-  background: radial-gradient(120px 80px at var(--mx, 50%) var(--my, 50%), var(--brand-600, #C3342E), transparent 60%);
+  background: radial-gradient(120px 80px at var(--lx, 50%) var(--ly, 50%), var(--brand-600, #C3342E), transparent 60%);
   opacity: 0;
   transition: opacity .28s ease;
   mix-blend-mode: screen;
 }
 
+/* Refined alert styles (global banner) */
 .alert {
   border-radius: 1rem;
   padding: 1rem;
