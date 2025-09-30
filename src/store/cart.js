@@ -1,5 +1,9 @@
 // src/store/cart.js
-// v9: añade `migrate` para Zustand persist y mejora los errores de checkout (superficie el 500 con detalle).
+// v10 — Checkout ultra-robusto:
+// - Resuelve priceId desde el catálogo si falta
+// - Prueba varios ENDPOINTS y PAYLOADS comunes (legacy y actuales)
+// - Superficie el detalle del error (status + body) para diagnosticar rápido
+// - Incluye migrate() para evitar avisos de Zustand persist
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
@@ -68,37 +72,68 @@ const resolvePriceId = (it) => {
   return cat?.priceId || null;
 };
 
-// Fallback legacy si no hay API.createCheckout
-async function legacyCreateCheckout(items, opts = {}){
-  const BASE = import.meta.env.VITE_BACKEND_URL?.replace(/\/$/,'') || "";
-  if(!BASE) throw new Error("VITE_BACKEND_URL no configurado");
-  const success_url = opts.success_url || `${window.location.origin}/success`;
-  const cancel_url  = opts.cancel_url  || `${window.location.origin}/cancel`;
-  const payload = {
-    items: items.map(i => ({ price: i.priceId, quantity: i.qty })),
-    success_url, cancel_url
-  };
-  console.debug("[checkout] POST", `${BASE}/create-checkout-session`, payload);
-  const res = await fetch(`${BASE}/create-checkout-session`, {
+// ----- Helpers de redirección/peticiones -----
+const getBaseUrl = () => (import.meta.env.VITE_BACKEND_URL?.replace(/\/$/, "") || "");
+
+async function tryFetch(url, payload){
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
-  if(!res.ok){
-    let detail = "";
-    try {
-      const text = await res.text();
-      detail = text?.slice(0, 300);
-      // intenta parsear JSON si aplica
-      try { detail = JSON.stringify(JSON.parse(text)); } catch {}
-    } catch {}
-    const msg = `Error al crear la sesión de pago (${res.status}). ${detail || ""}`;
-    throw new Error(msg);
+  let bodyText = "";
+  try { bodyText = await res.text(); } catch {}
+  let json = null;
+  try { json = JSON.parse(bodyText); } catch {}
+  return { ok: res.ok, status: res.status, bodyText, json };
+}
+
+async function tryCheckoutVariants({ items, opts }){
+  const BASE = getBaseUrl();
+  const success_url = opts.success_url || `${window.location.origin}/success`;
+  const cancel_url  = opts.cancel_url  || `${window.location.origin}/cancel`;
+
+  const endpoints = [
+    // Customizable vía env opcional
+    import.meta.env.VITE_CHECKOUT_PATH ? `${BASE}${import.meta.env.VITE_CHECKOUT_PATH}` : null,
+    `${BASE}/create-checkout-session`,
+    `${BASE}/api/checkout`,
+  ].filter(Boolean);
+
+  const payloads = [
+    // (A) Legacy sencillo
+    { kind: "legacy-items", data: { items: items.map(i => ({ price: i.priceId, quantity: i.qty })), success_url, cancel_url } },
+    // (B) Con line_items (algunos backends esperan esta forma)
+    { kind: "line_items", data: { line_items: items.map(i => ({ price: i.priceId, quantity: i.qty })), mode: "payment", success_url, cancel_url } },
+    // (C) Por si tu backend recibe items completos y ya mapea él
+    { kind: "raw-items", data: { items, success_url, cancel_url } },
+  ];
+
+  const attempts = [];
+  for (const ep of endpoints){
+    for (const pl of payloads){
+      attempts.push({ url: ep, payload: pl });
+    }
   }
-  const data = await res.json();
-  console.debug("[checkout] response:", data);
-  if(data?.url){ window.location.assign(data.url); return; }
-  throw new Error("Respuesta sin URL de checkout");
+
+  const errors = [];
+  for (const at of attempts){
+    try {
+      console.debug("[checkout] TRY", at.url, at.payload.kind);
+      const { ok, status, json, bodyText } = await tryFetch(at.url, at.payload.data);
+      if (ok && (json?.url || json?.redirectUrl)) {
+        const dest = json.url || json.redirectUrl;
+        console.debug("[checkout] OK ->", dest);
+        window.location.assign(dest);
+        return;
+      }
+      errors.push({ url: at.url, kind: at.payload.kind, status, body: bodyText?.slice(0, 500) });
+    } catch (e) {
+      errors.push({ url: at.url, kind: at.payload.kind, status: "FETCH_ERR", body: String(e?.message || e) });
+    }
+  }
+  const msg = errors.map(e => `• ${e.url} [${e.kind}] → ${e.status}: ${e.body}`).join("\n");
+  throw new Error("No se pudo iniciar el pago. Intentos:\n" + msg);
 }
 
 const callCreateCheckout = async (items, opts) => {
@@ -106,8 +141,8 @@ const callCreateCheckout = async (items, opts) => {
     console.debug("[checkout] using API.createCheckout");
     return createCheckout(items, opts);
   }
-  console.debug("[checkout] using fallback legacyCreateCheckout");
-  return legacyCreateCheckout(items, opts);
+  console.debug("[checkout] using multi-variant fallback");
+  return tryCheckoutVariants({ items, opts });
 };
 
 export const useCart = create(
@@ -214,16 +249,13 @@ export const useCart = create(
     }),
     {
       name: "guarros-cart",
-      version: 9,
+      version: 10,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ items: state.items }),
-      // ---- MIGRACIÓN: arregla estados viejos para evitar el warning/rotura ----
       migrate: (persistedState, fromVersion) => {
         try {
           const s = persistedState || {};
-          // Estructura mínima
           if (!Array.isArray(s.items)) s.items = [];
-          // Asegurar lineId en cada item y qty válida
           s.items = s.items.map((it) => {
             const qty = clampQty(it?.qty || 1);
             const lineId = composeLineId(it || {});
@@ -231,7 +263,6 @@ export const useCart = create(
           });
           return s;
         } catch {
-          // Si algo falla, reseteamos limpio (mejor que romper)
           return { items: [] };
         }
       },
