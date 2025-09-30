@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Meta from "../lib/Meta";
 import SortSelect from "@/components/SortSelect";
-import JamonCard from "@/components/JamonCard"; // ← mantenemos tu componente
+import JamonCard from "@/components/JamonCard"; // mantenemos el componente sin cambios
 import { PRODUCTS } from "@/data/products.js";
 import { getFormat } from "@/utils/format";
 import { useCart } from "@/store/cart";
@@ -35,6 +35,34 @@ export default function Jamones(){
   const [activeFormats, setActiveFormats] = useState(new Set());
   const gridRef = useRef(null);
 
+  // refs por tarjeta para leer qty desde el DOM de JamonCard sin tocarlo
+  const cardRefs = useRef(new Map());
+
+  const setCardRef = (key) => (el) => {
+    cardRefs.current.set(key, el);
+  };
+
+  const readQtyFromCard = (key) => {
+    const root = cardRefs.current.get(key);
+    if (!root) return 1;
+    // heurísticas comunes: input type number, data-qty, aria-label, etc.
+    const input =
+      root.querySelector('input[type="number"]') ||
+      root.querySelector('[data-qty]') ||
+      root.querySelector('input[name*="qty" i], input[name*="cantidad" i]');
+    if (input) {
+      const v = parseInt(input.value, 10);
+      if (Number.isFinite(v) && v > 0) return Math.min(v, 99);
+    }
+    // alternativa: span con valor numérico visible (por si JamonCard no usa input)
+    const span = root.querySelector('[data-quantity], .quantity, [aria-label~="cantidad" i]');
+    if (span) {
+      const v = parseInt(span.textContent, 10);
+      if (Number.isFinite(v) && v > 0) return Math.min(v, 99);
+    }
+    return 1;
+  };
+
   const toggleFormat = (val) => {
     setActiveFormats(prev => {
       const n = new Set(prev);
@@ -58,7 +86,7 @@ export default function Jamones(){
     }
   }, [base, q, sort, activeFormats]);
 
-  // Reveal effects (dejamos tu fade-in)
+  // Reveal effects
   useEffect(() => {
     const root = gridRef.current;
     if (!root) return;
@@ -84,10 +112,20 @@ export default function Jamones(){
     return () => io.disconnect();
   }, [filtered.length]);
 
-  // 🔧 FIX: onAdd pasa la cantidad seleccionada desde JamonCard
-  const handleAdd = (product) => (qty = 1) => {
-    const qNum = Number(qty) || 1;
-    addItem(product, qNum);
+  // onAdd robusto: si JamonCard pasa qty -> lo usamos; si no, lo leemos del DOM de la tarjeta
+  const onAddFactory = (product) => (maybeQty) => {
+    let qty = 1;
+    if (typeof maybeQty === "number") {
+      qty = maybeQty;
+    } else if (maybeQty && typeof maybeQty === "object" && "qty" in maybeQty) {
+      const v = parseInt(maybeQty.qty, 10);
+      if (Number.isFinite(v)) qty = v;
+    } else {
+      // leer del DOM de la tarjeta asociada
+      qty = readQtyFromCard(keyOf(product));
+    }
+    qty = Math.max(1, Math.min(99, Number(qty) || 1));
+    addItem(product, qty);
   };
 
   return (
@@ -107,7 +145,12 @@ export default function Jamones(){
                 placeholder="Buscar jamón..."
                 className="h-11 rounded-xl bg-black/60 text-white border border-white/15 px-3 placeholder:text-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
               />
-              <SortSelect value={sort} onChange={setSort} options={SORT_OPTIONS} />
+              <SortSelect value={sort} onChange={setSort} options={[
+                { value: "price-asc",  label: "Precio: menor a mayor" },
+                { value: "price-desc", label: "Precio: mayor a menor" },
+                { value: "name-asc",   label: "Nombre A→Z" },
+                { value: "name-desc",  label: "Nombre Z→A" },
+              ]} />
             </div>
           </div>
 
@@ -117,7 +160,11 @@ export default function Jamones(){
               return (
                 <button
                   key={f.value}
-                  onClick={() => toggleFormat(f.value)}
+                  onClick={() => {
+                    const n = new Set(activeFormats);
+                    if (active) n.delete(f.value); else n.add(f.value);
+                    setActiveFormats(n);
+                  }}
                   className={(active
                       ? "bg-brand text-white border-transparent "
                       : "bg-black/40 text-white/80 border-white/15 hover:bg-white/10 ")
@@ -141,15 +188,17 @@ export default function Jamones(){
             <p className="text-white/70">No hay jamones con esos filtros.</p>
           ) : (
             <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {filtered.map((p) => (
-                <div key={keyOf(p)} data-reveal>
-                  <JamonCard
-                    product={p}
-                    // ⬇️ Mantiene tu componente y solo arregla el add
-                    onAdd={handleAdd(p)} // JamonCard puede llamar onAdd(qty) y llegará al carrito
-                  />
-                </div>
-              ))}
+              {filtered.map((p) => {
+                const k = keyOf(p);
+                return (
+                  <div key={k} data-reveal ref={setCardRef(k)}>
+                    <JamonCard
+                      product={p}
+                      onAdd={onAddFactory(p)} // usa qty si la pasa; si no, lo lee del DOM del card
+                    />
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
