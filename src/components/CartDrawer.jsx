@@ -1,10 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 /**
- * CartDrawer conectado a firmas reales de la store:
- *   removeItem(matcher) — matcher puede ser item.id o item.priceId
- *   increment(matcher)
- *   decrement(matcher)
+ * CartDrawer:
+ *  - Firmas de store: increment(matcher), decrement(matcher), removeItem(matcher) con matcher = id || priceId
+ *  - Toast interno ligero (sin dependencias) al eliminar
+ *  - Confirmación suave antes de borrar el ÚLTIMO elemento del carrito
  */
 export default function CartDrawer({
   isOpen = false,
@@ -15,14 +15,22 @@ export default function CartDrawer({
   increment = () => {},
   decrement = () => {},
 }) {
+  const panelRef = useRef(null);
+  const [toast, setToast] = useState(null);        // { message }
+  const toastTimerRef = useRef(null);
+  const [confirmState, setConfirmState] = useState(null); // { item, matcher }
+
   // Close on ESC
   useEffect(() => {
     function onKey(e){
-      if (e.key === "Escape" && isOpen) onClose();
+      if (e.key === "Escape" && isOpen) {
+        if (confirmState) { setConfirmState(null); return; }
+        onClose();
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, confirmState]);
 
   // Prevent body scroll when open
   useEffect(() => {
@@ -36,8 +44,31 @@ export default function CartDrawer({
   const subtotal = items.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.qty) || 1), 0);
   const hasItems = items && items.length > 0;
 
-  // matcher exacto según store
   const keyOf = (it) => it?.id ?? it?.priceId;
+
+  const showToast = (message) => {
+    setToast({ message });
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(null), 2500);
+  };
+
+  const handleRemove = (it) => {
+    const k = keyOf(it);
+    if (items.length <= 1) {
+      // Confirm suave si es el último
+      setConfirmState({ item: it, matcher: k });
+    } else {
+      try { removeItem(k); } finally { showToast("Producto eliminado del carrito"); }
+    }
+  };
+
+  const confirmRemoveNow = () => {
+    if (!confirmState) return;
+    try { removeItem(confirmState.matcher); } finally {
+      setConfirmState(null);
+      showToast("Producto eliminado del carrito");
+    }
+  };
 
   return (
     <div className={isOpen ? "pointer-events-auto" : "pointer-events-none"} aria-hidden={!isOpen}>
@@ -47,11 +78,12 @@ export default function CartDrawer({
           "fixed inset-0 bg-black/60 transition-opacity duration-300 z-[90] " +
           (isOpen ? "opacity-100" : "opacity-0")
         }
-        onClick={onClose}
+        onClick={() => (confirmState ? setConfirmState(null) : onClose())}
       />
 
       {/* Drawer Panel */}
       <aside
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label="Carrito"
@@ -64,14 +96,14 @@ export default function CartDrawer({
         style={{ ["--sat"]: "env(safe-area-inset-bottom)" }}
       >
         {/* Shell: flex column */}
-        <div className="h-full flex flex-col">
+        <div className="h-full flex flex-col relative">
           {/* Header sticky */}
           <div className="flex-none sticky top-0 px-4 sm:px-5 py-4 border-b border-white/10 bg-black/95 z-10">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-white text-lg font-semibold">Tu carrito</h2>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={() => (confirmState ? setConfirmState(null) : onClose())}
                 className="h-9 px-3 rounded-lg border border-white/15 text-white/80 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                 aria-label="Cerrar carrito"
               >
@@ -126,7 +158,7 @@ export default function CartDrawer({
                         </div>
                         <button
                           type="button"
-                          onClick={() => removeItem(keyOf(it))}
+                          onClick={() => handleRemove(it)}
                           className="h-9 px-3 rounded-lg border border-white/15 text-white/70 hover:bg-white/10"
                           aria-label="Eliminar"
                         >
@@ -160,6 +192,44 @@ export default function CartDrawer({
               Finalizar compra
             </button>
           </div>
+
+          {/* Toast (ligero, dentro del panel) */}
+          {toast && (
+            <div className="pointer-events-none absolute left-0 right-0 bottom-[76px] px-4 sm:px-5 z-[110]">
+              <div className="mx-auto max-w-sm rounded-xl border border-white/10 bg-white/[0.07] text-white/90 px-4 py-3 text-sm shadow-lg">
+                {toast.message}
+              </div>
+            </div>
+          )}
+
+          {/* Confirm eliminar último ítem */}
+          {confirmState && (
+            <div className="absolute inset-0 z-[120] grid place-items-center px-4">
+              <div className="fixed inset-0 bg-black/70" onClick={() => setConfirmState(null)} />
+              <div className="relative z-[121] w-full max-w-sm rounded-2xl border border-white/10 bg-black/95 p-5">
+                <h3 className="text-white font-semibold">Vaciar carrito</h3>
+                <p className="mt-2 text-white/80 text-sm">
+                  Estás a punto de eliminar el último producto del carrito. ¿Seguro que quieres continuar?
+                </p>
+                <div className="mt-4 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmState(null)}
+                    className="h-9 px-3 rounded-lg border border-white/15 text-white/80 hover:bg-white/10"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmRemoveNow}
+                    className="h-9 px-3 rounded-lg bg-brand text-white hover:bg-brand-700"
+                  >
+                    Vaciar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Safe area padding */}
           <div className="flex-none" style={{ paddingBottom: "env(safe-area-inset-bottom)" }} />
