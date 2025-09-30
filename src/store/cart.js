@@ -1,16 +1,13 @@
 // src/store/cart.js
-// v10 — Checkout ultra-robusto:
-// - Resuelve priceId desde el catálogo si falta
-// - Prueba varios ENDPOINTS y PAYLOADS comunes (legacy y actuales)
-// - Superficie el detalle del error (status + body) para diagnosticar rápido
-// - Incluye migrate() para evitar avisos de Zustand persist
+// v12 — Checkout determinista para Render backend:
+// - SIEMPRE postea a `${VITE_BACKEND_URL}/create-checkout-session`
+// - Payload EXACTO: { items: [{price, quantity}], success_url, cancel_url }
+// - Redirección: usa json.url o extrae la 1ª URL del body (por si el backend cambia el formato)
+// - Mantiene: lineId por variante, qty, migrate de Zustand, resolve priceId del catálogo
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import * as API from "@/lib/api"; // opcional: exporta createCheckout(items, opts)
 import { PRODUCTS as CATALOG } from "@/data/products";
-
-const createCheckout = API?.createCheckout;
 
 const isSubscriptionItem = (it) => it?.kind === "subscription" || it?.isSubscription === true || it?.type === "recurring";
 
@@ -28,33 +25,15 @@ const composeLineId = (it = {}) => {
   const variant = variantOf(it);
   return variant ? `${base}::${variant}` : `${base}`;
 };
-const sameItem = (a, b) => {
-  if (!a || !b) return false;
-  const la = composeLineId(a);
-  const lb = composeLineId(b);
-  if (la && lb) return la === lb;
-  return baseIdOf(a) === baseIdOf(b);
-};
 const clampQty = (n, min = 1, max = 99) => {
   const x = Number(n);
   if (!Number.isFinite(x)) return min;
   return Math.min(Math.max(Math.trunc(x), min), max);
 };
-const findIndexByMatcher = (items, matcher) => {
-  for (let i = 0; i < items.length; i++) if (String(items[i].lineId) === String(matcher)) return i;
-  for (let i = 0; i < items.length; i++) {
-    const it = items[i];
-    if (
-      it.id === matcher || it.priceId === matcher || it.slug === matcher ||
-      it.sku === matcher || it.key === matcher || it.name === matcher
-    ) return i;
-  }
-  return -1;
-};
 const calcSubtotal = (items) =>
   items.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.qty) || 1), 0);
 
-// ----- Resolver priceId desde el catálogo si falta -----
+// Resolver priceId desde el catálogo si falta
 const findInCatalog = (it) => {
   if (!Array.isArray(CATALOG)) return null;
   const id = it?.id?.toString?.();
@@ -72,78 +51,18 @@ const resolvePriceId = (it) => {
   return cat?.priceId || null;
 };
 
-// ----- Helpers de redirección/peticiones -----
-const getBaseUrl = () => (import.meta.env.VITE_BACKEND_URL?.replace(/\/$/, "") || "");
-
-async function tryFetch(url, payload){
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  let bodyText = "";
-  try { bodyText = await res.text(); } catch {}
-  let json = null;
-  try { json = JSON.parse(bodyText); } catch {}
-  return { ok: res.ok, status: res.status, bodyText, json };
+function extractUrlFromBody(text) {
+  try {
+    const j = JSON.parse(text);
+    const url = j?.url || j?.redirectUrl || j?.checkoutUrl || j?.data?.url || null;
+    if (url && typeof url === "string" && url.startsWith("http")) return url;
+  } catch {}
+  if (typeof text === "string") {
+    const m = text.match(/https?:\/\/[^\s"']+/i);
+    if (m && m[0]) return m[0];
+  }
+  return null;
 }
-
-async function tryCheckoutVariants({ items, opts }){
-  const BASE = getBaseUrl();
-  const success_url = opts.success_url || `${window.location.origin}/success`;
-  const cancel_url  = opts.cancel_url  || `${window.location.origin}/cancel`;
-
-  const endpoints = [
-    // Customizable vía env opcional
-    import.meta.env.VITE_CHECKOUT_PATH ? `${BASE}${import.meta.env.VITE_CHECKOUT_PATH}` : null,
-    `${BASE}/create-checkout-session`,
-    `${BASE}/api/checkout`,
-  ].filter(Boolean);
-
-  const payloads = [
-    // (A) Legacy sencillo
-    { kind: "legacy-items", data: { items: items.map(i => ({ price: i.priceId, quantity: i.qty })), success_url, cancel_url } },
-    // (B) Con line_items (algunos backends esperan esta forma)
-    { kind: "line_items", data: { line_items: items.map(i => ({ price: i.priceId, quantity: i.qty })), mode: "payment", success_url, cancel_url } },
-    // (C) Por si tu backend recibe items completos y ya mapea él
-    { kind: "raw-items", data: { items, success_url, cancel_url } },
-  ];
-
-  const attempts = [];
-  for (const ep of endpoints){
-    for (const pl of payloads){
-      attempts.push({ url: ep, payload: pl });
-    }
-  }
-
-  const errors = [];
-  for (const at of attempts){
-    try {
-      console.debug("[checkout] TRY", at.url, at.payload.kind);
-      const { ok, status, json, bodyText } = await tryFetch(at.url, at.payload.data);
-      if (ok && (json?.url || json?.redirectUrl)) {
-        const dest = json.url || json.redirectUrl;
-        console.debug("[checkout] OK ->", dest);
-        window.location.assign(dest);
-        return;
-      }
-      errors.push({ url: at.url, kind: at.payload.kind, status, body: bodyText?.slice(0, 500) });
-    } catch (e) {
-      errors.push({ url: at.url, kind: at.payload.kind, status: "FETCH_ERR", body: String(e?.message || e) });
-    }
-  }
-  const msg = errors.map(e => `• ${e.url} [${e.kind}] → ${e.status}: ${e.body}`).join("\n");
-  throw new Error("No se pudo iniciar el pago. Intentos:\n" + msg);
-}
-
-const callCreateCheckout = async (items, opts) => {
-  if (typeof createCheckout === "function") {
-    console.debug("[checkout] using API.createCheckout");
-    return createCheckout(items, opts);
-  }
-  console.debug("[checkout] using multi-variant fallback");
-  return tryCheckoutVariants({ items, opts });
-};
 
 export const useCart = create(
   persist(
@@ -163,7 +82,7 @@ export const useCart = create(
           incoming.lineId = composeLineId(incoming);
 
           const next = [...state.items];
-          const existingIdx = next.findIndex((it) => sameItem(it, incoming));
+          const existingIdx = next.findIndex((it) => it.lineId === incoming.lineId);
 
           if (isSub) {
             const alreadySubIdx = next.findIndex((it) => isSubscriptionItem(it));
@@ -184,49 +103,11 @@ export const useCart = create(
           }
         }),
 
-      removeItem: (matcher) =>
-        set((state) => {
-          const idx = findIndexByMatcher(state.items, matcher);
-          if (idx === -1) return state;
-          const next = [...state.items];
-          next.splice(idx, 1);
-          return { items: next };
-        }),
-
-      increment: (matcher) =>
-        set((state) => {
-          const idx = findIndexByMatcher(state.items, matcher);
-          if (idx === -1) return state;
-          const item = state.items[idx];
-          if (isSubscriptionItem(item)) return state;
-          const next = [...state.items];
-          const currQty = clampQty(item.qty || 1);
-          next[idx] = { ...item, qty: clampQty(currQty + 1) };
-          return { items: next };
-        }),
-
-      decrement: (matcher) =>
-        set((state) => {
-          const idx = findIndexByMatcher(state.items, matcher);
-          if (idx === -1) return state;
-          const item = state.items[idx];
-          if (isSubscriptionItem(item)) return state;
-          const currQty = clampQty(item.qty || 1);
-          const newQty = clampQty(currQty - 1);
-          const next = [...state.items];
-          next[idx] = { ...item, qty: newQty };
-          return { items: next };
-        }),
-
       clear: () => set({ items: [] }),
 
       checkout: async () => {
         const state = get();
-        const items = state.items.map((it) => {
-          const priceId = resolvePriceId(it);
-          return { ...it, priceId, lineId: composeLineId(it) };
-        });
-
+        const items = state.items.map((it) => ({ ...it, priceId: resolvePriceId(it) }));
         const missing = items.filter(i => !i.priceId);
         if (missing.length) {
           const names = missing.map(m => m.name || m.id || m.slug).join(", ");
@@ -235,11 +116,34 @@ export const useCart = create(
           return null;
         }
 
+        const BASE = import.meta.env.VITE_BACKEND_URL?.replace(/\/$/, "") || "";
+        if (!BASE) {
+          alert("VITE_BACKEND_URL no está configurado");
+          return null;
+        }
+
+        const success_url = `${window.location.origin}/success`;
+        const cancel_url  = `${window.location.origin}/cancel`;
+        const payload = {
+          items: items.map(i => ({ price: i.priceId, quantity: i.qty })),
+          success_url,
+          cancel_url
+        };
+
         try {
-          await callCreateCheckout(items, {
-            success_url: `${window.location.origin}/success`,
-            cancel_url: `${window.location.origin}/cancel`,
+          const res = await fetch(`${BASE}/create-checkout-session`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
           });
+          const text = await res.text();
+          const url = extractUrlFromBody(text);
+          if (res.ok && url) {
+            window.location.assign(url);
+            return null;
+          }
+          console.error("[checkout] respuesta", res.status, text.slice(0, 500));
+          alert("No se pudo iniciar el pago. Revisa Network → Response y pásame el contenido.");
         } catch (e) {
           console.error("[checkout] error:", e);
           alert(e?.message || "No se pudo iniciar el pago.");
@@ -249,15 +153,15 @@ export const useCart = create(
     }),
     {
       name: "guarros-cart",
-      version: 10,
+      version: 12,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ items: state.items }),
-      migrate: (persistedState, fromVersion) => {
+      migrate: (persistedState) => {
         try {
           const s = persistedState || {};
           if (!Array.isArray(s.items)) s.items = [];
           s.items = s.items.map((it) => {
-            const qty = clampQty(it?.qty || 1);
+            const qty = Math.min(Math.max(parseInt(it?.qty || 1, 10) || 1, 1), 99);
             const lineId = composeLineId(it || {});
             return { ...it, qty, lineId };
           });
