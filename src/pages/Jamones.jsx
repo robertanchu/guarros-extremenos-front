@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Meta from "../lib/Meta";
 import SortSelect from "@/components/SortSelect";
+import JamonCard from "@/components/JamonCard"; // ← mantenemos tu componente
 import { PRODUCTS } from "@/data/products.js";
 import { getFormat } from "@/utils/format";
 import { useCart } from "@/store/cart";
@@ -14,7 +15,7 @@ const getCatalog = () => {
 
 const SORT_OPTIONS = [
   { value: "price-asc",  label: "Precio: menor a mayor" },
-  { value: "price-desc", label: "Precio: mayor a mayor" },
+  { value: "price-desc", label: "Precio: mayor a menor" },
   { value: "name-asc",   label: "Nombre A→Z" },
   { value: "name-desc",  label: "Nombre Z→A" },
 ];
@@ -26,35 +27,13 @@ const FORMATS = [
 
 const keyOf = (p) => p.id ?? p.slug ?? p.priceId ?? p.sku ?? p.name;
 
-const fmtEUR = (n) => {
-  const num = Number(n);
-  if (!Number.isFinite(num)) return "";
-  try { return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(num); }
-  catch { return (num.toFixed?.(2) ?? String(num)) + " €"; }
-};
-
 export default function Jamones(){
   const base = useMemo(() => getCatalog().filter(p => p.type === "one_time"), []);
   const { addItem } = useCart();
   const [q, setQ] = useState("");
   const [sort, setSort] = useState("price-asc");
   const [activeFormats, setActiveFormats] = useState(new Set());
-  const [qtyByKey, setQtyByKey] = useState({});
   const gridRef = useRef(null);
-
-  const clamp = (n) => {
-    const x = parseInt(n, 10);
-    if (isNaN(x)) return 1;
-    return Math.max(1, Math.min(99, x));
-  };
-  const getQty = (p) => qtyByKey[keyOf(p)] ?? 1;
-  const setQty = (p, n) => setQtyByKey(prev => ({ ...prev, [keyOf(p)]: clamp(n) }));
-  const inc = (p) => setQty(p, getQty(p) + 1);
-  const dec = (p) => setQty(p, getQty(p) - 1);
-
-  const handleAdd = (p) => {
-    addItem(p, getQty(p));
-  };
 
   const toggleFormat = (val) => {
     setActiveFormats(prev => {
@@ -79,7 +58,7 @@ export default function Jamones(){
     }
   }, [base, q, sort, activeFormats]);
 
-  // Reveal effects
+  // Reveal effects (dejamos tu fade-in)
   useEffect(() => {
     const root = gridRef.current;
     if (!root) return;
@@ -104,6 +83,12 @@ export default function Jamones(){
     els.forEach(el => io.observe(el));
     return () => io.disconnect();
   }, [filtered.length]);
+
+  // 🔧 FIX: onAdd pasa la cantidad seleccionada desde JamonCard
+  const handleAdd = (product) => (qty = 1) => {
+    const qNum = Number(qty) || 1;
+    addItem(product, qNum);
+  };
 
   return (
     <>
@@ -156,49 +141,15 @@ export default function Jamones(){
             <p className="text-white/70">No hay jamones con esos filtros.</p>
           ) : (
             <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {filtered.map((p) => {
-                const displayPrice = fmtEUR(p.priceFrom ?? p.price);
-                return (
-                  <div key={keyOf(p)} data-reveal className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 flex flex-col">
-                    {/* Imagen */}
-                    <div className="aspect-[4/3] overflow-hidden rounded-xl border border-white/10">
-                      <img src={p.image || p.img} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
-                    </div>
-
-                    {/* Info */}
-                    <h3 className="mt-3 text-white text-lg font-medium line-clamp-2">{p.name}</h3>
-                    <div className="mt-1 text-white/70 text-sm capitalize">{getFormat(p)}</div>
-                    <div className="mt-2 text-2xl font-semibold text-white">{displayPrice}</div>
-
-                    {/* Spacer to pin CTA at bottom */}
-                    <div className="flex-1" />
-
-                    {/* Qty + CTA */}
-                    <div className="mt-4 flex items-center gap-3">
-                      <div className="inline-flex items-center rounded-full border border-white/15 bg-white/[0.03] overflow-hidden">
-                        <button type="button" onClick={() => dec(p)} className="h-9 w-9 text-white/80 hover:bg-white/10" aria-label="Disminuir">−</button>
-                        <input
-                          type="number"
-                          min="1"
-                          max="99"
-                          value={getQty(p)}
-                          onChange={(e) => setQty(p, e.target.value)}
-                          className="h-9 w-12 bg-transparent text-center text-white outline-none"
-                        />
-                        <button type="button" onClick={() => inc(p)} className="h-9 w-9 text-white/80 hover:bg-white/10" aria-label="Aumentar">+</button>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleAdd(p)}
-                        className="ml-auto h-10 px-4 rounded-xl bg-brand text-white hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-                      >
-                        Añadir al carrito
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+              {filtered.map((p) => (
+                <div key={keyOf(p)} data-reveal>
+                  <JamonCard
+                    product={p}
+                    // ⬇️ Mantiene tu componente y solo arregla el add
+                    onAdd={handleAdd(p)} // JamonCard puede llamar onAdd(qty) y llegará al carrito
+                  />
+                </div>
+              ))}
             </div>
           )}
         </div>
