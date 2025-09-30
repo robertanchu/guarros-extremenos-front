@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 
 /**
- * CartDrawer — v52
- * - Oculta controles de cantidad (+/-) para items de tipo suscripción (kind === "subscription")
- * - Mantiene estilo de marca de v51
+ * CartDrawer — v53
+ * - Suscripciones: oculta controles y texto de cantidad; muestra precio como "€ /mes"
+ * - Productos normales: mantiene controles y totales por línea
  * - Firmas store: increment(matcher), decrement(matcher), removeItem(matcher) con matcher = id || priceId
  */
 export default function CartDrawer({
@@ -98,7 +98,10 @@ export default function CartDrawer({
             {hasItems ? (
               <ul className="divide-y divide-white/8">
                 {items.map((it) => {
-                  const isSub = it.kind === "subscription";
+                  const isSub = it.kind === "subscription" || it.isSubscription === true;
+                  const qty = Number(it.qty) || 1;
+                  const unit = Number(it.price) || 0;
+                  const lineTotal = unit * qty;
                   return (
                     <li
                       key={(it.id ?? it.priceId ?? it.slug ?? it.name) + String(it.kind ?? "")}
@@ -126,17 +129,23 @@ export default function CartDrawer({
                                 <div className="text-[11px] text-brand mt-0.5 uppercase tracking-wide">Suscripción</div>
                               )}
                             </div>
+
+                            {/* Precio por línea */}
                             <div className="text-white font-semibold whitespace-nowrap">
-                              {formatEUR((Number(it.price) || 0) * (Number(it.qty) || 1))}
+                              {isSub ? (
+                                <>
+                                  {formatEUR(unit)}<span className="text-white/70 text-sm">/mes</span>
+                                </>
+                              ) : (
+                                formatEUR(lineTotal)
+                              )}
                             </div>
                           </div>
 
                           <div className="mt-3 flex items-center justify-between gap-3">
-                            {/* Qty controls — ocultos si es suscripción */}
+                            {/* Qty controls — ocultos completamente si es suscripción */}
                             {isSub ? (
-                              <div className="text-white/80 text-sm">
-                                Cantidad: <span className="text-white font-medium">{it.qty ?? 1}</span>
-                              </div>
+                              <div /> /* sin cantidad */
                             ) : (
                               <div className="inline-flex items-center qty-pill overflow-hidden">
                                 <button
@@ -147,7 +156,7 @@ export default function CartDrawer({
                                 >
                                   −
                                 </button>
-                                <span className="w-10 text-center text-white/90">{it.qty ?? 1}</span>
+                                <span className="w-10 text-center text-white/90">{qty}</span>
                                 <button
                                   type="button"
                                   onClick={() => increment(keyOf(it))}
@@ -166,7 +175,7 @@ export default function CartDrawer({
                               className="inline-flex items-center gap-2 h-9 px-3 rounded-lg border border-white/15 text-white/70 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                             >
                               <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 100 2h.293l.853 10.234A2 2 0 0 0 7.142 18h5.716a2 2 0 0 0 1.996-1.766L15.707 6H16a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0 0 11 2H9zm-1 6a1 1 0 1 1 2 0v7a1 1 0 1 1-2 0V8zm4 0a1 1 0 1 1 2 0v7a1 1 0 1 1-2 0V8z" clipRule="evenodd" />
+                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 100 2h.293l.853 10.234A2 2 0 007.142 18h5.716a2 2 0 001.996-1.766L15.707 6H16a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zm-1 6a1 1 0 112 0v7a1 1 0 11-2 0V8zm4 0a1 1 0 112 0v7a1 1 0 11-2 0V8z" clipRule="evenodd" />
                               </svg>
                               Eliminar
                             </button>
