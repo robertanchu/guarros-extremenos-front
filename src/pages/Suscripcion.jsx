@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import Meta from "../lib/Meta";
-import FAQ from "@/components/FAQ";
 import "@/styles/effects.css";
 import { useCart } from "@/store/cart";
 import { useUI } from "@/store/ui";
@@ -35,12 +34,6 @@ const BENEFITS = [
   "100% Ibérico D.O.P Dehesa de Extremadura",
 ];
 
-const FAQS = [
-  { q: "¿Hay compromiso de permanencia?", a: "No. Puedes pausar o cancelar cuando quieras desde tu cuenta o escribiéndonos." },
-  { q: "¿Los sobres son al vacío?", a: "Sí, para preservar sabor y textura. Abre y sirve." },
-  { q: "¿Puedo cambiar de plan más adelante?", a: "Claro, cambia de 500 g a 1 kg o al revés en un clic." },
-];
-
 export default function Suscripcion(){
   const { items, addItem } = useCart();
   const openCart = () => useUI.getState().openCart();
@@ -52,43 +45,59 @@ export default function Suscripcion(){
     openCart();
   };
 
-  // reveal on mount
+  // mouse glow for cards
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const root = document.getElementById('plans-grid');
     if (!root) return;
-    const els = Array.from(root.querySelectorAll('[data-reveal]'));
-    els.forEach((el, i) => {
-      el.classList.add('reveal');
-      el.style.transitionDelay = (Math.min(i, 6) * 60) + 'ms';
-    });
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add('revealed');
-          io.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.2 });
-    els.forEach(el => io.observe(el));
-    return () => io.disconnect();
+    function onMove(e){
+      const rect = root.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      root.style.setProperty('--mx', x + 'px');
+      root.style.setProperty('--my', y + 'px');
+    }
+    root.addEventListener('mousemove', onMove);
+    return () => root.removeEventListener('mousemove', onMove);
   }, []);
 
   return (
     <main className="shell py-10 md:py-12">
       <Meta title="Suscripción Jamón Canalla | Guarros Extremeños" description="Tu jamón favorito en suscripción mensual, sin ataduras." />
       <header className="mb-6 md:mb-10 text-center">
-        <p className="text-amber-300 tracking-wide text-sm">Guarros Extremeños Club</p>
+        {/* Eliminado: Guarros Extremeños Club */}
         <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Suscripción Jamón Canalla</h1>
         <p className="mt-4 text-zinc-300 max-w-3xl mx-auto">
           El sabor que manda, cada mes en tu casa. Sin postureo, sin esperas y con la pureza del 100% ibérico D.O.P Dehesa de Extremadura.
         </p>
       </header>
 
+      {/* Banner si ya hay suscripción en carrito (formateado) */}
+      {hasSubscription && (
+        <div className="alert mb-6">
+          <div className="flex items-start gap-3">
+            <div className="shrink-0 mt-0.5">
+              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-.75-11.5a.75.75 0 011.5 0V9a.75.75 0 01-1.5 0V6.5zm.75 6a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+              </svg>
+            </div>
+            <div className="flex-1">
+              <div className="alert-title">Ya tienes una suscripción en el carrito</div>
+              <div className="alert-desc">Solo puede haber una por carrito. Puedes cambiar de plan eliminando la actual.</div>
+            </div>
+            <div>
+              <button type="button" onClick={openCart} className="btn-secondary" aria-label="Ver carrito">
+                Ver carrito
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Plans */}
-      <section id="plans-grid" className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-        {PLANS.map((p, idx) => (
-          <article key={p.slug} data-reveal className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7 flex flex-col">
+      <section id="plans-grid" className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 relative">
+        {PLANS.map((p) => (
+          <article key={p.slug} className="relative rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7 flex flex-col card-hover">
+            <div className="card-glow" aria-hidden="true"></div>
             <div className="flex-1">
               <h3 className="text-2xl font-stencil text-white">{p.name}</h3>
               <p className="mt-2 text-zinc-300">{p.desc}</p>
@@ -117,12 +126,6 @@ export default function Suscripcion(){
             </div>
           </article>
         ))}
-      </section>
-
-      {/* FAQ */}
-      <section className="mt-12 md:mt-16">
-        <h2 className="text-xl md:text-2xl font-semibold text-white mb-4">Preguntas frecuentes</h2>
-        <FAQ items={FAQS} />
       </section>
     </main>
   );

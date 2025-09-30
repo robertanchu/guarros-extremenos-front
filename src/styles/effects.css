@@ -1,28 +1,44 @@
 
+/* Additional effects for subscription cards */
 @media (prefers-reduced-motion: no-preference) {
-  .reveal {
-    opacity: 0;
-    transform: translateY(14px);
-    transition: opacity .6s ease, transform .6s ease;
+  .card-hover {
+    transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease, background-color .28s ease;
+    will-change: transform;
   }
-  .revealed {
-    opacity: 1;
-    transform: translateY(0);
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    border-color: rgba(255,255,255,.2);
+    background-color: rgba(255,255,255,.05);
   }
-  .btn-shiny {
-    position: relative;
-    overflow: hidden;
-    isolation: isolate;
+  .card-hover:hover .card-glow {
+    opacity: .18;
   }
-  .btn-shiny::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.18) 30%, transparent 60%);
-    transform: translateX(-120%);
-    transition: transform .8s ease;
-    pointer-events: none;
-    z-index: -1;
-  }
-  .btn-shiny:hover::after { transform: translateX(120%); }
+}
+.card-glow {
+  pointer-events: none;
+  position: absolute;
+  inset: -1px;
+  border-radius: 1.5rem; /* ~rounded-3xl */
+  background: radial-gradient(120px 80px at var(--mx, 50%) var(--my, 50%), var(--brand-600, #C3342E), transparent 60%);
+  opacity: 0;
+  transition: opacity .28s ease;
+  mix-blend-mode: screen;
+}
+
+/* Refined alert styles */
+.alert {
+  border-radius: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(255,255,255,.12);
+  background: linear-gradient(0deg, rgba(195,52,46,.12), rgba(195,52,46,.06));
+  color: #ffd7d4;
+}
+.alert .alert-title {
+  color: white;
+  font-weight: 600;
+}
+.alert .alert-desc {
+  opacity: .9;
+  font-size: .9rem;
 }
