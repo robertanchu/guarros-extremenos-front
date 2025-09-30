@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Meta from "../lib/Meta";
 import SortSelect from "@/components/SortSelect";
-import JamonCard from "@/components/JamonCard"; // mantenemos el componente sin cambios
+import JamonCard from "@/components/JamonCard";
 import { PRODUCTS } from "@/data/products.js";
 import { getFormat } from "@/utils/format";
 import { useCart } from "@/store/cart";
@@ -35,32 +35,11 @@ export default function Jamones(){
   const [activeFormats, setActiveFormats] = useState(new Set());
   const gridRef = useRef(null);
 
-  // refs por tarjeta para leer qty desde el DOM de JamonCard sin tocarlo
+  // refs de tarjeta
   const cardRefs = useRef(new Map());
-
   const setCardRef = (key) => (el) => {
-    cardRefs.current.set(key, el);
-  };
-
-  const readQtyFromCard = (key) => {
-    const root = cardRefs.current.get(key);
-    if (!root) return 1;
-    // heurísticas comunes: input type number, data-qty, aria-label, etc.
-    const input =
-      root.querySelector('input[type="number"]') ||
-      root.querySelector('[data-qty]') ||
-      root.querySelector('input[name*="qty" i], input[name*="cantidad" i]');
-    if (input) {
-      const v = parseInt(input.value, 10);
-      if (Number.isFinite(v) && v > 0) return Math.min(v, 99);
-    }
-    // alternativa: span con valor numérico visible (por si JamonCard no usa input)
-    const span = root.querySelector('[data-quantity], .quantity, [aria-label~="cantidad" i]');
-    if (span) {
-      const v = parseInt(span.textContent, 10);
-      if (Number.isFinite(v) && v > 0) return Math.min(v, 99);
-    }
-    return 1;
+    if (el) cardRefs.current.set(key, el);
+    else cardRefs.current.delete(key);
   };
 
   const toggleFormat = (val) => {
@@ -86,7 +65,7 @@ export default function Jamones(){
     }
   }, [base, q, sort, activeFormats]);
 
-  // Reveal effects
+  // Efecto reveal
   useEffect(() => {
     const root = gridRef.current;
     if (!root) return;
@@ -112,19 +91,58 @@ export default function Jamones(){
     return () => io.disconnect();
   }, [filtered.length]);
 
-  // onAdd robusto: si JamonCard pasa qty -> lo usamos; si no, lo leemos del DOM de la tarjeta
-  const onAddFactory = (product) => (maybeQty) => {
+  // -------- Detección robusta de cantidad --------
+  const coerceQty = (v) => {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return 1;
+    return Math.max(1, Math.min(99, Math.trunc(n)));
+  };
+
+  const readQtyFromDom = (rootEl) => {
+    if (!rootEl) return 1;
+    // 1) inputs number
+    let el = rootEl.querySelector('input[type="number"]');
+    if (el) return coerceQty(el.value);
+    // 2) atributos data
+    el = rootEl.querySelector('[data-qty],[data-quantity],[data-count],[data-amount],[data-units]');
+    if (el) return coerceQty(el.getAttribute("data-qty") || el.getAttribute("data-quantity") || el.getAttribute("data-count") || el.getAttribute("data-amount") || el.getAttribute("data-units"));
+    // 3) inputs por name
+    el = rootEl.querySelector('input[name*="qty" i],input[name*="quant" i],input[name*="cant" i],input[name*="cantidad" i]');
+    if (el) return coerceQty(el.value);
+    // 4) spans comunes
+    el = rootEl.querySelector('.qty,.quantity,[data-quantity-text]');
+    if (el) return coerceQty(el.textContent);
+    // fallback
+    return 1;
+  };
+
+  // onAdd que acepta: number, string, objeto con qty/quantity, evento, o nada
+  const onAddFactory = (product, key) => (...args) => {
     let qty = 1;
-    if (typeof maybeQty === "number") {
-      qty = maybeQty;
-    } else if (maybeQty && typeof maybeQty === "object" && "qty" in maybeQty) {
-      const v = parseInt(maybeQty.qty, 10);
-      if (Number.isFinite(v)) qty = v;
-    } else {
-      // leer del DOM de la tarjeta asociada
-      qty = readQtyFromCard(keyOf(product));
+    // casos por argumentos
+    for (const a of args) {
+      if (typeof a === "number" || (typeof a === "string" && /^\d+$/.test(a))) {
+        qty = Number(a);
+        break;
+      }
+      if (a && typeof a === "object") {
+        // { qty }, { quantity }, { amount }, event
+        const cand = a.qty ?? a.quantity ?? a.amount ?? a.units ?? a.value;
+        if (cand != null) { qty = cand; break; }
+        // si parece evento, mirar target cercano
+        const t = a.target ?? a.currentTarget;
+        if (t && typeof t.closest === "function") {
+          const card = t.closest("[data-card-root]") || cardRefs.current.get(key);
+          qty = readQtyFromDom(card);
+          break;
+        }
+      }
     }
-    qty = Math.max(1, Math.min(99, Number(qty) || 1));
+    // si no se obtuvo por args, leer del DOM por ref
+    if (!args.length) {
+      qty = readQtyFromDom(cardRefs.current.get(key));
+    }
+    qty = coerceQty(qty);
     addItem(product, qty);
   };
 
@@ -145,12 +163,7 @@ export default function Jamones(){
                 placeholder="Buscar jamón..."
                 className="h-11 rounded-xl bg-black/60 text-white border border-white/15 px-3 placeholder:text-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
               />
-              <SortSelect value={sort} onChange={setSort} options={[
-                { value: "price-asc",  label: "Precio: menor a mayor" },
-                { value: "price-desc", label: "Precio: mayor a menor" },
-                { value: "name-asc",   label: "Nombre A→Z" },
-                { value: "name-desc",  label: "Nombre Z→A" },
-              ]} />
+              <SortSelect value={sort} onChange={setSort} options={SORT_OPTIONS} />
             </div>
           </div>
 
@@ -191,10 +204,10 @@ export default function Jamones(){
               {filtered.map((p) => {
                 const k = keyOf(p);
                 return (
-                  <div key={k} data-reveal ref={setCardRef(k)}>
+                  <div key={k} data-reveal data-card-root ref={setCardRef(k)}>
                     <JamonCard
                       product={p}
-                      onAdd={onAddFactory(p)} // usa qty si la pasa; si no, lo lee del DOM del card
+                      onAdd={onAddFactory(p, k)} // soporta qty por arg, por objeto, por evento, o leyendo el DOM
                     />
                   </div>
                 );
