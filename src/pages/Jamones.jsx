@@ -28,7 +28,7 @@ export default function Jamones(){
   const base = useMemo(() => getCatalog().filter(p => p.type === "one_time"), []);
   const [q, setQ] = useState("");
   const [sort, setSort] = useState("price-asc");
-  const [activeFormats, setActiveFormats] = useState(new Set()); // vacío = todos
+  const [activeFormats, setActiveFormats] = useState(new Set());
 
   const toggleFormat = (val) => {
     setActiveFormats(prev => {
@@ -42,11 +42,9 @@ export default function Jamones(){
     const needle = q.trim().toLowerCase();
     let out = base;
     if (needle) out = out.filter(p => (p.name || "").toLowerCase().includes(needle));
-
     if (activeFormats.size > 0){
       out = out.filter(p => activeFormats.has(getFormat(p)));
     }
-
     switch (sort){
       case "price-desc": return [...out].sort((a,b) => (b.priceFrom ?? 0) - (a.priceFrom ?? 0));
       case "name-asc":   return [...out].sort((a,b) => (a.name || "").localeCompare(b.name || ""));
@@ -60,13 +58,15 @@ export default function Jamones(){
       <Meta title="Jamones Ibéricos | Guarros Extremeños" description="Nuestra selección de jamón ibérico: piezas enteras y loncheado listo para disfrutar." />
       <section className="py-10 md:py-12">
         <div className="container max-w-7xl px-4 mx-auto">
-          {/* Título consistente */}
+          {/* Título estilo Suscripción: MAYÚSCULAS + tracking */}
           <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <SectionHeader
               eyebrow="Categoría"
               title="Jamones"
               subtitle="Elige y añádelo al carrito directamente."
               align="left"
+              titleUppercase
+              titleClassName="tracking-widest"
             />
             <div className="flex items-center gap-3">
               <input
@@ -81,14 +81,13 @@ export default function Jamones(){
 
           {/* Chips de formato */}
           <div className="mb-6 flex flex-wrap items-center gap-2">
-            {FORMATS.map(f => {
+            {[{value:'entero',label:'Entero'},{value:'loncheado',label:'Loncheado'}].map(f => {
               const active = activeFormats.has(f.value);
               return (
                 <button
                   key={f.value}
                   onClick={() => toggleFormat(f.value)}
-                  className={`h-9 px-3 rounded-full border text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40
-                    ${active ? "bg-brand text-white border-transparent" : "bg-black/40 text-white/80 border-white/15 hover:bg-white/10"}`}
+                  className={\`h-9 px-3 rounded-full border text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 \${active ? "bg-brand text-white border-transparent" : "bg-black/40 text-white/80 border-white/15 hover:bg-white/10"}\`}
                 >
                   {f.label}
                 </button>
