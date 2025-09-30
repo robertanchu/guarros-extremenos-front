@@ -48,7 +48,7 @@ export default function Suscripcion(){
     card.style.removeProperty('--ly');
   };
 
-  // Robust reveal for cards
+  // Reveal efecto
   useEffect(() => {
     const grid = document.getElementById("plans-grid");
     if (!grid) return;
@@ -77,87 +77,97 @@ export default function Suscripcion(){
   return (
     <main className="shell py-10 md:py-12">
       <Meta title="Suscripción Jamón Canalla | Guarros Extremeños" description="Tu jamón favorito en suscripción mensual, sin ataduras." />
-      <header className="mb-6 md:mb-10 text-center">
-        <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Suscripción Jamón Canalla</h1>
-        <p className="mt-4 text-zinc-300 max-w-3xl mx-auto">
-          El sabor que manda, cada mes en tu casa. Sin postureo, sin esperas y con la pureza del 100% ibérico D.O.P Dehesa de Extremadura.
-        </p>
+
+      {/* Cabecera: texto centrado y acotado */}
+      <header className="mb-6 md:mb-10">
+        <div className="max-w-3xl mx-auto text-center px-4">
+          <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Suscripción Jamón Canalla</h1>
+          <p className="mt-4 text-zinc-300">
+            El sabor que manda, cada mes en tu casa. Sin postureo, sin esperas y con la pureza del 100% ibérico D.O.P Dehesa de Extremadura.
+          </p>
+        </div>
       </header>
 
-      {/* Banner global si ya hay suscripción en carrito (estilos previos) */}
+      {/* Banner aviso (acotado) */}
       {hasSubscription && (
-        <div className="alert mb-6">
-          <div className="flex items-start gap-3">
-            <div className="shrink-0 mt-0.5">
-              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-.75-11.5a.75.75 0 011.5 0V9a.75.75 0 01-1.5 0V6.5zm.75 6a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
-              </svg>
-            </div>
-            <div className="flex-1">
-              <div className="alert-title">Ya tienes una suscripción en el carrito</div>
-              <div className="alert-desc">Solo puede haber una por carrito. Puedes cambiar de plan eliminando la actual.</div>
-            </div>
-            <div>
-              <button type="button" onClick={openCart} className="btn-secondary" aria-label="Ver carrito">Ver carrito</button>
+        <div className="max-w-4xl mx-auto px-4 mb-6">
+          <div className="alert">
+            <div className="flex items-start gap-3">
+              <div className="shrink-0 mt-0.5">
+                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-.75-11.5a.75.75 0 011.5 0V9a.75.75 0 01-1.5 0V6.5zm.75 6a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+                </svg>
+              </div>
+              <div className="flex-1">
+                <div className="alert-title">Ya tienes una suscripción en el carrito</div>
+                <div className="alert-desc">Solo puede haber una por carrito. Puedes cambiar de plan eliminando la actual.</div>
+              </div>
+              <div>
+                <button type="button" onClick={openCart} className="btn-secondary" aria-label="Ver carrito">Ver carrito</button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Plans */}
-      <section id="plans-grid" className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-        {PLANS.map((p) => (
-          <article
-            key={p.slug}
-            data-reveal
-            className="relative rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7 flex flex-col card-hover"
-            onMouseMove={handleCardMove}
-            onMouseLeave={handleCardLeave}
-          >
-            <div className="card-glow" aria-hidden="true"></div>
-            <div className="flex-1">
-              <h3 className="text-2xl font-stencil text-white">{p.name}</h3>
-              <p className="mt-2 text-zinc-300">{p.desc}</p>
-              <div className="mt-4 text-2xl text-brand font-semibold">{p.priceText}</div>
-              <ul className="mt-4 space-y-2 text-white/85 text-sm">
-                {["Pausa o cambia cuando quieras","Corte fino, sobres al vacío","100% Ibérico D.O.P Dehesa de Extremadura"].map((b) => (
-                  <li key={b} className="flex items-start gap-2">
-                    <svg className="mt-[3px] h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-8 8a1 1 0 01-1.408 0l-4-4a1 1 0 111.408-1.42L8 12.58l7.296-7.29a1 1 0 011.408 0z" clipRule="evenodd"/>
-                    </svg>
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+      {/* Planes: grid centrado y con ancho máximo */}
+      <section className="max-w-6xl mx-auto px-4">
+        <div id="plans-grid" className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          {PLANS.map((p) => (
+            <article
+              key={p.slug}
+              data-reveal
+              className="relative rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7 flex flex-col card-hover"
+              onMouseMove={handleCardMove}
+              onMouseLeave={handleCardLeave}
+            >
+              <div className="card-glow" aria-hidden="true"></div>
+              <div className="flex-1">
+                <h3 className="text-2xl font-stencil text-white">{p.name}</h3>
+                <p className="mt-2 text-zinc-300">{p.desc}</p>
+                <div className="mt-4 text-2xl text-brand font-semibold">{p.priceText}</div>
+                <ul className="mt-4 space-y-2 text-white/85 text-sm">
+                  {BENEFITS.map((b) => (
+                    <li key={b} className="flex items-start gap-2">
+                      <svg className="mt-[3px] h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-8 8a1 1 0 01-1.408 0l-4-4a1 1 0 111.408-1.42L8 12.58l7.296-7.29a1 1 0 011.408 0z" clipRule="evenodd"/>
+                      </svg>
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-            <div className="mt-6">
-              {hasSubscription ? (
-                <div className="rounded-xl border border-brand/30 bg-brand/10 text-brand-200 px-4 py-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-8 8a1 1 0 01-1.408 0l-4-4a1 1 0 111.408-1.42L8 12.58l7.296-7.29a1 1 0 011.408 0z" clipRule="evenodd"/>
-                    </svg>
-                    <span className="font-medium">Suscripción en el carrito</span>
+              <div className="mt-6">
+                {hasSubscription ? (
+                  <div className="rounded-xl border border-brand/30 bg-brand/10 text-brand-200 px-4 py-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-8 8a1 1 0 01-1.408 0l-4-4a1 1 0 111.408-1.42L8 12.58l7.296-7.29a1 1 0 011.408 0z" clipRule="evenodd"/>
+                      </svg>
+                      <span className="font-medium">Suscripción en el carrito</span>
+                    </div>
+                    <button type="button" onClick={openCart} className="inline-flex items-center justify-center h-9 px-3 rounded-lg border border-brand/40 text-brand-100 hover:bg-brand/20 transition-colors">
+                      Ver carrito
+                    </button>
                   </div>
-                  <button type="button" onClick={openCart} className="inline-flex items-center justify-center h-9 px-3 rounded-lg border border-brand/40 text-brand-100 hover:bg-brand/20 transition-colors">
-                    Ver carrito
+                ) : (
+                  <button type="button" className="w-full btn-primary btn-shiny" onClick={() => handleSubscribe(p)} aria-label="Añadir suscripción al carrito">
+                    Suscribirme
                   </button>
-                </div>
-              ) : (
-                <button type="button" className="w-full btn-primary btn-shiny" onClick={() => handleSubscribe(p)} aria-label="Añadir suscripción al carrito">
-                  Suscribirme
-                </button>
-              )}
-            </div>
-          </article>
-        ))}
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
 
-      {/* FAQ (collapsed by default) */}
+      {/* FAQ: bloque centrado y acotado */}
       <section className="mt-12 md:mt-16">
-        <h2 className="text-xl md:text-2xl font-semibold text-white mb-4">Preguntas frecuentes</h2>
-        <FAQ items={FAQS} />
+        <div className="max-w-3xl mx-auto px-4">
+          <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 text-center md:text-left">Preguntas frecuentes</h2>
+          <FAQ items={FAQS} />
+        </div>
       </section>
     </main>
   );
