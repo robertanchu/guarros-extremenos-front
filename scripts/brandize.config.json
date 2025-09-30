@@ -1,0 +1,29 @@
+{
+  "directories": [
+    "src"
+  ],
+  "extensions": [
+    ".js",
+    ".jsx",
+    ".ts",
+    ".tsx",
+    ".css",
+    ".scss",
+    ".sass",
+    ".html"
+  ],
+  "hexToBrand": {
+    "#C3342E": "brand-600",
+    "#c3342e": "brand-600",
+    "#E53935": "brand-600",
+    "#e53935": "brand-600",
+    "#FF0000": "brand-600",
+    "#ff0000": "brand-600",
+    "#E33": "brand-600",
+    "#e33": "brand-600",
+    "#D23431": "brand-700",
+    "#d23431": "brand-700",
+    "#C00": "brand-700",
+    "#c00": "brand-700"
+  }
+}

@@ -48,7 +48,7 @@ export default function HeroPlus(){
               className="relative inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-extrabold text-black bg-[#E53935] hover:bg-[#d23431] transition shadow-lg"
             >
               <span className="relative z-10">Ver Jamones</span>
-              <span className="absolute inset-0 rounded-xl animate-[pulse_2.2s_ease-out_infinite] ring-2 ring-brand/50"></span>
+              <span className="absolute inset-0 rounded-xl animate-[pulse_2.2s_ease-out_infinite] ring-2 ring-[#E53935]/50"></span>
             </Link>
             <Link
               to="/suscripcion"

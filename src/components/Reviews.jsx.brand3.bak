@@ -22,7 +22,7 @@ export default function Reviews(){
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: i * 0.08 }}
               viewport={{ once: true }}
-              className="rounded-2xl border border-brand/25 bg-white/[0.03] p-5 shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:shadow-[0_0_0_1px_rgba(229,57,53,0.6)] transition"
+              className="rounded-2xl border border-[#E53935]/25 bg-white/[0.03] p-5 shadow-[0_0_0_1px_rgba(255,255,255,0.04)] hover:shadow-[0_0_0_1px_rgba(229,57,53,0.6)] transition"
             >
               <div className="flex items-center gap-2 text-[#E53935] text-sm">
                 {"★".repeat(r.rating)}<span className="text-white/50">({r.name})</span>
