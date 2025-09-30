@@ -1,92 +1,150 @@
 // src/store/cart.js
-import { create } from "zustand";
-import { toast } from "@/store/toast";
-import { isSubscription } from "@/lib/subscription";
+// Estado del carrito con Zustand + persistencia.
+// - Firmas públicas usadas por la app: addItem, removeItem, increment, decrement, clear, checkout
+// - Match por id | priceId | lineId | slug
+// - Suscripciones: no permiten cambiar cantidad ni acumular varias diferentes
 
-const makeId = (seed) => {
-  try {
-    if (seed?.priceId && seed?.slug) return `line-${seed.priceId}-${seed.slug}`;
-    if (seed?.priceId && seed?.name) return `line-${seed.priceId}-${seed.name}`;
-    if (seed?.priceId) return `line-${seed.priceId}`;
-  } catch {}
-  return `line-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+
+// ---------- Utils
+const isSubscriptionItem = (it) => it?.kind === "subscription" || it?.isSubscription === true;
+
+const sameItem = (it, matcher) =>
+  it?.id === matcher || it?.priceId === matcher || it?.lineId === matcher || it?.slug === matcher;
+
+const clampQty = (n, min = 1, max = 99) => {
+  const x = Number(n);
+  if (!Number.isFinite(x)) return min;
+  return Math.min(Math.max(Math.trunc(x), min), max);
 };
 
-export const useCart = create((set, get) => ({
-  items: [],
+const findIndexByMatcher = (items, matcher) =>
+  items.findIndex((i) => sameItem(i, matcher));
 
-  addItem: (payload) => {
-    const it = { qty: 1, ...payload };
-    if (!it.id) it.id = makeId(it);
+const calcSubtotal = (items) =>
+  items.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.qty) || 1), 0);
 
-    const sub = isSubscription(it);
-    const state = get();
+// ---------- Store
+export const useCart = create(
+  persist(
+    (set, get) => ({
+      items: [],
 
-    if (sub && state.items.some(isSubscription)) {
-      toast({
-        title: "Suscripción ya añadida",
-        message: "Gestiona tu plan desde el carrito.",
-        variant: "warning",
-      });
-      return;
+      // --------- Selectores simples (como métodos)
+      subtotal() {
+        return calcSubtotal(get().items);
+      },
+      totalItems() {
+        return get().items.reduce((n, it) => n + (Number(it.qty) || 1), 0);
+      },
+      hasSubscription() {
+        return get().items.some((it) => isSubscriptionItem(it));
+      },
+
+      // --------- Acciones
+      addItem: (product, qty = 1) =>
+        set((state) => {
+          if (!product) return state;
+          const isSub = isSubscriptionItem(product);
+          const next = [...state.items];
+          const existingIdx =
+            findIndexByMatcher(next, product.id) !== -1
+              ? findIndexByMatcher(next, product.id)
+              : findIndexByMatcher(next, product.priceId);
+
+          // Si es suscripción: solo 1 en el carrito (y qty fija = 1)
+          if (isSub) {
+            const alreadySubIdx = next.findIndex((it) => isSubscriptionItem(it));
+            if (alreadySubIdx !== -1) {
+              // ya hay una suscripción, reemplazamos por la nueva
+              const merged = {
+                ...product,
+                qty: 1,
+              };
+              next[alreadySubIdx] = merged;
+              return { items: next };
+            }
+            // no había suscripción: añadimos con qty = 1
+            next.push({ ...product, qty: 1 });
+            return { items: next };
+          }
+
+          // Producto normal
+          if (existingIdx !== -1) {
+            const curr = next[existingIdx];
+            const newQty = clampQty((curr.qty || 1) + (qty || 1));
+            next[existingIdx] = { ...curr, qty: newQty };
+            return { items: next };
+          } else {
+            next.push({ ...product, qty: clampQty(qty || 1) });
+            return { items: next };
+          }
+        }),
+
+      removeItem: (matcher) =>
+        set((state) => {
+          const idx = findIndexByMatcher(state.items, matcher);
+          if (idx === -1) return state;
+          const next = [...state.items];
+          next.splice(idx, 1);
+          return { items: next };
+        }),
+
+      increment: (matcher) =>
+        set((state) => {
+          const idx = findIndexByMatcher(state.items, matcher);
+          if (idx === -1) return state;
+          const item = state.items[idx];
+          if (isSubscriptionItem(item)) return state; // 🔒 bloquear suscripciones
+          const next = [...state.items];
+          const currQty = clampQty(item.qty || 1);
+          next[idx] = { ...item, qty: clampQty(currQty + 1) };
+          return { items: next };
+        }),
+
+      decrement: (matcher) =>
+        set((state) => {
+          const idx = findIndexByMatcher(state.items, matcher);
+          if (idx === -1) return state;
+          const item = state.items[idx];
+          if (isSubscriptionItem(item)) return state; // 🔒 bloquear suscripciones
+          const currQty = clampQty(item.qty || 1);
+          const newQty = clampQty(currQty - 1);
+          const next = [...state.items];
+          next[idx] = { ...item, qty: newQty };
+          return { items: next };
+        }),
+
+      clear: () => set({ items: [] }),
+
+      // Stub de checkout: sustituye con tu lógica (Stripe/TPV) si procede
+      checkout: async () => {
+        const state = get();
+        const payload = {
+          items: state.items.map((it) => ({
+            id: it.id ?? it.priceId ?? it.slug,
+            name: it.name,
+            price: Number(it.price) || 0,
+            qty: Number(it.qty) || 1,
+            kind: it.kind,
+          })),
+          subtotal: calcSubtotal(state.items),
+          hasSubscription: state.items.some(isSubscriptionItem),
+          currency: "EUR",
+        };
+        // Aquí puedes:
+        //  - Llamar a tu API: await fetch("/api/checkout", { method: "POST", body: JSON.stringify(payload) })
+        //  - Redirigir a pasarela, etc.
+        console.debug("[checkout] payload:", payload);
+        return payload;
+      },
+    }),
+    {
+      name: "guarros-cart",
+      version: 1,
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ items: state.items }), // solo persistimos los items
     }
-
-    const key = (x) => `${x.priceId || ""}::${x.slug || x.name || ""}`;
-
-    set((s) => {
-      const idx = s.items.findIndex((x) => key(x) === key(it));
-      if (idx >= 0) {
-        const items = s.items.slice();
-        if (sub) {
-          items[idx] = { ...items[idx], qty: 1, isSubscription: true };
-        } else {
-          items[idx] = { ...items[idx], qty: items[idx].qty + (it.qty || 1) };
-        }
-        return { items };
-      }
-      return { items: [...s.items, { ...it, qty: sub ? 1 : (it.qty || 1), isSubscription: sub }] };
-    });
-  },
-
-  removeItem: (matcher) => {
-    set((s) => ({
-      items: s.items.filter((x) => x.id !== matcher && x.priceId !== matcher),
-    }));
-  },
-
-  decrement: (matcher) => {
-    set((s) => {
-      const items = s.items.map((x) => ({ ...x }));
-      const idx = items.findIndex(
-        (x) => x.id === matcher || x.priceId === matcher
-      );
-      if (idx === -1) return { items };
-      if (isSubscription(items[idx])) {
-        return { items };
-      }
-      if (items[idx].qty > 1) {
-        items[idx].qty -= 1;
-        return { items };
-      }
-      items.splice(idx, 1);
-      return { items };
-    });
-  },
-
-  increment: (matcher) => {
-    set((s) => {
-      const items = s.items.map((x) => ({ ...x }));
-      const idx = items.findIndex(
-        (x) => x.id === matcher || x.priceId === matcher
-      );
-      if (idx === -1) return { items };
-      if (isSubscription(items[idx])) {
-        return { items };
-      }
-      items[idx].qty += 1;
-      return { items };
-    });
-  },
-
-  clear: () => set({ items: [] }),
-}));
+  )
+);
