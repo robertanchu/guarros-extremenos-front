@@ -1,9 +1,6 @@
 // src/store/cart.js
 // Estado del carrito con Zustand + persistencia.
-// - Firmas públicas usadas por la app: addItem, removeItem, increment, decrement, clear, checkout
-// - Match por id | priceId | lineId | slug
-// - Suscripciones: no permiten cambiar cantidad ni acumular varias diferentes
-
+// Fix: addItem ahora respeta qty cuando viene dentro del objeto (p.ej. desde JamonCard)
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
@@ -31,7 +28,7 @@ export const useCart = create(
     (set, get) => ({
       items: [],
 
-      // --------- Selectores simples (como métodos)
+      // Selectores
       subtotal() {
         return calcSubtotal(get().items);
       },
@@ -42,42 +39,42 @@ export const useCart = create(
         return get().items.some((it) => isSubscriptionItem(it));
       },
 
-      // --------- Acciones
-      addItem: (product, qty = 1) =>
+      // Acciones
+      // Nota: qty puede venir como 2º argumento o dentro de 'product.qty' (caso JamonCard).
+      addItem: (product, qty) =>
         set((state) => {
           if (!product) return state;
           const isSub = isSubscriptionItem(product);
+
+          // Soportar qty dentro del objeto producto si no se pasó como arg
+          const desiredQty = isSub ? 1 : clampQty(qty ?? product.qty ?? 1);
+
           const next = [...state.items];
           const existingIdx =
             findIndexByMatcher(next, product.id) !== -1
               ? findIndexByMatcher(next, product.id)
               : findIndexByMatcher(next, product.priceId);
 
-          // Si es suscripción: solo 1 en el carrito (y qty fija = 1)
+          // Suscripción: única y qty fija = 1
           if (isSub) {
             const alreadySubIdx = next.findIndex((it) => isSubscriptionItem(it));
+            const merged = { ...product, qty: 1 };
             if (alreadySubIdx !== -1) {
-              // ya hay una suscripción, reemplazamos por la nueva
-              const merged = {
-                ...product,
-                qty: 1,
-              };
               next[alreadySubIdx] = merged;
-              return { items: next };
+            } else {
+              next.push(merged);
             }
-            // no había suscripción: añadimos con qty = 1
-            next.push({ ...product, qty: 1 });
             return { items: next };
           }
 
           // Producto normal
           if (existingIdx !== -1) {
             const curr = next[existingIdx];
-            const newQty = clampQty((curr.qty || 1) + (qty || 1));
+            const newQty = clampQty((curr.qty || 1) + desiredQty);
             next[existingIdx] = { ...curr, qty: newQty };
             return { items: next };
           } else {
-            next.push({ ...product, qty: clampQty(qty || 1) });
+            next.push({ ...product, qty: desiredQty });
             return { items: next };
           }
         }),
@@ -96,7 +93,7 @@ export const useCart = create(
           const idx = findIndexByMatcher(state.items, matcher);
           if (idx === -1) return state;
           const item = state.items[idx];
-          if (isSubscriptionItem(item)) return state; // 🔒 bloquear suscripciones
+          if (isSubscriptionItem(item)) return state;
           const next = [...state.items];
           const currQty = clampQty(item.qty || 1);
           next[idx] = { ...item, qty: clampQty(currQty + 1) };
@@ -108,7 +105,7 @@ export const useCart = create(
           const idx = findIndexByMatcher(state.items, matcher);
           if (idx === -1) return state;
           const item = state.items[idx];
-          if (isSubscriptionItem(item)) return state; // 🔒 bloquear suscripciones
+          if (isSubscriptionItem(item)) return state;
           const currQty = clampQty(item.qty || 1);
           const newQty = clampQty(currQty - 1);
           const next = [...state.items];
@@ -118,7 +115,6 @@ export const useCart = create(
 
       clear: () => set({ items: [] }),
 
-      // Stub de checkout: sustituye con tu lógica (Stripe/TPV) si procede
       checkout: async () => {
         const state = get();
         const payload = {
@@ -133,18 +129,15 @@ export const useCart = create(
           hasSubscription: state.items.some(isSubscriptionItem),
           currency: "EUR",
         };
-        // Aquí puedes:
-        //  - Llamar a tu API: await fetch("/api/checkout", { method: "POST", body: JSON.stringify(payload) })
-        //  - Redirigir a pasarela, etc.
         console.debug("[checkout] payload:", payload);
         return payload;
       },
     }),
     {
       name: "guarros-cart",
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ items: state.items }), // solo persistimos los items
+      partialize: (state) => ({ items: state.items }),
     }
   )
 );
