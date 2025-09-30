@@ -82,7 +82,8 @@ export default function Jamones(){
         <div className="container max-w-7xl px-4 mx-auto">
           <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand brand-underline">Jamones</h1>
+              {/* Título sin barra degradada */}
+              <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Jamones</h1>
               <p className="text-white/70 mt-1">Elige y añádelo al carrito directamente.</p>
             </div>
             <div className="flex items-center gap-3">
