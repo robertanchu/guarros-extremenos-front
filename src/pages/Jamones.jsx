@@ -42,7 +42,7 @@ export default function Jamones(){
           <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-semibold text-white">Jamones</h1>
-              <p className="text-white/60 mt-1">Elige tu corte favorito. Envío rápido y sabor serio.</p>
+              <p className="text-white/60 mt-1">Elige y añádelo al carrito directamente.</p>
             </div>
             <div className="flex items-center gap-3">
               <input

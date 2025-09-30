@@ -1,11 +1,5 @@
 import React from "react";
 
-/**
- * Accessible custom select for dark UI
- * - Keyboard: Enter/Space open, ↑/↓ navigate, Enter select, Esc close
- * - Click outside to close
- * - High contrast styles for readability on dark backgrounds
- */
 export default function SortSelect({ value, onChange, options, label = "Ordenar por" }){
   const [open, setOpen] = React.useState(false);
   const [activeIndex, setActiveIndex] = React.useState(() => Math.max(0, options.findIndex(o => o.value === value)));
@@ -25,38 +19,21 @@ export default function SortSelect({ value, onChange, options, label = "Ordenar 
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [open]);
 
-  function toggle(){
-    setOpen(o => !o);
-  }
+  function toggle(){ setOpen(o => !o); }
   function selectAt(i){
-    const opt = options[i];
-    if (!opt) return;
-    onChange?.(opt.value);
-    setOpen(false);
+    const opt = options[i]; if (!opt) return;
+    onChange?.(opt.value); setOpen(false);
   }
-
   function onKeyDown(e){
     if (!open && (e.key === "Enter" || e.key === " ")){
-      e.preventDefault();
-      setOpen(true);
-      setActiveIndex(Math.max(0, options.findIndex(o => o.value === value)));
-      return;
+      e.preventDefault(); setOpen(true);
+      setActiveIndex(Math.max(0, options.findIndex(o => o.value === value))); return;
     }
     if (open){
-      if (e.key === "ArrowDown"){
-        e.preventDefault();
-        setActiveIndex(i => (i + 1) % options.length);
-      } else if (e.key === "ArrowUp"){
-        e.preventDefault();
-        setActiveIndex(i => (i - 1 + options.length) % options.length);
-      } else if (e.key === "Enter"){
-        e.preventDefault();
-        selectAt(activeIndex);
-      } else if (e.key === "Escape"){
-        e.preventDefault();
-        setOpen(false);
-        btnRef.current?.focus();
-      }
+      if (e.key === "ArrowDown"){ e.preventDefault(); setActiveIndex(i => (i + 1) % options.length); }
+      else if (e.key === "ArrowUp"){ e.preventDefault(); setActiveIndex(i => (i - 1 + options.length) % options.length); }
+      else if (e.key === "Enter"){ e.preventDefault(); selectAt(activeIndex); }
+      else if (e.key === "Escape"){ e.preventDefault(); setOpen(false); btnRef.current?.focus(); }
     }
   }
 
