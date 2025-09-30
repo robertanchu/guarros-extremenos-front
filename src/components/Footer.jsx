@@ -42,7 +42,7 @@ export default function Footer() {
           <nav aria-labelledby="footer-shop">
             <h3 id="footer-shop" className="text-white font-semibold">Tienda</h3>
             <ul className="mt-3 space-y-2 text-sm">
-              <li><a href="/" className="text-white/70 hover:text-white transition-colors">Home</a></li>
+              <li><a href="/" className="text-white/70 hover:text-white transition-colors">Inicio</a></li>
               <li><a href="/jamones" className="text-white/70 hover:text-white transition-colors">Jamones</a></li>
               <li><a href="/suscripcion" className="text-white/70 hover:text-white transition-colors">Suscripción</a></li>
               <li><a href="/dehesa" className="text-white/70 hover:text-white transition-colors">Dehesa</a></li>
