@@ -1,10 +1,9 @@
 import React, { useEffect } from "react";
 
 /**
- * CartDrawer — estilo de marca (v51)
- * - Título "TU CARRITO" en color de marca
- * - Controles de cantidad con borde que resalta al hover
- * - Mini-resumen de envío (texto informativo, sin lógica de tarifas)
+ * CartDrawer — v52
+ * - Oculta controles de cantidad (+/-) para items de tipo suscripción (kind === "subscription")
+ * - Mantiene estilo de marca de v51
  * - Firmas store: increment(matcher), decrement(matcher), removeItem(matcher) con matcher = id || priceId
  */
 export default function CartDrawer({
@@ -60,7 +59,7 @@ export default function CartDrawer({
           ].join(" ")}
         style={{ ["--sat"]: "env(safe-area-inset-bottom)" }}
       >
-        {/* Inline styles for hover accents */}
+        {/* Inline styles for qty hover accent */}
         <style>{`
           .qty-pill {
             border-radius: 9999px;
@@ -98,76 +97,85 @@ export default function CartDrawer({
           <div className="flex-1 min-h-0 overflow-y-auto">
             {hasItems ? (
               <ul className="divide-y divide-white/8">
-                {items.map((it) => (
-                  <li
-                    key={(it.id ?? it.priceId ?? it.slug ?? it.name) + String(it.kind ?? "")}
-                    className="px-4 sm:px-5 py-4"
-                  >
-                    <div className="flex gap-3">
-                      {it.image ? (
-                        <img
-                          src={it.image}
-                          alt={it.name}
-                          className="h-16 w-16 rounded-lg object-cover border border-white/10"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="h-16 w-16 rounded-lg border border-white/10 grid place-items-center text-white/50 text-xs">
-                          IMG
-                        </div>
-                      )}
+                {items.map((it) => {
+                  const isSub = it.kind === "subscription";
+                  return (
+                    <li
+                      key={(it.id ?? it.priceId ?? it.slug ?? it.name) + String(it.kind ?? "")}
+                      className="px-4 sm:px-5 py-4"
+                    >
+                      <div className="flex gap-3">
+                        {it.image ? (
+                          <img
+                            src={it.image}
+                            alt={it.name}
+                            className="h-16 w-16 rounded-lg object-cover border border-white/10"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="h-16 w-16 rounded-lg border border-white/10 grid place-items-center text-white/50 text-xs">
+                            IMG
+                          </div>
+                        )}
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <div className="text-white truncate">{it.name}</div>
-                            {it.kind === "subscription" && (
-                              <div className="text-[11px] text-brand mt-0.5 uppercase tracking-wide">Suscripción</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="text-white truncate">{it.name}</div>
+                              {isSub && (
+                                <div className="text-[11px] text-brand mt-0.5 uppercase tracking-wide">Suscripción</div>
+                              )}
+                            </div>
+                            <div className="text-white font-semibold whitespace-nowrap">
+                              {formatEUR((Number(it.price) || 0) * (Number(it.qty) || 1))}
+                            </div>
+                          </div>
+
+                          <div className="mt-3 flex items-center justify-between gap-3">
+                            {/* Qty controls — ocultos si es suscripción */}
+                            {isSub ? (
+                              <div className="text-white/80 text-sm">
+                                Cantidad: <span className="text-white font-medium">{it.qty ?? 1}</span>
+                              </div>
+                            ) : (
+                              <div className="inline-flex items-center qty-pill overflow-hidden">
+                                <button
+                                  type="button"
+                                  onClick={() => decrement(keyOf(it))}
+                                  className="h-9 w-9 text-white/80 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                                  aria-label="Disminuir"
+                                >
+                                  −
+                                </button>
+                                <span className="w-10 text-center text-white/90">{it.qty ?? 1}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => increment(keyOf(it))}
+                                  className="h-9 w-9 text-white/80 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                                  aria-label="Aumentar"
+                                >
+                                  +
+                                </button>
+                              </div>
                             )}
-                          </div>
-                          <div className="text-white font-semibold whitespace-nowrap">
-                            {formatEUR((Number(it.price) || 0) * (Number(it.qty) || 1))}
-                          </div>
-                        </div>
 
-                        <div className="mt-3 flex items-center justify-between gap-3">
-                          {/* Qty controls */}
-                          <div className="inline-flex items-center qty-pill overflow-hidden">
+                            {/* Remove */}
                             <button
                               type="button"
-                              onClick={() => decrement(keyOf(it))}
-                              className="h-9 w-9 text-white/80 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-                              aria-label="Disminuir"
+                              onClick={() => removeItem(keyOf(it))}
+                              className="inline-flex items-center gap-2 h-9 px-3 rounded-lg border border-white/15 text-white/70 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                             >
-                              −
-                            </button>
-                            <span className="w-10 text-center text-white/90">{it.qty ?? 1}</span>
-                            <button
-                              type="button"
-                              onClick={() => increment(keyOf(it))}
-                              className="h-9 w-9 text-white/80 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-                              aria-label="Aumentar"
-                            >
-                              +
+                              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 100 2h.293l.853 10.234A2 2 0 0 0 7.142 18h5.716a2 2 0 0 0 1.996-1.766L15.707 6H16a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0 0 11 2H9zm-1 6a1 1 0 1 1 2 0v7a1 1 0 1 1-2 0V8zm4 0a1 1 0 1 1 2 0v7a1 1 0 1 1-2 0V8z" clipRule="evenodd" />
+                              </svg>
+                              Eliminar
                             </button>
                           </div>
-
-                          {/* Remove */}
-                          <button
-                            type="button"
-                            onClick={() => removeItem(keyOf(it))}
-                            className="inline-flex items-center gap-2 h-9 px-3 rounded-lg border border-white/15 text-white/70 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-                          >
-                            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 100 2h.293l.853 10.234A2 2 0 007.142 18h5.716a2 2 0 001.996-1.766L15.707 6H16a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zm-1 6a1 1 0 112 0v7a1 1 0 11-2 0V8zm4 0a1 1 0 112 0v7a1 1 0 11-2 0V8z" clipRule="evenodd" />
-                            </svg>
-                            Eliminar
-                          </button>
                         </div>
                       </div>
-                    </div>
-                  </li>
-                ))}
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <div className="px-4 sm:px-5 py-10 text-center">
@@ -184,16 +192,12 @@ export default function CartDrawer({
               <span className="text-sm text-white/70">Subtotal</span>
               <span className="text-xl font-semibold">{formatEUR(subtotal)}</span>
             </div>
-
-            {/* Mini-resumen de envío — ajusta el texto a tu logística real */}
             <div className="mt-2 flex items-center gap-2 text-xs text-white/65">
               <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path d="M3 5a2 2 0 012-2h6a2 2 0 012 2v3h1.586a2 2 0 011.414.586l1.828 1.828A2 2 0 0119 11.828V14a2 2 0 01-2 2h-1a2 2 0 11-4 0H8a2 2 0 11-4 0H3a2 2 0 01-2-2V7a2 2 0 012-2zM6 16a1 1 0 100-2 1 1 0 000 2zm9 0a1 1 0 100-2 1 1 0 000 2z" />
               </svg>
               <span>Envío y descuentos se calculan en el checkout.</span>
-              {/* Ejemplo placeholder: <span>Entrega 24–72 h en península.</span> */}
             </div>
-
             <button
               type="button"
               disabled={!hasItems}
