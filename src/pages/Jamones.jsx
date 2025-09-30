@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import Meta from "../lib/Meta";
 import JamonCard from "@/components/JamonCard";
 import SortSelect from "@/components/SortSelect";
+import SectionHeader from "@/components/SectionHeader";
 import { PRODUCTS } from "@/data/products.js";
 import { getFormat } from "@/utils/format";
 
@@ -42,7 +43,6 @@ export default function Jamones(){
     let out = base;
     if (needle) out = out.filter(p => (p.name || "").toLowerCase().includes(needle));
 
-    // format inference / filter
     if (activeFormats.size > 0){
       out = out.filter(p => activeFormats.has(getFormat(p)));
     }
@@ -60,11 +60,14 @@ export default function Jamones(){
       <Meta title="Jamones Ibéricos | Guarros Extremeños" description="Nuestra selección de jamón ibérico: piezas enteras y loncheado listo para disfrutar." />
       <section className="py-10 md:py-12">
         <div className="container max-w-7xl px-4 mx-auto">
+          {/* Título consistente */}
           <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-semibold text-white">Jamones</h1>
-              <p className="text-white/60 mt-1">Elige y añádelo al carrito directamente.</p>
-            </div>
+            <SectionHeader
+              eyebrow="Categoría"
+              title="Jamones"
+              subtitle="Elige y añádelo al carrito directamente."
+              align="left"
+            />
             <div className="flex items-center gap-3">
               <input
                 value={q}
@@ -76,7 +79,7 @@ export default function Jamones(){
             </div>
           </div>
 
-          {/* Filter chips */}
+          {/* Chips de formato */}
           <div className="mb-6 flex flex-wrap items-center gap-2">
             {FORMATS.map(f => {
               const active = activeFormats.has(f.value);
@@ -101,6 +104,7 @@ export default function Jamones(){
             )}
           </div>
 
+          {/* Grid */}
           {filtered.length === 0 ? (
             <p className="text-white/70">No hay jamones con esos filtros.</p>
           ) : (

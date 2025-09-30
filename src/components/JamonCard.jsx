@@ -40,16 +40,20 @@ export default function JamonCard({ product }){
       {/* Content */}
       <div className="p-4 flex-1 flex flex-col">
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-white font-medium leading-tight">{product.name}</h3>
+          <div className="min-w-0">
+            <h3 className="text-white font-medium leading-tight line-clamp-2">{product.name}</h3>
             {product.description && (
               <p className="text-white/60 text-sm mt-1 line-clamp-2">{product.description}</p>
             )}
           </div>
           {Number.isFinite(price) && price > 0 && (
-            <span className="shrink-0 inline-flex items-center rounded-full bg-brand/15 text-brand px-2 py-0.5 text-xs font-semibold">
-              {formatEUR(price)}
-            </span>
+            <div className="shrink-0 text-right">
+              <div className="text-brand font-semibold text-base md:text-lg leading-none">
+                {formatEUR(price)}
+              </div>
+              {/* etiqueta pequeña opcional */}
+              <div className="text-[11px] text-white/50 mt-1">IVA incl.</div>
+            </div>
           )}
         </div>
 
