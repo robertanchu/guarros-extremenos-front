@@ -32,37 +32,42 @@ export default function CartDrawer({
   const subtotal = items.reduce((sum, it) => sum + (Number(it.price) || 0) * (Number(it.qty) || 1), 0);
   const hasItems = items && items.length > 0;
 
+  // Helper to be tolerant with action signatures
+  const call = (fn, item) => {
+    try { return fn?.(item); } catch(e) {
+      try { return fn?.(item?.id ?? item?.sku ?? item?.slug); } catch(_) {}
+    }
+  };
+
   return (
     <div className={isOpen ? "pointer-events-auto" : "pointer-events-none"} aria-hidden={!isOpen}>
-      {/* Backdrop */}
+      {/* Backdrop (under panel) */}
       <div
         className={
-          "fixed inset-0 bg-black/60 transition-opacity duration-300 " +
+          "fixed inset-0 bg-black/60 transition-opacity duration-300 z-[90] " +
           (isOpen ? "opacity-100" : "opacity-0")
         }
         onClick={onClose}
       />
 
-      {/* Drawer Panel */}
+      {/* Drawer Panel (above site header) */}
       <aside
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label="Carrito"
-        className={
-          [
+        className={[
             "fixed inset-y-0 right-0 h-full w-[94%] sm:w-[28rem] bg-black/95",
-            "border-l border-white/10 shadow-2xl",
+            "border-l border-white/10 shadow-2xl z-[100]",
             "transform transition-transform duration-300 will-change-transform",
             isOpen ? "translate-x-0" : "translate-x-full",
-          ].join(" ")
-        }
+          ].join(" ")}
         style={{ ["--sat"]: "env(safe-area-inset-bottom)" }}
       >
         {/* Shell: flex column to ensure full height */}
         <div className="h-full flex flex-col">
-          {/* Header */}
-          <div className="flex-none px-4 sm:px-5 py-4 border-b border-white/10 bg-black/95">
+          {/* Header (sticky inside panel) */}
+          <div className="flex-none sticky top-0 px-4 sm:px-5 py-4 border-b border-white/10 bg-black/95 z-10">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-white text-lg font-semibold">Tu carrito</h2>
               <button
@@ -115,12 +120,12 @@ export default function CartDrawer({
 
                       <div className="mt-3 flex items-center justify-between gap-3">
                         <div className="inline-flex items-center rounded-xl border border-white/15 overflow-hidden">
-                          <button onClick={() => decrement(it)} className="h-9 w-9 text-white/80 hover:bg-white/10" aria-label="Disminuir">−</button>
+                          <button onClick={() => call(decrement, it)} className="h-9 w-9 text-white/80 hover:bg-white/10" aria-label="Disminuir">−</button>
                           <span className="w-10 text-center text-white/90">{it.qty ?? 1}</span>
-                          <button onClick={() => increment(it)} className="h-9 w-9 text-white/80 hover:bg-white/10" aria-label="Aumentar">+</button>
+                          <button onClick={() => call(increment, it)} className="h-9 w-9 text-white/80 hover:bg-white/10" aria-label="Aumentar">+</button>
                         </div>
                         <button
-                          onClick={() => removeItem(it)}
+                          onClick={() => call(removeItem, it)}
                           className="h-9 px-3 rounded-lg border border-white/15 text-white/70 hover:bg-white/10"
                           aria-label="Eliminar"
                         >
@@ -134,8 +139,8 @@ export default function CartDrawer({
             )}
           </div>
 
-          {/* Footer (sticks at bottom; content scrolls above) */}
-          <div className="flex-none px-4 sm:px-5 pt-3 pb-4 border-t border-white/10 bg-black/95">
+          {/* Footer (sticky inside panel) */}
+          <div className="flex-none sticky bottom-0 px-4 sm:px-5 pt-3 pb-4 border-t border-white/10 bg-black/95 z-10">
             <div className="flex items-center justify-between text-white">
               <span className="text-sm text-white/70">Subtotal</span>
               <span className="text-lg font-semibold">{formatEUR(subtotal)}</span>
@@ -155,7 +160,7 @@ export default function CartDrawer({
           </div>
 
           {/* Safe area padding for iOS */}
-          <div className="flex-none" style={{ paddingBottom: "max(var(--sat), 0px)" }} />
+          <div className="flex-none" style={{ paddingBottom: "env(safe-area-inset-bottom)" }} />
         </div>
       </aside>
     </div>
