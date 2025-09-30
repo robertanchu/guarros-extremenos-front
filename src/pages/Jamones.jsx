@@ -2,7 +2,6 @@ import React, { useMemo, useState } from "react";
 import Meta from "../lib/Meta";
 import JamonCard from "@/components/JamonCard";
 import SortSelect from "@/components/SortSelect";
-import SectionHeader from "@/components/SectionHeader";
 import { PRODUCTS } from "@/data/products.js";
 import { getFormat } from "@/utils/format";
 
@@ -17,6 +16,11 @@ const SORT_OPTIONS = [
   { value: "price-desc", label: "Precio: mayor a menor" },
   { value: "name-asc",   label: "Nombre A→Z" },
   { value: "name-desc",  label: "Nombre Z→A" },
+];
+
+const FORMATS = [
+  { value: "entero", label: "Entero" },
+  { value: "loncheado", label: "Loncheado" },
 ];
 
 export default function Jamones(){
@@ -53,16 +57,14 @@ export default function Jamones(){
       <Meta title="Jamones Ibéricos | Guarros Extremeños" description="Nuestra selección de jamón ibérico: piezas enteras y loncheado listo para disfrutar." />
       <section className="py-10 md:py-12">
         <div className="container max-w-7xl px-4 mx-auto">
-          {/* Título estilo Suscripción: MAYÚSCULAS + tracking */}
+          {/* Título EXACTO como Suscripción (tipografía/clases) */}
           <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-            <SectionHeader
-              eyebrow="Categoría"
-              title="Jamones"
-              subtitle="Elige y añádelo al carrito directamente."
-              align="left"
-              titleUppercase
-              titleClassName="tracking-widest"
-            />
+            <div>
+              <h1 className="uppercase tracking-widest text-4xl md:text-5xl font-semibold text-white leading-tight">
+                Jamones
+              </h1>
+              <p className="text-white/70 mt-1">Elige y añádelo al carrito directamente.</p>
+            </div>
             <div className="flex items-center gap-3">
               <input
                 value={q}
@@ -76,13 +78,18 @@ export default function Jamones(){
 
           {/* Chips de formato */}
           <div className="mb-6 flex flex-wrap items-center gap-2">
-            {[{value:'entero',label:'Entero'},{value:'loncheado',label:'Loncheado'}].map(f => {
+            {FORMATS.map(f => {
               const active = activeFormats.has(f.value);
               return (
                 <button
                   key={f.value}
                   onClick={() => toggleFormat(f.value)}
-                  className={`h-9 px-3 rounded-full border text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 ${active ? "bg-brand text-white border-transparent" : "bg-black/40 text-white/80 border-white/15 hover:bg-white/10"}`}
+                  className={
+                    (active
+                      ? "bg-brand text-white border-transparent "
+                      : "bg-black/40 text-white/80 border-white/15 hover:bg-white/10 ")
+                    + "h-9 px-3 rounded-full border text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+                  }
                 >
                   {f.label}
                 </button>
