@@ -57,10 +57,10 @@ export default function Jamones(){
       <Meta title="Jamones Ibéricos | Guarros Extremeños" description="Nuestra selección de jamón ibérico: piezas enteras y loncheado listo para disfrutar." />
       <section className="py-10 md:py-12">
         <div className="container max-w-7xl px-4 mx-auto">
-          {/* Título EXACTO como Suscripción (tipografía/clases) */}
           <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-white">
+              {/* Título ahora en rojo de marca */}
+              <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">
                 Jamones
               </h1>
               <p className="text-white/70 mt-1">Elige y añádelo al carrito directamente.</p>
@@ -76,7 +76,6 @@ export default function Jamones(){
             </div>
           </div>
 
-          {/* Chips de formato */}
           <div className="mb-6 flex flex-wrap items-center gap-2">
             {FORMATS.map(f => {
               const active = activeFormats.has(f.value);
@@ -105,7 +104,6 @@ export default function Jamones(){
             )}
           </div>
 
-          {/* Grid */}
           {filtered.length === 0 ? (
             <p className="text-white/70">No hay jamones con esos filtros.</p>
           ) : (
