@@ -6,28 +6,39 @@ import { useUI } from "@/store/ui";
 export default function JamonCard({ product }){
   const { addItem } = useCart();
   const { openCart } = useUI();
+  const [qty, setQty] = React.useState(1);
+
+  const price = Number(product.priceFrom ?? product.price ?? 0);
+  const img = product.image ?? product.cover ?? null;
+
+  const dec = () => setQty(q => Math.max(1, q - 1));
+  const inc = () => setQty(q => Math.min(99, q + 1));
 
   const handleAdd = () => {
     addItem({
       id: product.id ?? product.slug ?? product.name,
       name: product.name,
-      price: Number(product.priceFrom ?? product.price ?? 0),
-      qty: 1,
-      image: product.image ?? product.cover ?? null,
+      price,
+      qty,
+      image: img,
       type: "product",
     });
     openCart();
   };
 
   return (
-    <article
-      className="group rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-brand/40"
-    >
+    <article className="group h-full rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition-colors flex flex-col">
+      {/* Media */}
       <div className="aspect-square bg-gradient-to-br from-brand/15 via-black/10 to-transparent grid place-items-center">
-        <span className="text-white/50 text-sm">Imagen</span>
+        {img ? (
+          <img src={img} alt={product.name} className="h-full w-full object-cover" />
+        ) : (
+          <span className="text-white/50 text-sm">Imagen</span>
+        )}
       </div>
 
-      <div className="p-4">
+      {/* Content */}
+      <div className="p-4 flex-1 flex flex-col">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="text-white font-medium leading-tight">{product.name}</h3>
@@ -35,17 +46,23 @@ export default function JamonCard({ product }){
               <p className="text-white/60 text-sm mt-1 line-clamp-2">{product.description}</p>
             )}
           </div>
-          {(product.priceFrom ?? product.price) != null && (
+          {Number.isFinite(price) && price > 0 && (
             <span className="shrink-0 inline-flex items-center rounded-full bg-brand/15 text-brand px-2 py-0.5 text-xs font-semibold">
-              {formatEUR(product.priceFrom ?? product.price)}
+              {formatEUR(price)}
             </span>
           )}
         </div>
 
-        <div className="mt-4">
+        {/* Actions pinned to bottom */}
+        <div className="mt-4 pt-2 border-t border-white/10 flex items-center gap-3 md:gap-4 mt-auto">
+          <div className="inline-flex items-center rounded-xl border border-white/15 overflow-hidden">
+            <button onClick={dec} className="h-10 w-9 text-white/80 hover:bg-white/10">−</button>
+            <span className="w-10 text-center text-white/90">{qty}</span>
+            <button onClick={inc} className="h-10 w-9 text-white/80 hover:bg-white/10">+</button>
+          </div>
           <button
             onClick={handleAdd}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-brand hover:bg-brand-700 text-white font-medium px-4 py-2.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-brand hover:bg-brand-700 text-white font-medium px-4 h-10 md:h-11 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             aria-label={`Añadir ${product.name} al carrito`}
           >
             Añadir al carrito

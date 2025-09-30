@@ -3,6 +3,7 @@ import Meta from "../lib/Meta";
 import JamonCard from "@/components/JamonCard";
 import SortSelect from "@/components/SortSelect";
 import { PRODUCTS } from "@/data/products.js";
+import { getFormat } from "@/utils/format";
 
 const getCatalog = () => {
   if (Array.isArray(PRODUCTS) && PRODUCTS.length) return PRODUCTS;
@@ -17,26 +18,46 @@ const SORT_OPTIONS = [
   { value: "name-desc",  label: "Nombre Z→A" },
 ];
 
+const FORMATS = [
+  { value: "entero", label: "Entero" },
+  { value: "loncheado", label: "Loncheado" },
+];
+
 export default function Jamones(){
   const base = useMemo(() => getCatalog().filter(p => p.type === "one_time"), []);
   const [q, setQ] = useState("");
   const [sort, setSort] = useState("price-asc");
+  const [activeFormats, setActiveFormats] = useState(new Set()); // vacío = todos
+
+  const toggleFormat = (val) => {
+    setActiveFormats(prev => {
+      const n = new Set(prev);
+      if (n.has(val)) n.delete(val); else n.add(val);
+      return n;
+    });
+  };
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     let out = base;
     if (needle) out = out.filter(p => (p.name || "").toLowerCase().includes(needle));
+
+    // format inference / filter
+    if (activeFormats.size > 0){
+      out = out.filter(p => activeFormats.has(getFormat(p)));
+    }
+
     switch (sort){
       case "price-desc": return [...out].sort((a,b) => (b.priceFrom ?? 0) - (a.priceFrom ?? 0));
       case "name-asc":   return [...out].sort((a,b) => (a.name || "").localeCompare(b.name || ""));
       case "name-desc":  return [...out].sort((a,b) => (b.name || "").localeCompare(a.name || ""));
       default:           return [...out].sort((a,b) => (a.priceFrom ?? 0) - (b.priceFrom ?? 0));
     }
-  }, [base, q, sort]);
+  }, [base, q, sort, activeFormats]);
 
   return (
     <>
-      <Meta title="Jamones Ibéricos | Guarros Extremeños" description="Nuestra selección de jamón ibérico: piezas enteras y cortes listos para disfrutar." />
+      <Meta title="Jamones Ibéricos | Guarros Extremeños" description="Nuestra selección de jamón ibérico: piezas enteras y loncheado listo para disfrutar." />
       <section className="py-10 md:py-12">
         <div className="container max-w-7xl px-4 mx-auto">
           <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
@@ -53,6 +74,31 @@ export default function Jamones(){
               />
               <SortSelect value={sort} onChange={setSort} options={SORT_OPTIONS} />
             </div>
+          </div>
+
+          {/* Filter chips */}
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            {FORMATS.map(f => {
+              const active = activeFormats.has(f.value);
+              return (
+                <button
+                  key={f.value}
+                  onClick={() => toggleFormat(f.value)}
+                  className={`h-9 px-3 rounded-full border text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40
+                    ${active ? "bg-brand text-white border-transparent" : "bg-black/40 text-white/80 border-white/15 hover:bg-white/10"}`}
+                >
+                  {f.label}
+                </button>
+              );
+            })}
+            {activeFormats.size > 0 && (
+              <button
+                onClick={() => setActiveFormats(new Set())}
+                className="h-9 px-3 rounded-full border border-white/15 text-white/70 hover:text-white hover:bg-white/10 text-sm"
+              >
+                Limpiar filtros
+              </button>
+            )}
           </div>
 
           {filtered.length === 0 ? (
