@@ -1,5 +1,5 @@
 // src/store/cart.js
-// Checkout con backend legacy o helper API, resolviendo priceId desde src/data/products.js automáticamente.
+// v9: añade `migrate` para Zustand persist y mejora los errores de checkout (superficie el 500 con detalle).
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
@@ -52,9 +52,9 @@ const calcSubtotal = (items) =>
 
 // ----- Resolver priceId desde el catálogo si falta -----
 const findInCatalog = (it) => {
-  const id = it.id?.toString?.();
-  const slug = it.slug?.toString?.();
   if (!Array.isArray(CATALOG)) return null;
+  const id = it?.id?.toString?.();
+  const slug = it?.slug?.toString?.();
   return (
     CATALOG.find(p => (p.id?.toString?.() === id && id)) ||
     CATALOG.find(p => (p.slug?.toString?.() === slug && slug)) ||
@@ -78,23 +78,35 @@ async function legacyCreateCheckout(items, opts = {}){
     items: items.map(i => ({ price: i.priceId, quantity: i.qty })),
     success_url, cancel_url
   };
+  console.debug("[checkout] POST", `${BASE}/create-checkout-session`, payload);
   const res = await fetch(`${BASE}/create-checkout-session`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
   if(!res.ok){
-    let msg="Error al crear la sesión de pago";
-    try { const j = await res.json(); msg=j.error||msg; } catch {}
-    throw new Error(msg + " (" + res.status + ")");
+    let detail = "";
+    try {
+      const text = await res.text();
+      detail = text?.slice(0, 300);
+      // intenta parsear JSON si aplica
+      try { detail = JSON.stringify(JSON.parse(text)); } catch {}
+    } catch {}
+    const msg = `Error al crear la sesión de pago (${res.status}). ${detail || ""}`;
+    throw new Error(msg);
   }
   const data = await res.json();
+  console.debug("[checkout] response:", data);
   if(data?.url){ window.location.assign(data.url); return; }
   throw new Error("Respuesta sin URL de checkout");
 }
 
 const callCreateCheckout = async (items, opts) => {
-  if (typeof createCheckout === "function") return createCheckout(items, opts);
+  if (typeof createCheckout === "function") {
+    console.debug("[checkout] using API.createCheckout");
+    return createCheckout(items, opts);
+  }
+  console.debug("[checkout] using fallback legacyCreateCheckout");
   return legacyCreateCheckout(items, opts);
 };
 
@@ -202,9 +214,27 @@ export const useCart = create(
     }),
     {
       name: "guarros-cart",
-      version: 8,
+      version: 9,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ items: state.items }),
+      // ---- MIGRACIÓN: arregla estados viejos para evitar el warning/rotura ----
+      migrate: (persistedState, fromVersion) => {
+        try {
+          const s = persistedState || {};
+          // Estructura mínima
+          if (!Array.isArray(s.items)) s.items = [];
+          // Asegurar lineId en cada item y qty válida
+          s.items = s.items.map((it) => {
+            const qty = clampQty(it?.qty || 1);
+            const lineId = composeLineId(it || {});
+            return { ...it, qty, lineId };
+          });
+          return s;
+        } catch {
+          // Si algo falla, reseteamos limpio (mejor que romper)
+          return { items: [] };
+        }
+      },
     }
   )
 );
