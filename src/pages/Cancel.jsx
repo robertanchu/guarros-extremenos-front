@@ -14,7 +14,7 @@ export default function Cancel(){
           <h1 className="mt-4 text-3xl md:text-5xl font-stencil text-white">Pago cancelado</h1>
           <p className="mt-3 text-zinc-300">No se ha realizado el cargo. Puedes revisar el carrito y volver a intentarlo.</p>
           <div className="mt-6 flex items-center justify-center gap-3">
-            <Link to="/carrito" className="btn-secondary">Ver carrito</Link>
+            <Link to="/inicio" className="btn-secondary">Inicio</Link>
             <Link to="/jamones" className="btn-primary">Seguir comprando</Link>
           </div>
         </div>
