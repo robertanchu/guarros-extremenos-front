@@ -34,6 +34,7 @@ export default function Suscripcion(){
     openCart();
   };
 
+  // Hover glow en tarjetas
   const handleCardMove = (e) => {
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
@@ -48,11 +49,11 @@ export default function Suscripcion(){
     card.style.removeProperty('--ly');
   };
 
-  // Reveal efecto
+  // Animación reveal (igual que en Jamones)
   useEffect(() => {
-    const grid = document.getElementById("plans-grid");
-    if (!grid) return;
-    const els = Array.from(grid.querySelectorAll("[data-reveal]"));
+    const root = document.getElementById("plans-grid");
+    if (!root) return;
+    const els = Array.from(root.querySelectorAll("[data-reveal]"));
     els.forEach((el, i) => {
       el.classList.add("reveal");
       el.classList.remove("revealed");
@@ -75,11 +76,11 @@ export default function Suscripcion(){
   }, []);
 
   return (
-    <main className="shell py-10 md:py-12">
+    <main className="shell py-12 md:py-16">
       <Meta title="Suscripción Jamón Canalla | Guarros Extremeños" description="Tu jamón favorito en suscripción mensual, sin ataduras." />
 
-      {/* Cabecera centrada y acotada (igual que Jamones) */}
-      <header className="mb-6 md:mb-10">
+      {/* Cabecera (igual que Jamones: ancho y separación) */}
+      <header className="mb-8 md:mb-12">
         <div className="max-w-3xl mx-auto text-center px-4">
           <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Suscripción Jamón Canalla</h1>
           <p className="mt-4 text-zinc-300">
@@ -88,9 +89,9 @@ export default function Suscripcion(){
         </div>
       </header>
 
-      {/* Banner aviso (ancho de contenido estándar) */}
+      {/* Aviso (mismo ancho de contenido estándar) */}
       {hasSubscription && (
-        <div className="max-w-4xl mx-auto px-4 mb-6">
+        <div className="max-w-4xl mx-auto px-4 mb-8">
           <div className="alert">
             <div className="flex items-start gap-3">
               <div className="shrink-0 mt-0.5">
@@ -110,9 +111,9 @@ export default function Suscripcion(){
         </div>
       )}
 
-      {/* Planes: grid centrado y con max-w-6xl (como Jamones) */}
+      {/* Planes: mismo max-w y gaps que Jamones */}
       <section className="max-w-6xl mx-auto px-4">
-        <div id="plans-grid" className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+        <div id="plans-grid" className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
           {PLANS.map((p) => (
             <article
               key={p.slug}
@@ -162,8 +163,8 @@ export default function Suscripcion(){
         </div>
       </section>
 
-      {/* FAQ: bloque centrado y acotado (igual que header) */}
-      <section className="mt-12 md:mt-16">
+      {/* FAQ: misma jerarquía que el header */}
+      <section className="mt-16 md:mt-24">
         <div className="max-w-3xl mx-auto px-4">
           <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 text-center md:text-left">Preguntas frecuentes</h2>
           <FAQ items={FAQS} />
