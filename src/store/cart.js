@@ -1,10 +1,34 @@
 // src/store/cart.js
-// v15 — Completa priceId desde el catálogo si falta, y checkout -> /checkout
+// v15 — Completa priceId desde el catálogo con importación tolerante + checkout -> /checkout
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-// Importa el catálogo (igual que usas en Jamones.jsx)
-import { products as CATALOG } from "@/data/products";
+
+// ⚠️ Tolerante con cómo exportes el catálogo
+// (sirve si products.js hace export default [], o export const PRODUCTS = [], etc.)
+import * as CATALOG_SRC from "@/data/products";
+
+// Extrae un array de productos de cualquier forma común de exportación
+const extractCatalog = (mod) => {
+  if (!mod) return [];
+  // candidatos típicos
+  const candidates = [
+    mod.products,
+    mod.default,
+    mod.PRODUCTS,
+    mod.items,
+    mod.catalog,
+  ].filter(Boolean);
+  for (const c of candidates) if (Array.isArray(c)) return c;
+
+  // si exportaste varios named, intenta encontrar el primero que sea array
+  for (const v of Object.values(mod)) {
+    if (Array.isArray(v)) return v;
+  }
+  return [];
+};
+
+const CATALOG = extractCatalog(CATALOG_SRC);
 
 const isSubscriptionItem = (it) =>
   it?.kind === "subscription" || it?.isSubscription === true || it?.type === "recurring";
@@ -51,7 +75,7 @@ const findIndexByMatcher = (items, matcher) => {
   return idx;
 };
 
-// ---------- NUEVO: resolver priceId desde el catálogo ----------
+// ---------- Resolver priceId desde el catálogo ----------
 const norm = (v) => String(v ?? "").trim().toLowerCase();
 const candidateIds = (p = {}) => [
   p.id, p.slug, p.sku, p.code, p.key, p.priceId, p.name, p.title,
@@ -59,14 +83,15 @@ const candidateIds = (p = {}) => [
 
 const priceIdFromCatalog = (p) => {
   try {
+    if (!Array.isArray(CATALOG) || !CATALOG.length) return null;
     const ids = new Set(candidateIds(p));
-    // Busca por id/slug/sku/key/name/title
+
     const found =
-      CATALOG?.find((c) => {
+      CATALOG.find((c) => {
         const cid = new Set(candidateIds(c));
-        // Coincidencia por identificadores básicos…
+        // coincidir por identificadores
         for (const k of ids) if (k && cid.has(k)) return true;
-        // …o por combinación id+variant si tu catálogo diferencia formatos
+        // o por id + variante si existe
         const pv = norm(variantOf(p));
         const cv = norm(variantOf(c));
         if (pv && cid.has(norm(baseIdOf(c))) && pv === cv) return true;
@@ -74,16 +99,19 @@ const priceIdFromCatalog = (p) => {
       }) || null;
 
     if (!found) return null;
-
-    // Intenta varias claves posibles por si el catálogo usa otras convenciones
     return (
-      found.priceId ?? found.stripePriceId ?? found.price_id ?? found.priceID ?? found.priceid ?? null
+      found.priceId ??
+      found.stripePriceId ??
+      found.price_id ??
+      found.priceID ??
+      found.priceid ??
+      null
     );
   } catch {
     return null;
   }
 };
-// ---------------------------------------------------------------
+// -------------------------------------------------------
 
 export const useCart = create(
   persist(
@@ -117,7 +145,6 @@ export const useCart = create(
             if (resolved) {
               incoming.priceId = resolved;
             } else {
-              // Ayuda de depuración: ver qué item llega sin priceId
               console.warn("[cart] Item sin priceId y no encontrado en catálogo:", incoming);
             }
           }
@@ -182,14 +209,13 @@ export const useCart = create(
     }),
     {
       name: "guarros-cart",
-      version: 15, // sube la versión para migrar
+      version: 15, // sube versión para forzar migrate
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ items: state.items }),
       migrate: (persistedState) => {
         try {
           const s = persistedState || {};
           if (!Array.isArray(s.items)) s.items = [];
-          // Normaliza qty, lineId y completa priceId si falta
           s.items = s.items.map((it) => {
             const normalized = {
               ...it,
