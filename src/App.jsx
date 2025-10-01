@@ -26,6 +26,9 @@ import CookiesPage from "@/pages/legales/Cookies";
 import AvisoLegal from "@/pages/legales/AvisoLegal";
 import CookiePreferences from "@/components/CookiePreferences";
 import Producto from "@/pages/Producto";
+import Checkout from "@/pages/Checkout";
+import Success from "@/pages/Success";
+import Cancel from "@/pages/Cancel";
 
 function Layout(){
   // Hidrata catálogo para que /producto/:slug funcione también con refresh/URL directa
@@ -45,6 +48,10 @@ function Layout(){
         <Route path="/suscripcion" element={<Suscripcion />} />
         <Route path="/dehesa" element={<Dehesa />} />
         <Route path="/contacto" element={<Contacto />} />
+
+	<Route path="/checkout" element={<Checkout />} />
+	<Route path="/success" element={<Success />} />
+	<Route path="/cancel" element={<Cancel />} />
 
         {/* Rutas legales - nuevas /legal/* */}
         <Route path="/legal/terminos" element={<Terminos />} />
