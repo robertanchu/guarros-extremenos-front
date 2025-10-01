@@ -78,9 +78,9 @@ export default function Suscripcion(){
     <main className="shell py-10 md:py-12">
       <Meta title="Suscripción Jamón Canalla | Guarros Extremeños" description="Tu jamón favorito en suscripción mensual, sin ataduras." />
 
-      {/* Cabecera centrada y acotada */}
+      {/* Cabecera centrada y acotada (igual que Jamones) */}
       <header className="mb-6 md:mb-10">
-        <div className="max-w-4xl mx-auto text-center px-4">
+        <div className="max-w-3xl mx-auto text-center px-4">
           <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Suscripción Jamón Canalla</h1>
           <p className="mt-4 text-zinc-300">
             El sabor que manda, cada mes en tu casa. Sin postureo, sin esperas y con la pureza del 100% ibérico D.O.P Dehesa de Extremadura.
@@ -88,9 +88,9 @@ export default function Suscripcion(){
         </div>
       </header>
 
-      {/* Banner aviso (acotado) */}
+      {/* Banner aviso (ancho de contenido estándar) */}
       {hasSubscription && (
-        <div className="max-w-5xl mx-auto px-4 mb-6">
+        <div className="max-w-4xl mx-auto px-4 mb-6">
           <div className="alert">
             <div className="flex items-start gap-3">
               <div className="shrink-0 mt-0.5">
@@ -110,8 +110,8 @@ export default function Suscripcion(){
         </div>
       )}
 
-      {/* Planes: grid centrado y con ancho máximo amplio */}
-      <section className="max-w-7xl mx-auto px-4">
+      {/* Planes: grid centrado y con max-w-6xl (como Jamones) */}
+      <section className="max-w-6xl mx-auto px-4">
         <div id="plans-grid" className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
           {PLANS.map((p) => (
             <article
@@ -162,9 +162,9 @@ export default function Suscripcion(){
         </div>
       </section>
 
-      {/* FAQ: bloque centrado y acotado */}
+      {/* FAQ: bloque centrado y acotado (igual que header) */}
       <section className="mt-12 md:mt-16">
-        <div className="max-w-4xl mx-auto px-4">
+        <div className="max-w-3xl mx-auto px-4">
           <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 text-center md:text-left">Preguntas frecuentes</h2>
           <FAQ items={FAQS} />
         </div>
