@@ -1,19 +1,24 @@
 // src/store/cart.js
-// v14: checkout() navega a /checkout (formulario). Mantiene sumar/restar/eliminar y migración.
+// v15 — Completa priceId desde el catálogo si falta, y checkout -> /checkout
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+// Importa el catálogo (igual que usas en Jamones.jsx)
+import { products as CATALOG } from "@/data/products";
 
-const isSubscriptionItem = (it) => it?.kind === "subscription" || it?.isSubscription === true || it?.type === "recurring";
+const isSubscriptionItem = (it) =>
+  it?.kind === "subscription" || it?.isSubscription === true || it?.type === "recurring";
 
 const variantOf = (it = {}) => {
   const cand =
     it.variant ?? it.format ?? it.presentation ?? it.cut ?? it.size ?? it.weight ??
-    it.tipo ?? it.formato ?? it.opcion ?? it.option ?? (Array.isArray(it.options) ? it.options.join("|") : "") ?? "";
+    it.tipo ?? it.formato ?? it.opcion ?? it.option ??
+    (Array.isArray(it.options) ? it.options.join("|") : "") ?? "";
   return String(cand).trim().toLowerCase();
 };
 
-const baseIdOf = (it = {}) => it.id ?? it.priceId ?? it.slug ?? it.sku ?? it.code ?? it.key ?? it.name;
+const baseIdOf = (it = {}) =>
+  it.id ?? it.priceId ?? it.slug ?? it.sku ?? it.code ?? it.key ?? it.name ?? it.title;
 
 const composeLineId = (it = {}) => {
   if (it.lineId) return String(it.lineId);
@@ -33,28 +38,90 @@ const findIndexByMatcher = (items, matcher) => {
   const m = String(matcher);
   let idx = items.findIndex((it) => String(it.lineId) === m);
   if (idx !== -1) return idx;
-  idx = items.findIndex((it) =>
-    it.id === matcher || it.priceId === matcher || it.slug === matcher ||
-    it.sku === matcher || it.key === matcher || it.name === matcher
+  idx = items.findIndex(
+    (it) =>
+      it.id === matcher ||
+      it.priceId === matcher ||
+      it.slug === matcher ||
+      it.sku === matcher ||
+      it.key === matcher ||
+      it.name === matcher ||
+      it.title === matcher
   );
   return idx;
 };
+
+// ---------- NUEVO: resolver priceId desde el catálogo ----------
+const norm = (v) => String(v ?? "").trim().toLowerCase();
+const candidateIds = (p = {}) => [
+  p.id, p.slug, p.sku, p.code, p.key, p.priceId, p.name, p.title,
+].map(norm);
+
+const priceIdFromCatalog = (p) => {
+  try {
+    const ids = new Set(candidateIds(p));
+    // Busca por id/slug/sku/key/name/title
+    const found =
+      CATALOG?.find((c) => {
+        const cid = new Set(candidateIds(c));
+        // Coincidencia por identificadores básicos…
+        for (const k of ids) if (k && cid.has(k)) return true;
+        // …o por combinación id+variant si tu catálogo diferencia formatos
+        const pv = norm(variantOf(p));
+        const cv = norm(variantOf(c));
+        if (pv && cid.has(norm(baseIdOf(c))) && pv === cv) return true;
+        return false;
+      }) || null;
+
+    if (!found) return null;
+
+    // Intenta varias claves posibles por si el catálogo usa otras convenciones
+    return (
+      found.priceId ?? found.stripePriceId ?? found.price_id ?? found.priceID ?? found.priceid ?? null
+    );
+  } catch {
+    return null;
+  }
+};
+// ---------------------------------------------------------------
 
 export const useCart = create(
   persist(
     (set, get) => ({
       items: [],
 
-      subtotal() { return get().items.reduce((s, it) => s + (Number(it.price) || 0) * (Number(it.qty) || 1), 0); },
-      totalItems() { return get().items.reduce((n, it) => n + (Number(it.qty) || 1), 0); },
-      hasSubscription() { return get().items.some((it) => isSubscriptionItem(it)); },
+      subtotal() {
+        return get().items.reduce(
+          (s, it) => s + (Number(it.price) || 0) * (Number(it.qty) || 1),
+          0
+        );
+      },
+      totalItems() {
+        return get().items.reduce((n, it) => n + (Number(it.qty) || 1), 0);
+      },
+      hasSubscription() {
+        return get().items.some((it) => isSubscriptionItem(it));
+      },
 
       addItem: (product, qty) =>
         set((state) => {
           if (!product) return state;
+
           const isSub = isSubscriptionItem(product);
-          const desiredQty = isSub ? 1 : (typeof qty === "number" ? clampQty(qty) : clampQty(product.qty || 1));
+          const desiredQty = isSub ? 1 : clampQty(qty ?? product.qty ?? 1);
+
+          // Asegura lineId y priceId
           const incoming = { ...product, lineId: composeLineId(product) };
+          if (!incoming.priceId) {
+            const resolved = priceIdFromCatalog(incoming);
+            if (resolved) {
+              incoming.priceId = resolved;
+            } else {
+              // Ayuda de depuración: ver qué item llega sin priceId
+              console.warn("[cart] Item sin priceId y no encontrado en catálogo:", incoming);
+            }
+          }
+
           const next = [...state.items];
           const idx = next.findIndex((it) => String(it.lineId) === String(incoming.lineId));
 
@@ -66,8 +133,11 @@ export const useCart = create(
             return { items: next };
           }
 
-          if (idx !== -1) next[idx] = { ...next[idx], qty: clampQty((next[idx].qty || 1) + desiredQty) };
-          else next.push({ ...incoming, qty: desiredQty });
+          if (idx !== -1) {
+            next[idx] = { ...next[idx], qty: clampQty((next[idx].qty || 1) + desiredQty) };
+          } else {
+            next.push({ ...incoming, qty: desiredQty });
+          }
           return { items: next };
         }),
 
@@ -112,18 +182,26 @@ export const useCart = create(
     }),
     {
       name: "guarros-cart",
-      version: 14,
+      version: 15, // sube la versión para migrar
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ items: state.items }),
       migrate: (persistedState) => {
         try {
           const s = persistedState || {};
           if (!Array.isArray(s.items)) s.items = [];
-          s.items = s.items.map((it) => ({
-            ...it,
-            qty: clampQty(it?.qty || 1),
-            lineId: composeLineId(it || {}),
-          }));
+          // Normaliza qty, lineId y completa priceId si falta
+          s.items = s.items.map((it) => {
+            const normalized = {
+              ...it,
+              qty: clampQty(it?.qty || 1),
+              lineId: composeLineId(it || {}),
+            };
+            if (!normalized.priceId) {
+              const resolved = priceIdFromCatalog(normalized);
+              if (resolved) normalized.priceId = resolved;
+            }
+            return normalized;
+          });
           return s;
         } catch {
           return { items: [] };
