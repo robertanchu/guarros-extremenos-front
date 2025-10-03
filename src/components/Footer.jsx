@@ -20,14 +20,9 @@ export default function Footer() {
               Jamón ibérico 100% bellota D.O.P. Dehesa de Extremadura. Directo de la dehesa a tu mesa.
             </p>
             <div className="mt-4 flex items-center gap-3">
-              <a href="https://instagram.com" aria-label="Instagram" className="text-white/70 hover:text-white transition-colors">
+              <a href="https://instagram.com/guarrosextremenos" aria-label="Instagram" className="text-white/70 hover:text-white transition-colors">
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11zm0 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM18 6.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
-                </svg>
-              </a>
-              <a href="https://facebook.com" aria-label="Facebook" className="text-white/70 hover:text-white transition-colors">
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M22 12a10 10 0 1 0-11.5 9.9v-7h-2v-3h2v-2.3c0-2 1.2-3.1 3-3.1.9 0 1.8.1 1.8.1v2h-1c-1 0-1.3.6-1.3 1.2V12h2.2l-.4 3h-1.8v7A10 10 0 0 0 22 12z"/>
                 </svg>
               </a>
               <a href="mailto:hola@guarrosextremenos.com" aria-label="Email" className="text-white/70 hover:text-white transition-colors">
