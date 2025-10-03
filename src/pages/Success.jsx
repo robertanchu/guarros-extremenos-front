@@ -1,8 +1,17 @@
-import React from "react";
+// src/pages/Success.jsx
+import React, { useEffect } from "react";
 import Meta from "@/lib/Meta";
 import { Link } from "react-router-dom";
+import { useCart } from "@/store/cart";
 
 export default function Success(){
+  const clear = useCart((s) => s.clear);
+
+  useEffect(() => {
+    // Vacía el carrito al llegar desde Stripe
+    clear();
+  }, [clear]);
+
   return (
     <main className="shell py-12 md:py-16">
       <Meta title="Pago correcto | Guarros Extremeños" description="Tu pedido se ha procesado correctamente." />
