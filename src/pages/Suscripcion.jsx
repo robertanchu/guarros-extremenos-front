@@ -5,6 +5,7 @@ import "@/styles/effects.css";
 import { useCart } from "@/store/cart";
 import { useUI } from "@/store/ui";
 import { isSubscription } from "@/lib/subscription";
+import SubscriptionPlans from "@/components/SubscriptionPlans";
 
 const PLANS = [
   { slug: "sub-500", name: "Suscripción 500 g / mes", desc: "Cada mes, 500 gramos de jamón ibérico 100% bellota D.O.P. cortado, en sobres listos para disfrutar.", priceText: "40 €/mes", price: 40, priceId: import.meta.env.VITE_SUB_500_PRICE_ID || "price_sub_500", isSubscription: true, kind: "subscription" },
@@ -173,3 +174,8 @@ export default function Suscripcion(){
     </main>
   );
 }
+
+<main className="shell py-12 md:py-16">
+  {/* ... tu hero/título ... */}
+  <SubscriptionPlans /* customerId={user?.stripeCustomerId} */ />
+</main>
