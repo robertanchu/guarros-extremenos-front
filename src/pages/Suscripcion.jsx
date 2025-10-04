@@ -6,10 +6,29 @@ import { useCart } from "@/store/cart";
 import { useUI } from "@/store/ui";
 import { isSubscription } from "@/lib/subscription";
 import SubscriptionPlans from "@/components/SubscriptionPlans";
+import { createSubscriptionSession } from "@/lib/checkout";
 
 const PLANS = [
-  { slug: "sub-500", name: "Suscripción 500 g / mes", desc: "Cada mes, 500 gramos de jamón ibérico 100% bellota D.O.P. cortado, en sobres listos para disfrutar.", priceText: "40 €/mes", price: 40, priceId: import.meta.env.VITE_SUB_500_PRICE_ID || "price_sub_500", isSubscription: true, kind: "subscription" },
-  { slug: "sub-1000", name: "Suscripción 1 kg / mes", desc: "Para los muy guarros: 1 kilo al mes, sobres al vacío, corte fino y listo para volar de la tabla.", priceText: "70 €/mes", price: 70, priceId: import.meta.env.VITE_SUB_1000_PRICE_ID || "price_sub_1000", isSubscription: true, kind: "subscription" },
+  {
+    slug: "sub-500",
+    name: "Suscripción 500 g / mes",
+    desc: "Cada mes, 500 gramos de jamón ibérico 100% bellota D.O.P. cortado, en sobres listos para disfrutar.",
+    priceText: "40 €/mes",
+    price: 40,
+    priceId: import.meta.env.VITE_SUB_500_PRICE_ID || "price_sub_500",
+    isSubscription: true,
+    kind: "subscription"
+  },
+  {
+    slug: "sub-1000",
+    name: "Suscripción 1 kg / mes",
+    desc: "Para los muy guarros: 1 kilo al mes, sobres al vacío, corte fino y listo para volar de la tabla.",
+    priceText: "70 €/mes",
+    price: 70,
+    priceId: import.meta.env.VITE_SUB_1000_PRICE_ID || "price_sub_1000",
+    isSubscription: true,
+    kind: "subscription"
+  },
 ];
 
 const BENEFITS = [
@@ -25,14 +44,24 @@ const FAQS = [
 ];
 
 export default function Suscripcion(){
-  const { items, addItem } = useCart();
+  const { items } = useCart();
   const openCart = () => useUI.getState().openCart();
   const hasSubscription = items.some(isSubscription);
 
-  const handleSubscribe = (p) => {
+  // Ir directo a Stripe con el priceId
+  const handleSubscribe = async (plan) => {
     if (hasSubscription) return openCart();
-    addItem({ ...p, qty: 1, kind: "subscription", isSubscription: true });
-    openCart();
+    try {
+      await createSubscriptionSession({
+        price: plan.priceId,
+        quantity: 1,
+        // Si ya recoges datos antes, puedes pasarlos aquí:
+        // customer: { email, name, phone }
+      });
+    } catch (e) {
+      console.error('[subscription] error:', e);
+      alert('No se pudo iniciar la suscripción. Inténtalo de nuevo.');
+    }
   };
 
   // Hover glow en tarjetas
@@ -112,7 +141,7 @@ export default function Suscripcion(){
         </div>
       )}
 
-      {/* Planes: mismo max-w y gaps que Jamones */}
+      {/* Planes */}
       <section className="max-w-6xl mx-auto px-4">
         <div id="plans-grid" className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
           {PLANS.map((p) => (
@@ -149,12 +178,19 @@ export default function Suscripcion(){
                       </svg>
                       <span className="font-medium">Suscripción en el carrito</span>
                     </div>
-                    <button type="button" onClick={openCart} className="inline-flex items-center justify-center h-9 px-3 rounded-lg border border-brand/40 text-brand-100 hover:bg-brand/20 transition-colors">
+                    <button
+                      type="button"
+                      onClick={openCart}
+                      className="inline-flex items-center justify-center h-9 px-3 rounded-lg border border-brand/40 text-brand-100 hover:bg-brand/20 transition-colors">
                       Ver carrito
                     </button>
                   </div>
                 ) : (
-                  <button type="button" className="w-full btn-primary btn-shiny" onClick={() => handleSubscribe(p)} aria-label="Añadir suscripción al carrito">
+                  <button
+                    type="button"
+                    className="w-full btn-primary btn-shiny"
+                    onClick={() => handleSubscribe(p)}
+                    aria-label="Suscribirme">
                     Suscribirme
                   </button>
                 )}
@@ -164,7 +200,7 @@ export default function Suscripcion(){
         </div>
       </section>
 
-      {/* FAQ: misma jerarquía que el header */}
+      {/* FAQ */}
       <section className="mt-16 md:mt-24">
         <div className="max-w-3xl mx-auto px-4">
           <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 text-center md:text-left">Preguntas frecuentes</h2>
@@ -174,8 +210,3 @@ export default function Suscripcion(){
     </main>
   );
 }
-
-<main className="shell py-12 md:py-16">
-  {/* ... tu hero/título ... */}
-  <SubscriptionPlans /* customerId={user?.stripeCustomerId} */ />
-</main>
