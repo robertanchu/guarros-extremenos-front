@@ -7,9 +7,7 @@ export default function Account() {
     <main className="min-h-[70vh] bg-black text-white">
       <section className="max-w-5xl mx-auto px-4 py-16">
         {/* Título consistente con secciones (stencil + rojo marca) */}
-        <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand-red tracking-wide">
-          MI CUENTA
-        </h1>
+	<h1 className="text-3xl md:text-5xl font-stencil text-brand">MI CUENTA</h1>
 
         <p className="mt-6 text-base md:text-lg text-zinc-300 leading-relaxed max-w-3xl">
           Has regresado del portal de facturación. Desde allí puedes actualizar tu método de pago,

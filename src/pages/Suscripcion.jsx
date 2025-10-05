@@ -105,7 +105,7 @@ export default function Suscripcion() {
       {/* Cabecera */}
       <header className="mb-8 md:mb-12">
         <div className="max-w-3xl mx-auto text-center px-4">
-          <h1 className="mt-2 text-3xl md:5xl font-stencil text-brand">Suscripción Jamón Canalla</h1>
+          <h1 className="text-3xl md:text-5xl font-stencil text-brand">Suscripción Jamón Canalla</h1>
           <p className="mt-4 text-zinc-300">
             El sabor que manda, cada mes en tu casa. Sin postureo, sin esperas y con la pureza del 100% ibérico D.O.P Dehesa de Extremadura.
           </p>
