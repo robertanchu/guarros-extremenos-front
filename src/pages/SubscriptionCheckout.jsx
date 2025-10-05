@@ -206,7 +206,7 @@ export default function SubscriptionCheckout(){
               Volver
             </button>
             <button
-              type="submit"              {/* ← AHORA sí envía el formulario */}
+              type="submit"              
               className="btn-primary btn-shiny"
               disabled={loading || !planOk}
               aria-label="Continuar al pago"
