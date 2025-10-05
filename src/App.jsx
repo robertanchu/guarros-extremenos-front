@@ -29,6 +29,7 @@ import Producto from "@/pages/Producto";
 import Checkout from "@/pages/Checkout";
 import Success from "@/pages/Success";
 import Cancel from "@/pages/Cancel";
+import SubscriptionCheckout from "@/pages/SubscriptionCheckout";
 
 function Layout(){
   // Hidrata catálogo para que /producto/:slug funcione también con refresh/URL directa
@@ -52,6 +53,8 @@ function Layout(){
 	<Route path="/checkout" element={<Checkout />} />
 	<Route path="/success" element={<Success />} />
 	<Route path="/cancel" element={<Cancel />} />
+
+	<Route path="/suscripcion/checkout" element={<SubscriptionCheckout />} />
 
         {/* Rutas legales - nuevas /legal/* */}
         <Route path="/legal/terminos" element={<Terminos />} />

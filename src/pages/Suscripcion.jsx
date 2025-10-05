@@ -7,6 +7,7 @@ import { useUI } from "@/store/ui";
 import { isSubscription } from "@/lib/subscription";
 import SubscriptionPlans from "@/components/SubscriptionPlans";
 import { createSubscriptionSession } from "@/lib/checkout";
+import { useNavigate } from "react-router-dom";
 
 const PLANS = [
   {
@@ -47,6 +48,7 @@ export default function Suscripcion(){
   const { items } = useCart();
   const openCart = () => useUI.getState().openCart();
   const hasSubscription = items.some(isSubscription);
+const navigate = useNavigate();
 
   // Ir directo a Stripe con el priceId
   const handleSubscribe = async (plan) => {
@@ -62,6 +64,9 @@ export default function Suscripcion(){
       console.error('[subscription] error:', e);
       alert('No se pudo iniciar la suscripción. Inténtalo de nuevo.');
     }
+if (hasSubscription) return openCart();
+// Vamos a nuestra página de pre-checkout con el plan seleccionado
+navigate(`/suscripcion/checkout?plan=${encodeURIComponent(plan.priceId)}`);
   };
 
   // Hover glow en tarjetas
