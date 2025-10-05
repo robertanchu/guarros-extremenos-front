@@ -3,19 +3,18 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import Meta from "@/lib/Meta";
 import { createSubscriptionSession } from "@/lib/checkout";
 
-const PRICE_500 = import.meta.env.VITE_SUB_500_PRICE_ID;   // Debe ser "price_..."
-const PRICE_1000 = import.meta.env.VITE_SUB_1000_PRICE_ID; // Debe ser "price_..."
+const PRICE_500 = import.meta.env.VITE_SUB_500_PRICE_ID;
+const PRICE_1000 = import.meta.env.VITE_SUB_1000_PRICE_ID;
 
 const PLANS = [
   { id: PRICE_500,  label: "Suscripción 500 g / mes — 40 €/mes" },
   { id: PRICE_1000, label: "Suscripción 1 kg / mes — 70 €/mes" },
-].filter(p => !!p.id); // por si alguna env no está
+].filter(p => !!p.id);
 
 export default function SubscriptionCheckout(){
   const [search] = useSearchParams();
   const navigate = useNavigate();
 
-  // Plan preseleccionado vía query ?plan=price_xxx
   const initialPlan = search.get("plan") || PRICE_500 || "";
   const [plan, setPlan] = useState(initialPlan);
 
@@ -30,10 +29,7 @@ export default function SubscriptionCheckout(){
   });
   const [loading, setLoading] = useState(false);
 
-  const planOk = useMemo(() => {
-    // valida que el plan es uno de los disponibles
-    return PLANS.some(p => p.id === plan);
-  }, [plan]);
+  const planOk = useMemo(() => PLANS.some(p => p.id === plan), [plan]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -42,14 +38,9 @@ export default function SubscriptionCheckout(){
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!planOk) {
-      alert("Selecciona un plan de suscripción válido.");
-      return;
-    }
-    // Validación básica
+    if (!planOk) return alert("Selecciona un plan de suscripción válido.");
     if (!form.email || !form.name || !form.address || !form.city || !form.postal_code) {
-      alert("Completa todos los campos obligatorios.");
-      return;
+      return alert("Completa todos los campos obligatorios.");
     }
     try {
       setLoading(true);
@@ -57,8 +48,6 @@ export default function SubscriptionCheckout(){
         price: plan,
         quantity: 1,
         customer: { email: form.email, name: form.name, phone: form.phone },
-        // Enviamos shipping para que lo tengas también en metadata del back
-        // (El Checkout de Stripe igualmente pedirá/confirmará estos datos)
         shipping_address: {
           address: form.address,
           city: form.city,
@@ -72,10 +61,10 @@ export default function SubscriptionCheckout(){
           country: form.country || "ES",
           phone: form.phone || "",
           name: form.name,
-          flow: "subscription-precheckout"
-        }
+          flow: "subscription-precheckout",
+        },
       });
-      // createSubscriptionSession nos redirige a Stripe si OK
+      // Redirección a Stripe la hace el helper si OK
     } catch (err) {
       console.error("[subscription pre-checkout] error:", err);
       alert(err?.message || "No se pudo iniciar la suscripción. Inténtalo de nuevo.");
@@ -92,15 +81,10 @@ export default function SubscriptionCheckout(){
 
       <div className="max-w-3xl mx-auto px-4">
         <header className="mb-8 md:mb-10 text-center">
-          <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">
-            Checkout de Suscripción
-          </h1>
-          <p className="mt-4 text-zinc-300">
-            Introduce tus datos y continúa para completar el pago seguro.
-          </p>
+          <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Checkout de Suscripción</h1>
+          <p className="mt-4 text-zinc-300">Introduce tus datos y continúa para completar el pago seguro.</p>
         </header>
 
-        {/* Selección de plan (por si llega sin ?plan=...) */}
         <section className="mb-8">
           <label className="block text-sm text-white/80 mb-2">Plan</label>
           <select
@@ -222,7 +206,7 @@ export default function SubscriptionCheckout(){
               Volver
             </button>
             <button
-              type="button"
+              type="submit"              {/* ← AHORA sí envía el formulario */}
               className="btn-primary btn-shiny"
               disabled={loading || !planOk}
               aria-label="Continuar al pago"

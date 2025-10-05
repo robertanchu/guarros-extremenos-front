@@ -5,8 +5,6 @@ import "@/styles/effects.css";
 import { useCart } from "@/store/cart";
 import { useUI } from "@/store/ui";
 import { isSubscription } from "@/lib/subscription";
-import SubscriptionPlans from "@/components/SubscriptionPlans";
-import { createSubscriptionSession } from "@/lib/checkout";
 import { useNavigate } from "react-router-dom";
 
 const PLANS = [
@@ -18,7 +16,7 @@ const PLANS = [
     price: 40,
     priceId: import.meta.env.VITE_SUB_500_PRICE_ID || "price_sub_500",
     isSubscription: true,
-    kind: "subscription"
+    kind: "subscription",
   },
   {
     slug: "sub-1000",
@@ -28,7 +26,7 @@ const PLANS = [
     price: 70,
     priceId: import.meta.env.VITE_SUB_1000_PRICE_ID || "price_sub_1000",
     isSubscription: true,
-    kind: "subscription"
+    kind: "subscription",
   },
 ];
 
@@ -44,38 +42,19 @@ const FAQS = [
   { q: "¿Puedo cambiar de plan más adelante?", a: "Claro, cambia de 500 g a 1 kg o al revés en un clic." },
 ];
 
-export default function Suscripcion(){
+export default function Suscripcion() {
   const { items } = useCart();
   const openCart = () => useUI.getState().openCart();
   const hasSubscription = items.some(isSubscription);
+  const navigate = useNavigate();
 
-
-
-
-  // Ir directo a Stripe con el priceId
- export default function Suscripcion(){
-const navigate = useNavigate();const handleSubscribe = (plan) => {
-if (hasSubscription) return openCart();
-// 👇 solo navegamos al formulario
-navigate(`/suscripcion/checkout?plan=${encodeURIComponent(plan.priceId)}`);
-};
-
-  // Hover glow en tarjetas
-  const handleCardMove = (e) => {
-    const card = e.currentTarget;
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    card.style.setProperty('--lx', x + 'px');
-    card.style.setProperty('--ly', y + 'px');
-  };
-  const handleCardLeave = (e) => {
-    const card = e.currentTarget;
-    card.style.removeProperty('--lx');
-    card.style.removeProperty('--ly');
+  // SOLO navegamos al formulario con el plan elegido
+  const handleSubscribe = (plan) => {
+    if (hasSubscription) return openCart();
+    navigate(`/suscripcion/checkout?plan=${encodeURIComponent(plan.priceId)}`);
   };
 
-  // Animación reveal (igual que en Jamones)
+  // Efecto reveal igual que antes
   useEffect(() => {
     const root = document.getElementById("plans-grid");
     if (!root) return;
@@ -85,44 +64,62 @@ navigate(`/suscripcion/checkout?plan=${encodeURIComponent(plan.priceId)}`);
       el.classList.remove("revealed");
       el.style.transitionDelay = (Math.min(i, 8) * 60) + "ms";
     });
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches){
-      els.forEach(el => el.classList.add("revealed"));
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      els.forEach((el) => el.classList.add("revealed"));
       return;
     }
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add("revealed");
-          io.unobserve(e.target);
-        }
-      });
-    }, { rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
-    els.forEach(el => io.observe(el));
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("revealed");
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -10% 0px", threshold: 0.12 }
+    );
+    els.forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
+
+  // Efecto hover glow de las tarjetas
+  const handleCardMove = (e) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    card.style.setProperty("--lx", x + "px");
+    card.style.setProperty("--ly", y + "px");
+  };
+  const handleCardLeave = (e) => {
+    const card = e.currentTarget;
+    card.style.removeProperty("--lx");
+    card.style.removeProperty("--ly");
+  };
 
   return (
     <main className="shell py-12 md:py-16">
       <Meta title="Suscripción Jamón Canalla | Guarros Extremeños" description="Tu jamón favorito en suscripción mensual, sin ataduras." />
 
-      {/* Cabecera (igual que Jamones: ancho y separación) */}
+      {/* Cabecera */}
       <header className="mb-8 md:mb-12">
         <div className="max-w-3xl mx-auto text-center px-4">
-          <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Suscripción Jamón Canalla</h1>
+          <h1 className="mt-2 text-3xl md:5xl font-stencil text-brand">Suscripción Jamón Canalla</h1>
           <p className="mt-4 text-zinc-300">
             El sabor que manda, cada mes en tu casa. Sin postureo, sin esperas y con la pureza del 100% ibérico D.O.P Dehesa de Extremadura.
           </p>
         </div>
       </header>
 
-      {/* Aviso (mismo ancho de contenido estándar) */}
+      {/* Aviso si ya hay suscripción */}
       {hasSubscription && (
         <div className="max-w-4xl mx-auto px-4 mb-8">
           <div className="alert">
             <div className="flex items-start gap-3">
               <div className="shrink-0 mt-0.5">
                 <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-.75-11.5a.75.75 0 011.5 0V9a.75.75 0 01-1.5 0V6.5zm.75 6a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd"/>
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-.75-11.5a.75.75 0 011.5 0V9a.75.75 0 01-1.5 0V6.5zm.75 6a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
                 </svg>
               </div>
               <div className="flex-1">
@@ -157,7 +154,7 @@ navigate(`/suscripcion/checkout?plan=${encodeURIComponent(plan.priceId)}`);
                   {BENEFITS.map((b) => (
                     <li key={b} className="flex items-start gap-2">
                       <svg className="mt-[3px] h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-8 8a1 1 0 01-1.408 0l-4-4a1 1 0 111.408-1.42L8 12.58l7.296-7.29a1 1 0 011.408 0z" clipRule="evenodd"/>
+                        <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-8 8a1 1 0 01-1.408 0l-4-4a1 1 0 111.408-1.42L8 12.58l7.296-7.29a1 1 0 011.408 0z" clipRule="evenodd" />
                       </svg>
                       <span>{b}</span>
                     </li>
@@ -170,14 +167,15 @@ navigate(`/suscripcion/checkout?plan=${encodeURIComponent(plan.priceId)}`);
                   <div className="rounded-xl border border-brand/30 bg-brand/10 text-brand-200 px-4 py-3 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-8 8a1 1 0 01-1.408 0l-4-4a1 1 0 111.408-1.42L8 12.58l7.296-7.29a1 1 0 011.408 0z" clipRule="evenodd"/>
+                        <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-8 8a1 1 0 01-1.408 0l-4-4a1 1 0 111.408-1.42L8 12.58l7.296-7.29a1 1 0 011.408 0z" clipRule="evenodd" />
                       </svg>
                       <span className="font-medium">Suscripción en el carrito</span>
                     </div>
                     <button
                       type="button"
                       onClick={openCart}
-                      className="inline-flex items-center justify-center h-9 px-3 rounded-lg border border-brand/40 text-brand-100 hover:bg-brand/20 transition-colors">
+                      className="inline-flex items-center justify-center h-9 px-3 rounded-lg border border-brand/40 text-brand-100 hover:bg-brand/20 transition-colors"
+                    >
                       Ver carrito
                     </button>
                   </div>
@@ -186,7 +184,8 @@ navigate(`/suscripcion/checkout?plan=${encodeURIComponent(plan.priceId)}`);
                     type="button"
                     className="w-full btn-primary btn-shiny"
                     onClick={() => handleSubscribe(p)}
-                    aria-label="Suscribirme">
+                    aria-label="Suscribirme"
+                  >
                     Suscribirme
                   </button>
                 )}
