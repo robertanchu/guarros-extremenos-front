@@ -222,7 +222,7 @@ export default function SubscriptionCheckout(){
               Volver
             </button>
             <button
-              type="submit"
+              type="button"
               className="btn-primary btn-shiny"
               disabled={loading || !planOk}
               aria-label="Continuar al pago"

@@ -48,26 +48,17 @@ export default function Suscripcion(){
   const { items } = useCart();
   const openCart = () => useUI.getState().openCart();
   const hasSubscription = items.some(isSubscription);
-const navigate = useNavigate();
+
+
+
 
   // Ir directo a Stripe con el priceId
-  const handleSubscribe = async (plan) => {
-    if (hasSubscription) return openCart();
-    try {
-      await createSubscriptionSession({
-        price: plan.priceId,
-        quantity: 1,
-        // Si ya recoges datos antes, puedes pasarlos aquí:
-        // customer: { email, name, phone }
-      });
-    } catch (e) {
-      console.error('[subscription] error:', e);
-      alert('No se pudo iniciar la suscripción. Inténtalo de nuevo.');
-    }
+ export default function Suscripcion(){
+const navigate = useNavigate();const handleSubscribe = (plan) => {
 if (hasSubscription) return openCart();
-// Vamos a nuestra página de pre-checkout con el plan seleccionado
+// 👇 solo navegamos al formulario
 navigate(`/suscripcion/checkout?plan=${encodeURIComponent(plan.priceId)}`);
-  };
+};
 
   // Hover glow en tarjetas
   const handleCardMove = (e) => {
