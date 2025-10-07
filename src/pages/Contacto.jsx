@@ -136,21 +136,22 @@ export default function Contacto() {
                 />
               </div>
 
-              <div className="flex flex-col">
-                <label htmlFor="message" className="block text-sm text-zinc-300 mb-1">
-                  Mensaje
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  required
-                  rows={6}
-                  value={form.message}
-                  onChange={onChange}
-                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand"
-                  placeholder="Dispara tu duda, sin rodeos."
-                />
-              </div>
+<div>
+  <label htmlFor="message" className="block text-sm text-zinc-300 mb-1">
+    Mensaje
+  </label>
+  <textarea
+    id="message"
+    name="message"
+    required
+    // ⬇️ Sólo cambiamos el alto del cuerpo del mensaje
+    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand
+               min-h-48 md:min-h-64 lg:min-h-80 resize-y"
+    placeholder="Dispara tu duda, sin rodeos."
+    value={form.message}
+    onChange={onChange}
+  />
+</div>
 
               {!status.sent ? (
                 <button
