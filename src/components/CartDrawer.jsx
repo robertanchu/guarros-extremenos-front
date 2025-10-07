@@ -215,7 +215,7 @@ export default function CartDrawer({
               disabled={!hasItems}
               onClick={checkout}
               className={`group relative w-full h-11 rounded-xl font-stencil tracking-wide
-                          text-white transition-colors duration-200 shadow-lg
+                          text-black transition-colors duration-200 shadow-lg
                           focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
                           active:scale-[0.98]
                           ${hasItems ? "bg-[#E53935] hover:bg-[#992623]" : "bg-white/10 cursor-not-allowed opacity-60"}`}
