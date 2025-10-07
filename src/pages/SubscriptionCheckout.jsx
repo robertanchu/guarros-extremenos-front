@@ -211,7 +211,7 @@ export default function SubscriptionCheckout(){
                   <ul className="text-white/85 text-sm space-y-2">
                     <li>• 100% Ibérico D.O.P. Dehesa de Extremadura</li>
                     <li>• Sobres al vacío, corte fino</li>
-                    <li>• Pausa/cambio cuando quieras</li>
+                    <li>• Cancela cuando quieras</li>
                   </ul>
                 </div>
                 <p className="mt-3 text-xs text-white/50">Los datos de facturación/entrega se aplicarán al iniciar la suscripción en Stripe.</p>
