@@ -57,8 +57,8 @@ export default function Contacto() {
         description="¿Dudas, pedidos grandes o partnerships? Escríbenos sin filtro."
       />
       <section className="py-16">
-        {/* items-stretch para igualar la altura de ambas columnas */}
-        <div className="container grid md:grid-cols-2 gap-10 items-stretch">
+        <div className="container grid md:grid-cols-2 gap-10">
+          {/* Columna izquierda */}
           <div>
             <h1 className="text-3xl md:text-5xl font-stencil text-brand">Contacto</h1>
             <p className="text-zinc-300 mt-4">
@@ -84,10 +84,11 @@ export default function Contacto() {
             />
           </div>
 
-          {/* h-full + flex-col para ocupar toda la altura del track del grid */}
+          {/* Formulario (con focus-within del contenedor y focus canalla en campos) */}
           <form
             onSubmit={onSubmit}
-            className="rounded-2xl border border-white/10 p-6 bg-white/5 h-full flex flex-col"
+            className="rounded-2xl border border-white/10 p-6 bg-white/5
+                       focus-within:border-white/20 focus-within:ring-1 focus-within:ring-[#E53935]/30"
           >
             {/* Honeypot (oculto) */}
             <input
@@ -101,8 +102,7 @@ export default function Contacto() {
               aria-hidden="true"
             />
 
-            {/* flex-1: los campos ocupan el espacio y el estado/botón queda al final */}
-            <div className="grid gap-4 flex-1">
+            <div className="grid gap-4">
               <div>
                 <label htmlFor="name" className="block text-sm text-zinc-300 mb-1">
                   Nombre
@@ -114,7 +114,9 @@ export default function Contacto() {
                   value={form.name}
                   onChange={onChange}
                   autoComplete="name"
-                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand"
+                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none
+                             transition-colors focus:bg-white/10 focus:border-[#E53935]
+                             focus:ring-2 focus:ring-[#E53935]/40"
                   placeholder="Tu nombre"
                 />
               </div>
@@ -131,27 +133,30 @@ export default function Contacto() {
                   value={form.email}
                   onChange={onChange}
                   autoComplete="email"
-                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand"
+                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none
+                             transition-colors focus:bg-white/10 focus:border-[#E53935]
+                             focus:ring-2 focus:ring-[#E53935]/40"
                   placeholder="tucorreo@ejemplo.com"
                 />
               </div>
 
-<div>
-  <label htmlFor="message" className="block text-sm text-zinc-300 mb-1">
-    Mensaje
-  </label>
-  <textarea
-    id="message"
-    name="message"
-    required
-    // ⬇️ Sólo cambiamos el alto del cuerpo del mensaje
-    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-brand
-               min-h-48 md:min-h-64 lg:min-h-80 resize-y"
-    placeholder="Dispara tu duda, sin rodeos."
-    value={form.message}
-    onChange={onChange}
-  />
-</div>
+              <div>
+                <label htmlFor="message" className="block text-sm text-zinc-300 mb-1">
+                  Mensaje
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  required
+                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none
+                             transition-colors focus:bg-white/10 focus:border-[#E53935]
+                             focus:ring-2 focus:ring-[#E53935]/40
+                             min-h-48 md:min-h-64 lg:min-h-80 resize-y"
+                  placeholder="Dispara tu duda, sin rodeos."
+                  value={form.message}
+                  onChange={onChange}
+                />
+              </div>
 
               {!status.sent ? (
                 <button
