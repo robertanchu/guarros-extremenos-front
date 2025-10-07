@@ -22,9 +22,28 @@ export default function Success(){
           </svg>
           <h1 className="mt-4 text-3xl md:text-5xl font-stencil text-brand">Pago completado</h1>
           <p className="mt-3 text-zinc-300">¡Gracias por tu compra! Te hemos enviado un email con los detalles del pedido.</p>
+
           <div className="mt-6 flex items-center justify-center gap-3">
-            <Link to="/" className="btn-secondary">Inicio</Link>
-            <Link to="/jamones" className="btn-primary">Seguir comprando</Link>
+            {/* Inicio: estilo Suscripción del Hero (outline) */}
+            <Link
+              to="/"
+              className="inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide
+                         text-white border border-white/20 transition-colors duration-200 hover:bg-white/15
+                         focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-[0.98]"
+            >
+              Inicio
+            </Link>
+
+            {/* Seguir comprando: estilo Ver Jamones (rojo) */}
+            <Link
+              to="/jamones"
+              className="group relative inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide
+                         text-white bg-[#E53935] transition-colors duration-200 shadow-lg hover:bg-[#992623]
+                         focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-[0.98]"
+            >
+              <span className="relative z-10">Seguir comprando</span>
+              <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
+            </Link>
           </div>
         </div>
       </section>
