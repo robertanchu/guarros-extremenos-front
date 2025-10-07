@@ -1,7 +1,8 @@
+// src/components/CartDrawer.jsx
 import React, { useEffect } from "react";
 
 /**
- * CartDrawer — v53
+ * CartDrawer — v54
  * - Suscripciones: oculta controles y texto de cantidad; muestra precio como "€ /mes"
  * - Productos normales: mantiene controles y totales por línea
  * - Firmas store: increment(matcher), decrement(matcher), removeItem(matcher) con matcher = id || priceId
@@ -207,16 +208,23 @@ export default function CartDrawer({
               </svg>
               <span>Envío y descuentos se calculan en el checkout.</span>
             </div>
+
+            {/* Botón canalla: Finalizar compra */}
             <button
               type="button"
               disabled={!hasItems}
               onClick={checkout}
-              className={
-                "mt-3 w-full h-11 rounded-2xl text-white font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 " +
-                (hasItems ? "bg-brand hover:bg-brand-700" : "bg-white/10 cursor-not-allowed")
-              }
+              className={`group relative w-full h-11 rounded-xl font-stencil tracking-wide
+                          text-white transition-colors duration-200 shadow-lg
+                          focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
+                          active:scale-[0.98]
+                          ${hasItems ? "bg-[#E53935] hover:bg-[#992623]" : "bg-white/10 cursor-not-allowed opacity-60"}`}
+              aria-label="Finalizar compra"
             >
-              Finalizar compra
+              <span className="relative z-10">Finalizar compra</span>
+              {hasItems && (
+                <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
+              )}
             </button>
           </div>
 
