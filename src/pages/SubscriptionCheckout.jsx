@@ -214,7 +214,7 @@ export default function SubscriptionCheckout(){
                     <li>• Cancela cuando quieras</li>
                   </ul>
                 </div>
-                <p className="mt-3 text-xs text-white/50">Los datos de facturación/entrega se aplicarán al iniciar la suscripción en Stripe.</p>
+                <p className="mt-3 text-xs text-white/50">Los datos de facturación/entrega se aplicarán al iniciar el proceso de suscripción.</p>
               </>
             ) : (
               <p className="text-white/70">Selecciona un plan para ver el resumen.</p>
