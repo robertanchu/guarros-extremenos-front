@@ -12,7 +12,25 @@ export default function JamonCard({ product }){
   const raf = React.useRef(0);
 
   const price = Number(product.priceFrom ?? product.price ?? 0);
-  const img = product.image ?? product.cover ?? null;
+
+  // === NUEVO: resolución de imagen + srcSet ===
+  const fallbackBySlug = product?.slug
+    ? `/images/jamones/${product.slug}/cover.webp`
+    : null;
+
+  const img1x =
+    product?.image ??
+    product?.cover ??
+    product?.media?.cover ??
+    fallbackBySlug;
+
+  const img2x =
+    product?.image2x ??
+    product?.cover2x ??
+    product?.media?.cover2x ??
+    img1x; // si no hay 2x, reutilizamos 1x
+
+  const alt = product?.alt || product?.name || "Producto";
 
   const dec = () => setQty(q => Math.max(1, q - 1));
   const inc = () => setQty(q => Math.min(99, q + 1));
@@ -23,7 +41,7 @@ export default function JamonCard({ product }){
       name: product.name,
       price,
       qty,
-      image: img,
+      image: img1x,
       type: "product",
     });
     openCart();
@@ -62,12 +80,13 @@ export default function JamonCard({ product }){
     >
       {/* Media */}
       <div className="aspect-square overflow-hidden">
-        {img ? (
+        {img1x ? (
           <img
-            src={img}
-            alt={product.name}
-            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
+            src={img1x}
+            srcSet={`${img1x} 1x, ${img2x} 2x`}
+            alt={alt}
             loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
           />
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-brand/15 via-black/10 to-transparent grid place-items-center">
@@ -116,7 +135,6 @@ export default function JamonCard({ product }){
             aria-label={`Añadir ${product.name} al carrito`}
           >
             Añadir al carrito
-            {/* anillo decorativo al estilo Hero/Contacto */}
             <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
           </button>
         </div>
