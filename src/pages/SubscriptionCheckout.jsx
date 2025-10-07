@@ -202,13 +202,13 @@ export default function SubscriptionCheckout(){
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="text-white">{selectedPlan.name}</div>
-                    
+                    <div className="text-sm text-white/70">Frecuencia: mensual</div>
                   </div>
                   <div className="text-white font-semibold">{selectedPlan.priceText}</div>
                 </div>
 
                 <div className="mt-4 border-t border-white/10 pt-4">
-                  
+                  <h3 className="text-sm text-white/70 mb-2">Incluye</h3>
                   <ul className="text-white/85 text-sm space-y-2">
                     <li>• Pausa/cambio cuando quieras</li>
                     <li>• Sobres al vacío, corte fino</li>
