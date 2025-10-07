@@ -1,3 +1,4 @@
+// src/pages/Checkout.jsx
 import React, { useMemo, useState } from "react";
 import { useCart } from "@/store/cart";
 import Meta from "@/lib/Meta";
@@ -137,16 +138,34 @@ export default function Checkout(){
             </div>
 
             <div className="pt-2">
+              {/* Botón canalla */}
               <button
                 type="submit"
                 disabled={!canPay || submitting}
-                className="w-full btn-primary btn-shiny disabled:opacity-60 disabled:cursor-not-allowed"
+                className={[
+                  "group relative w-full inline-flex items-center justify-center",
+                  "rounded-xl h-11 px-5 font-stencil tracking-wide",
+                  "text-black transition-colors duration-200 shadow-lg",
+                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
+                  "active:scale-[0.98]",
+                  (!canPay || submitting)
+                    ? "bg-white/10 cursor-not-allowed opacity-60"
+                    : "bg-[#E53935] hover:bg-[#992623]"
+                ].join(" ")}
                 aria-label="Ir al pago"
               >
-                {submitting ? "Conectando con el pago..." : "Ir al pago seguro"}
+                <span className="relative z-10">
+                  {submitting ? "Conectando con el pago..." : "Ir al pago seguro"}
+                </span>
+                {(!canPay || submitting) ? null : (
+                  <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
+                )}
               </button>
+
               {!canPay && (
-                <p className="mt-2 text-sm text-amber-300/90">Revisa los productos del carrito: falta el identificador de precio.</p>
+                <p className="mt-2 text-sm text-amber-300/90">
+                  Revisa los productos del carrito: falta el identificador de precio.
+                </p>
               )}
             </div>
           </form>
