@@ -1,3 +1,4 @@
+// src/pages/SubscriptionCheckout.jsx
 import React, { useMemo, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import Meta from "@/lib/Meta";
@@ -64,7 +65,7 @@ export default function SubscriptionCheckout(){
           flow: "subscription-precheckout",
         },
       });
-      // Redirección a Stripe la hace el helper si OK
+      // La redirección a Stripe la ejecuta el helper si todo fue OK
     } catch (err) {
       console.error("[subscription pre-checkout] error:", err);
       alert(err?.message || "No se pudo iniciar la suscripción. Inténtalo de nuevo.");
@@ -197,21 +198,40 @@ export default function SubscriptionCheckout(){
           </div>
 
           <div className="flex items-center gap-3 pt-2">
+            {/* Volver → estilo "Suscripción" del Hero (outline) */}
             <button
               type="button"
-              className="btn-secondary"
               onClick={goBack}
               disabled={loading}
+              className="inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide
+                         text-white border border-white/20 transition-colors duration-200 hover:bg-white/15
+                         focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-[0.98]
+                         disabled:opacity-60"
             >
               Volver
             </button>
+
+            {/* Continuar → estilo "Ver Jamones" (rojo canalla) */}
             <button
-              type="submit"              
-              className="btn-primary btn-shiny"
+              type="submit"
               disabled={loading || !planOk}
               aria-label="Continuar al pago"
+              className={[
+                "group relative inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide",
+                "text-white transition-colors duration-200 shadow-lg",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
+                "active:scale-[0.98]",
+                (loading || !planOk)
+                  ? "bg-white/10 cursor-not-allowed opacity-60"
+                  : "bg-[#E53935] hover:bg-[#992623]"
+              ].join(" ")}
             >
-              {loading ? "Redirigiendo a Stripe..." : "Continuar al pago"}
+              <span className="relative z-10">
+                {loading ? "Redirigiendo a Stripe..." : "Continuar al pago"}
+              </span>
+              {(loading || !planOk) ? null : (
+                <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
+              )}
             </button>
           </div>
 
