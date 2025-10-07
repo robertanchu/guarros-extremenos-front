@@ -149,10 +149,28 @@ export default function Contacto() {
               {!status.sent ? (
                 <button
                   type="submit"
-                  className="btn-primary disabled:opacity-60"
                   disabled={status.sending}
+                  className={`group relative inline-flex items-center justify-center 
+                              w-full sm:w-auto rounded-xl px-6 py-3 text-base font-stencil tracking-wide
+                              text-black bg-[#E53935] transition-colors duration-200 shadow-lg
+                              hover:bg-[#992623] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 
+                              active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed`}
+                  aria-label={status.sending ? "Enviando" : "Enviar"}
                 >
+                  {/* Spinner cuando enviando */}
+                  {status.sending && (
+                    <svg
+                      className="mr-2 h-5 w-5 animate-spin"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" className="opacity-25" />
+                      <path d="M4 12a8 8 0 0 1 8-8" fill="none" stroke="currentColor" strokeWidth="4" className="opacity-75" />
+                    </svg>
+                  )}
                   {status.sending ? "Enviando…" : "Enviar"}
+                  {/* anillo decorativo como en Hero */}
+                  <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
                 </button>
               ) : (
                 <div className="text-amber-300">
