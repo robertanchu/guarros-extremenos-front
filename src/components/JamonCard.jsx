@@ -109,7 +109,7 @@ export default function JamonCard({ product }){
             className="relative btn-shiny flex-1 inline-flex items-center justify-center gap-2
                        rounded-xl px-4 h-10 md:h-11
                        font-stencil tracking-wide
-                       text-white bg-[#E53935] hover:bg-[#992623]
+                       text-black bg-[#E53935] hover:bg-[#992623]
                        transition-transform transition-colors duration-200
                        focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
                        active:scale-[0.98]"
