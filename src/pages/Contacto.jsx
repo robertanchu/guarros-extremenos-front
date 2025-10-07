@@ -57,7 +57,8 @@ export default function Contacto() {
         description="¿Dudas, pedidos grandes o partnerships? Escríbenos sin filtro."
       />
       <section className="py-16">
-        <div className="container grid md:grid-cols-2 gap-10">
+        {/* items-stretch para igualar la altura de ambas columnas */}
+        <div className="container grid md:grid-cols-2 gap-10 items-stretch">
           <div>
             <h1 className="text-3xl md:text-5xl font-stencil text-brand">Contacto</h1>
             <p className="text-zinc-300 mt-4">
@@ -83,7 +84,11 @@ export default function Contacto() {
             />
           </div>
 
-          <form onSubmit={onSubmit} className="rounded-2xl border border-white/10 p-6 bg-white/5">
+          {/* h-full + flex-col para ocupar toda la altura del track del grid */}
+          <form
+            onSubmit={onSubmit}
+            className="rounded-2xl border border-white/10 p-6 bg-white/5 h-full flex flex-col"
+          >
             {/* Honeypot (oculto) */}
             <input
               type="text"
@@ -96,7 +101,8 @@ export default function Contacto() {
               aria-hidden="true"
             />
 
-            <div className="grid gap-4">
+            {/* flex-1: los campos ocupan el espacio y el estado/botón queda al final */}
+            <div className="grid gap-4 flex-1">
               <div>
                 <label htmlFor="name" className="block text-sm text-zinc-300 mb-1">
                   Nombre
@@ -130,7 +136,7 @@ export default function Contacto() {
                 />
               </div>
 
-              <div>
+              <div className="flex flex-col">
                 <label htmlFor="message" className="block text-sm text-zinc-300 mb-1">
                   Mensaje
                 </label>
@@ -157,7 +163,6 @@ export default function Contacto() {
                               active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed`}
                   aria-label={status.sending ? "Enviando" : "Enviar"}
                 >
-                  {/* Spinner cuando enviando */}
                   {status.sending && (
                     <svg
                       className="mr-2 h-5 w-5 animate-spin"
@@ -169,7 +174,6 @@ export default function Contacto() {
                     </svg>
                   )}
                   {status.sending ? "Enviando…" : "Enviar"}
-                  {/* anillo decorativo como en Hero */}
                   <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
                 </button>
               ) : (
