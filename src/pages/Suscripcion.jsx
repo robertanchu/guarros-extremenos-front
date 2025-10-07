@@ -1,3 +1,4 @@
+// src/pages/Suscripcion.jsx
 import React, { useEffect } from "react";
 import Meta from "../lib/Meta";
 import FAQ from "@/components/FAQ";
@@ -48,13 +49,11 @@ export default function Suscripcion() {
   const hasSubscription = items.some(isSubscription);
   const navigate = useNavigate();
 
-  // SOLO navegamos al formulario con el plan elegido
   const handleSubscribe = (plan) => {
     if (hasSubscription) return openCart();
     navigate(`/suscripcion/checkout?plan=${encodeURIComponent(plan.priceId)}`);
   };
 
-  // Efecto reveal igual que antes
   useEffect(() => {
     const root = document.getElementById("plans-grid");
     if (!root) return;
@@ -83,7 +82,6 @@ export default function Suscripcion() {
     return () => io.disconnect();
   }, []);
 
-  // Efecto hover glow de las tarjetas
   const handleCardMove = (e) => {
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
@@ -182,11 +180,18 @@ export default function Suscripcion() {
                 ) : (
                   <button
                     type="button"
-                    className="w-full btn-primary btn-shiny"
                     onClick={() => handleSubscribe(p)}
                     aria-label="Suscribirme"
+                    className="relative w-full inline-flex items-center justify-center
+                               rounded-xl h-11 px-5 font-stencil tracking-wide
+                               text-black bg-[#E53935] hover:bg-[#992623]
+                               transition-colors duration-200 shadow-lg btn-shiny
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
+                               active:scale-[0.98]"
                   >
                     Suscribirme
+                    {/* anillo decorativo como en Hero */}
+                    <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 hover:ring-[#992623]/50 transition-all" />
                   </button>
                 )}
               </div>
