@@ -12,7 +12,7 @@ export default function Cancel(){
           <svg className="mx-auto h-12 w-12 text-amber-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path fillRule="evenodd" d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5a1 1 0 10-2 0v6a1 1 0 102 0V7zm-1 10a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z" clipRule="evenodd"/>
           </svg>
-          <h1 className="mt-4 text-3xl md:text-5xl font-stencil text-white">Pago cancelado</h1>
+          <h1 className="mt-4 text-3xl md:text-5xl font-stencil text-brand">Pago cancelado</h1>
           <p className="mt-3 text-zinc-300">No se ha realizado el cargo. Puedes revisar el carrito y volver a intentarlo.</p>
 
           <div className="mt-6 flex items-center justify-center gap-3">
