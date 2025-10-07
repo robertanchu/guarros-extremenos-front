@@ -156,7 +156,7 @@ export default function SubscriptionCheckout(){
                 onClick={goBack}
                 disabled={loading}
                 className="inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide
-                           text-white border border-white/20 transition-colors duration-200 hover:bg-white/15
+                           text-black border border-white/20 transition-colors duration-200 hover:bg-white/15
                            focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-[0.98]
                            disabled:opacity-60"
               >
@@ -169,7 +169,7 @@ export default function SubscriptionCheckout(){
                 aria-label="Continuar al pago"
                 className={[
                   "group relative inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide",
-                  "text-black transition-colors duration-200 shadow-lg",
+                  "text-white transition-colors duration-200 shadow-lg",
                   "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
                   "active:scale-[0.98]",
                   (loading || !planOk)
