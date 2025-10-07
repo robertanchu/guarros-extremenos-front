@@ -68,7 +68,7 @@ export default function Footer() {
               <label htmlFor="news" className="block text-sm text-white/80">Newsletter</label>
               <div className="mt-2 flex items-center gap-2">
                 <input id="news" type="email" placeholder="Tu email" className="flex-1 h-10 rounded-lg bg-black/50 text-white placeholder:text-white/40 border border-white/15 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40" />
-                <button type="submit" className="h-10 px-3 rounded-lg bg-brand text-white hover:bg-brand-700 transition-colors">Enviar</button>
+                <button type="submit" className="group relative inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide text-black bg-[#E53935] transition-colors duration-200 shadow-lg hover:bg-[#992623] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-[0.98]">Enviar</button>
               </div>
             </form>
           </div>
