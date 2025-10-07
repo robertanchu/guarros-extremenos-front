@@ -8,8 +8,8 @@ const PRICE_500 = import.meta.env.VITE_SUB_500_PRICE_ID;
 const PRICE_1000 = import.meta.env.VITE_SUB_1000_PRICE_ID;
 
 const PLANS = [
-  { id: PRICE_500,  label: "Suscripción 500 g / mes — 40 €/mes", priceText: "40 €/mes", name: "Suscripción 500 g / mes", amount: 40 },
-  { id: PRICE_1000, label: "Suscripción 1 kg / mes — 70 €/mes",  priceText: "70 €/mes", name: "Suscripción 1 kg / mes", amount: 70 },
+  { id: PRICE_500,  label: "Suscripción 500 g / mes — 40 €/mes", priceText: "40 €/mes", name: "Suscripción 500 g / mes" },
+  { id: PRICE_1000, label: "Suscripción 1 kg / mes — 70 €/mes",  priceText: "70 €/mes", name: "Suscripción 1 kg / mes" },
 ].filter(p => !!p.id);
 
 export default function SubscriptionCheckout(){
@@ -118,7 +118,7 @@ export default function SubscriptionCheckout(){
               </select>
             </div>
 
-            {/* Datos comprador/envío */}
+            {/* Datos comprador/envío (mismo look) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <Field id="name" label="Nombre completo" autoComplete="name" required value={form.name} onChange={v => setForm(s => ({...s, name: v}))} placeholder="Tu nombre y apellidos" />
               <Field id="email" label="Email" type="email" autoComplete="email" required value={form.email} onChange={v => setForm(s => ({...s, email: v}))} placeholder="tucorreo@ejemplo.com" />
@@ -169,7 +169,7 @@ export default function SubscriptionCheckout(){
                 aria-label="Continuar al pago"
                 className={[
                   "group relative inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide",
-                  "text-white transition-colors duration-200 shadow-lg",
+                  "text-black transition-colors duration-200 shadow-lg",
                   "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
                   "active:scale-[0.98]",
                   (loading || !planOk)
@@ -202,30 +202,20 @@ export default function SubscriptionCheckout(){
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="text-white">{selectedPlan.name}</div>
-                    <div className="text-sm text-white/70">Frecuencia: mensual</div>
+                    
                   </div>
                   <div className="text-white font-semibold">{selectedPlan.priceText}</div>
                 </div>
 
                 <div className="mt-4 border-t border-white/10 pt-4">
-                  <h3 className="text-sm text-white/70 mb-2">Incluye</h3>
+                  
                   <ul className="text-white/85 text-sm space-y-2">
                     <li>• Pausa/cambio cuando quieras</li>
                     <li>• Sobres al vacío, corte fino</li>
                     <li>• 100% Ibérico D.O.P. Dehesa de Extremadura</li>
                   </ul>
                 </div>
-
-                {/* Línea total mensual para homogeneizar con Checkout */}
-                <div className="mt-4 border-t border-white/10 pt-4 flex items-center justify-between">
-                  <div className="text-white/70">Total mensual</div>
-                  <div className="text-white font-semibold">{selectedPlan.priceText}</div>
-                </div>
-
-                {/* Nota sincronizada con Checkout */}
-                <p className="mt-2 text-xs text-white/50">
-                  Los gastos de envío y tasas se calculan en el pago.
-                </p>
+                <p className="mt-3 text-xs text-white/50">Los datos de facturación/entrega se aplicarán al iniciar la suscripción en Stripe.</p>
               </>
             ) : (
               <p className="text-white/70">Selecciona un plan para ver el resumen.</p>
@@ -242,7 +232,7 @@ function Field({ id, label, type="text", autoComplete, value, onChange, required
   return (
     <div className="space-y-1.5">
       <label htmlFor={id} className="block text-sm text-white/80">{label}</label>
-      <input
+      <inputb
         id={id}
         name={id}
         type={type}
