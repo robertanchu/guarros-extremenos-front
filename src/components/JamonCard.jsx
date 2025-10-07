@@ -1,3 +1,4 @@
+// src/components/JamonCard.jsx
 import React from "react";
 import { formatEUR } from "@/utils/format";
 import { useCart } from "@/store/cart";
@@ -101,12 +102,22 @@ export default function JamonCard({ product }){
             <span className="w-10 text-center text-white/90">{qty}</span>
             <button onClick={inc} className="h-10 w-9 text-white/80 hover:bg-white/10">+</button>
           </div>
+
+          {/* Botón canalla */}
           <button
             onClick={handleAdd}
-            className="btn-shiny flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-brand hover:bg-brand-700 text-white font-medium px-4 h-10 md:h-11 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+            className="relative btn-shiny flex-1 inline-flex items-center justify-center gap-2
+                       rounded-xl px-4 h-10 md:h-11
+                       font-stencil tracking-wide
+                       text-white bg-[#E53935] hover:bg-[#992623]
+                       transition-transform transition-colors duration-200
+                       focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
+                       active:scale-[0.98]"
             aria-label={`Añadir ${product.name} al carrito`}
           >
             Añadir al carrito
+            {/* anillo decorativo al estilo Hero/Contacto */}
+            <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
           </button>
         </div>
       </div>
