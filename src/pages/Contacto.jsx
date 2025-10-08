@@ -1,198 +1,163 @@
 // src/pages/Contacto.jsx
 import React, { useState } from "react";
-import Meta from "../lib/Meta";
-import { MEDIA } from "../data/media";
-
-const API_BASE =
-  import.meta.env.VITE_API_URL ||
-  "https://guarros-extremenos-api.onrender.com";
+import Meta from "@/lib/Meta";
 
 export default function Contacto() {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    message: "",
-    company: "", // honeypot
-  });
-  const [status, setStatus] = useState({ sending: false, sent: false, error: "" });
+  const [loading, setLoading] = useState(false);
+  const [ok, setOk] = useState(null);
 
-  const onChange = (e) => {
-    const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
-  };
-
-  const onSubmit = async (e) => {
+  async function onSubmit(e) {
     e.preventDefault();
-    setStatus({ sending: true, sent: false, error: "" });
+    setLoading(true);
+    setOk(null);
 
+    // --- Mantén aquí tu lógica actual de envío (si ya la tenías) ---
+    // Ejemplo:
     try {
-      const res = await fetch(`${API_BASE}/contact`, {
+      const form = new FormData(e.currentTarget);
+      const payload = Object.fromEntries(form.entries());
+      const res = await fetch(import.meta.env.VITE_CONTACT_ENDPOINT || "/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: form.name?.trim(),
-          email: form.email?.trim(),
-          message: form.message?.trim(),
-          company: form.company, // honeypot
-          source: "front-contact",
-        }),
+        body: JSON.stringify(payload),
       });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || "No se pudo enviar el mensaje.");
-      }
-
-      setStatus({ sending: false, sent: true, error: "" });
-      setForm({ name: "", email: "", message: "", company: "" });
+      if (!res.ok) throw new Error("Error al enviar");
+      setOk(true);
+      e.currentTarget.reset();
     } catch (err) {
-      setStatus({ sending: false, sent: false, error: err.message || "Error desconocido" });
+      console.error(err);
+      setOk(false);
+    } finally {
+      setLoading(false);
     }
-  };
+  }
 
   return (
     <>
       <Meta
-        title="Contacto"
-        description="¿Dudas, pedidos grandes o partnerships? Escríbenos sin filtro."
+        title="Contacto · Guarros Extremeños"
+        description="¿Dudas, pedidos especiales o distribuciones? Escríbenos y te respondemos canallamente rápido."
       />
-      <section className="py-16">
-        <div className="container grid md:grid-cols-2 gap-10">
-          {/* Columna izquierda */}
-          <div>
-            <h1 className="text-3xl md:text-5xl font-stencil text-brand">Contacto</h1>
-            <p className="text-zinc-300 mt-4">
-              Si buscas un jamón serio con alma canalla, has llegado. Escríbenos
-              para pedidos, suscripciones de empresa o tiendas que quieran vender
-              Guarros.
+
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
+          <header className="max-w-3xl">
+            <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Contacto</h1>
+            <p className="mt-4 text-zinc-300">
+              ¿Hablamos? Rellena el formulario y te respondemos lo antes posible.
             </p>
-            <div className="mt-6 space-y-2 text-zinc-200">
-              <p>
-                <strong>Email:</strong> hola@guarrosextremenos.com
-              </p>
-              <p>
-                <strong>Teléfono:</strong> +34 600 123 456
-              </p>
-              <p>
-                <strong>Horario:</strong> L–V 9:00–18:00
-              </p>
+          </header>
+
+          <div className="mt-10 grid gap-10 md:grid-cols-2">
+            {/* Bloque visual con imagen responsive (retina) */}
+            <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03]">
+              <img
+                src="/images/contacto/contacto_banner_1500x1000.webp"
+                srcSet="
+                  /images/contacto/contacto_banner_1000x667.webp 1000w,
+                  /images/contacto/contacto_banner_1500x1000.webp 1500w
+                "
+                sizes="(max-width: 768px) 100vw, 50vw"
+                alt="Material de oficina y contacto de Guarros Extremeños"
+                loading="lazy"
+                className="w-full h-[280px] md:h-[360px] lg:h-[420px] object-cover"
+              />
             </div>
-            <img
-              src={MEDIA.og.contacto}
-              alt="Atención Guarra"
-              className="w-full mt-8 rounded-2xl border border-white/10 object-cover"
-            />
-          </div>
 
-          {/* Formulario (con focus-within del contenedor y focus canalla en campos) */}
-          <form
-            onSubmit={onSubmit}
-            className="rounded-2xl border border-white/10 p-6 bg-white/5
-                       focus-within:border-white/20 focus-within:ring-1 focus-within:ring-[#E53935]/30"
-          >
-            {/* Honeypot (oculto) */}
-            <input
-              type="text"
-              name="company"
-              value={form.company}
-              onChange={onChange}
-              tabIndex={-1}
-              autoComplete="off"
-              className="hidden"
-              aria-hidden="true"
-            />
+            {/* Formulario */}
+            <form onSubmit={onSubmit} className="rounded-2xl border border-white/10 p-6 md:p-8 bg-white/[0.03]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label htmlFor="name" className="block text-sm text-white/70 mb-2">
+                    Nombre
+                  </label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    required
+                    autoComplete="name"
+                    className="w-full h-11 rounded-xl bg-black/30 border border-white/10 px-3 text-white placeholder-white/40
+                               focus:outline-none focus:ring-2 focus:ring-[#E53935]/60 focus:border-[#E53935]/50 transition"
+                    placeholder="Tu nombre"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm text-white/70 mb-2">
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    className="w-full h-11 rounded-xl bg-black/30 border border-white/10 px-3 text-white placeholder-white/40
+                               focus:outline-none focus:ring-2 focus:ring-[#E53935]/60 focus:border-[#E53935]/50 transition"
+                    placeholder="tucorreo@ejemplo.com"
+                  />
+                </div>
+              </div>
 
-            <div className="grid gap-4">
-              <div>
-                <label htmlFor="name" className="block text-sm text-zinc-300 mb-1">
-                  Nombre
+              <div className="mt-5">
+                <label htmlFor="subject" className="block text-sm text-white/70 mb-2">
+                  Asunto
                 </label>
                 <input
-                  id="name"
-                  name="name"
+                  id="subject"
+                  name="subject"
+                  type="text"
                   required
-                  value={form.name}
-                  onChange={onChange}
-                  autoComplete="name"
-                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none
-                             transition-colors focus:bg-white/10 focus:border-[#E53935]
-                             focus:ring-2 focus:ring-[#E53935]/40"
-                  placeholder="Tu nombre"
+                  className="w-full h-11 rounded-xl bg-black/30 border border-white/10 px-3 text-white placeholder-white/40
+                             focus:outline-none focus:ring-2 focus:ring-[#E53935]/60 focus:border-[#E53935]/50 transition"
+                  placeholder="¿Sobre qué quieres hablar?"
                 />
               </div>
 
-              <div>
-                <label htmlFor="email" className="block text-sm text-zinc-300 mb-1">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={onChange}
-                  autoComplete="email"
-                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none
-                             transition-colors focus:bg-white/10 focus:border-[#E53935]
-                             focus:ring-2 focus:ring-[#E53935]/40"
-                  placeholder="tucorreo@ejemplo.com"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="message" className="block text-sm text-zinc-300 mb-1">
+              <div className="mt-5">
+                <label htmlFor="message" className="block text-sm text-white/70 mb-2">
                   Mensaje
                 </label>
                 <textarea
                   id="message"
                   name="message"
+                  rows={6}
                   required
-                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 outline-none
-                             transition-colors focus:bg-white/10 focus:border-[#E53935]
-                             focus:ring-2 focus:ring-[#E53935]/40
-                             min-h-48 md:min-h-64 lg:min-h-80 resize-y"
-                  placeholder="Dispara tu duda, sin rodeos."
-                  value={form.message}
-                  onChange={onChange}
+                  className="w-full rounded-xl bg-black/30 border border-white/10 px-3 py-3 text-white placeholder-white/40
+                             focus:outline-none focus:ring-2 focus:ring-[#E53935]/60 focus:border-[#E53935]/50 transition
+                             resize-none"
+                  placeholder="Cuéntanos con detalle cómo podemos ayudarte"
                 />
               </div>
 
-              {!status.sent ? (
-                <button
-                  type="submit"
-                  disabled={status.sending}
-                  className={`group relative inline-flex items-center justify-center 
-                              w-full sm:w-auto rounded-xl px-6 py-3 text-base font-stencil tracking-wide
-                              text-black bg-[#E53935] transition-colors duration-200 shadow-lg
-                              hover:bg-[#992623] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 
-                              active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed`}
-                  aria-label={status.sending ? "Enviando" : "Enviar"}
-                >
-                  {status.sending && (
-                    <svg
-                      className="mr-2 h-5 w-5 animate-spin"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" className="opacity-25" />
-                      <path d="M4 12a8 8 0 0 1 8-8" fill="none" stroke="currentColor" strokeWidth="4" className="opacity-75" />
-                    </svg>
-                  )}
-                  {status.sending ? "Enviando…" : "Enviar"}
-                  <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
-                </button>
-              ) : (
-                <div className="text-amber-300">
-                  ¡Mensaje enviado! Te contestamos a la dehesa de ya.
-                </div>
+              {/* Estado / alertas */}
+              {ok === true && (
+                <p className="mt-4 text-sm text-green-400">
+                  ¡Gracias! Hemos recibido tu mensaje y te contestaremos pronto.
+                </p>
+              )}
+              {ok === false && (
+                <p className="mt-4 text-sm text-red-400">
+                  Ha habido un problema al enviar el mensaje. Inténtalo de nuevo.
+                </p>
               )}
 
-              {status.error && (
-                <div className="text-red-400 text-sm">{status.error}</div>
-              )}
-            </div>
-          </form>
+              {/* Botón canalla */}
+              <div className="mt-6">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="relative inline-flex items-center justify-center rounded-xl h-11 px-5
+                             font-stencil tracking-wide text-black bg-[#E53935] hover:bg-[#992623]
+                             transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
+                             disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading ? "Enviando…" : "Enviar"}
+                  <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 hover:ring-[#992623]/50 transition-all" />
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </section>
     </>
