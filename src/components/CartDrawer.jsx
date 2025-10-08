@@ -197,7 +197,7 @@ export default function CartDrawer({
           </div>
 
           {/* Footer */}
-          <div className="flex-none sticky bottom-0 px-4 sm:px-5 pt-4 pb-4 border-t border-white/10 bg-black/95 z-10">
+          <div className="flex-none sticky top-0 px-4 sm:px-5 pt-4 pb-4 border-t border-white/10 bg-black/95 z-10">
             <div className="flex items-center justify-between text-white">
               <span className="text-sm text-white/70">Subtotal</span>
               <span className="text-xl font-semibold">{formatEUR(subtotal)}</span>
