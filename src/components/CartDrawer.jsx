@@ -202,12 +202,6 @@ export default function CartDrawer({
               <span className="text-sm text-white/70">Subtotal</span>
               <span className="text-xl font-semibold">{formatEUR(subtotal)}</span>
             </div>
-            <div className="mt-2 flex items-center gap-2 text-xs text-white/65">
-              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path d="M3 5a2 2 0 012-2h6a2 2 0 012 2v3h1.586a2 2 0 011.414.586l1.828 1.828A2 2 0 0119 11.828V14a2 2 0 01-2 2h-1a2 2 0 11-4 0H8a2 2 0 11-4 0H3a2 2 0 01-2-2V7a2 2 0 012-2zM6 16a1 1 0 100-2 1 1 0 000 2zm9 0a1 1 0 100-2 1 1 0 000 2z" />
-              </svg>
-              <span>Envío y descuentos se calculan en el checkout.</span>
-            </div>
 
             {/* Botón canalla: Finalizar compra */}
             <button
