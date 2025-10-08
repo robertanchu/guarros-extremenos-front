@@ -11,8 +11,6 @@ export default function Contacto() {
     setLoading(true);
     setOk(null);
 
-    // --- Mantén aquí tu lógica actual de envío (si ya la tenías) ---
-    // Ejemplo:
     try {
       const form = new FormData(e.currentTarget);
       const payload = Object.fromEntries(form.entries());
@@ -48,9 +46,10 @@ export default function Contacto() {
             </p>
           </header>
 
-          <div className="mt-10 grid gap-10 md:grid-cols-2">
-            {/* Bloque visual con imagen responsive (retina) */}
-            <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03]">
+          {/* Igualamos alturas: la imagen fija la altura; el formulario se estira */}
+          <div className="mt-10 grid gap-10 md:grid-cols-2 items-stretch">
+            {/* Imagen: sin alturas fijas, deja que marque la altura total del bloque */}
+            <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] h-full">
               <img
                 src="/images/contacto/contacto_banner_1500x1000.webp"
                 srcSet="
@@ -60,12 +59,15 @@ export default function Contacto() {
                 sizes="(max-width: 768px) 100vw, 50vw"
                 alt="Material de oficina y contacto de Guarros Extremeños"
                 loading="lazy"
-                className="w-full h-[280px] md:h-[360px] lg:h-[420px] object-cover"
+                className="w-full h-auto block"
               />
             </div>
 
-            {/* Formulario */}
-            <form onSubmit={onSubmit} className="rounded-2xl border border-white/10 p-6 md:p-8 bg-white/[0.03]">
+            {/* Formulario: se estira a la misma altura que la imagen */}
+            <form
+              onSubmit={onSubmit}
+              className="rounded-2xl border border-white/10 p-6 md:p-8 bg-white/[0.03] h-full flex flex-col"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label htmlFor="name" className="block text-sm text-white/70 mb-2">
@@ -142,8 +144,8 @@ export default function Contacto() {
                 </p>
               )}
 
-              {/* Botón canalla */}
-              <div className="mt-6">
+              {/* Botón canalla al final (empujado con mt-auto si quieres pegarlo abajo) */}
+              <div className="mt-6 md:mt-auto">
                 <button
                   type="submit"
                   disabled={loading}
