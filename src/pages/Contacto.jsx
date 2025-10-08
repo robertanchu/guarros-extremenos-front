@@ -15,7 +15,6 @@ export default function Contacto() {
     if (!el) return;
 
     const apply = () => setImgHeight(el.clientHeight || null);
-
     const ro = new ResizeObserver(apply);
     ro.observe(el);
 
@@ -69,7 +68,7 @@ export default function Contacto() {
           </header>
 
           <div className="mt-10 grid gap-10 md:grid-cols-2 items-start">
-            {/* Columna imagen: manda la altura */}
+            {/* Columna imagen (manda altura) */}
             <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03]">
               <img
                 ref={imgRef}
@@ -85,15 +84,16 @@ export default function Contacto() {
               />
             </div>
 
-            {/* Columna formulario: misma altura que la imagen */}
+            {/* Columna formulario (misma altura que la imagen) */}
             <form
               onSubmit={onSubmit}
               className="rounded-2xl border border-white/10 bg-white/[0.03] flex flex-col min-h-0"
               style={imgHeight ? { height: imgHeight + "px" } : undefined}
             >
-              {/* Contenido con flex para que el textarea se lleve el espacio */}
-              <div className="p-6 md:p-8 flex flex-col gap-5 flex-1 min-h-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Contenido interior con padding y layout en columna */}
+              <div className="p-6 md:p-8 flex-1 min-h-0 flex flex-col gap-5">
+                {/* TOP: Nombre, Email, Asunto (en columna) */}
+                <div className="flex flex-col gap-5">
                   <div>
                     <label htmlFor="name" className="block text-sm text-white/70 mb-2">
                       Nombre
@@ -109,6 +109,7 @@ export default function Contacto() {
                       placeholder="Tu nombre"
                     />
                   </div>
+
                   <div>
                     <label htmlFor="email" className="block text-sm text-white/70 mb-2">
                       Email
@@ -124,24 +125,24 @@ export default function Contacto() {
                       placeholder="tucorreo@ejemplo.com"
                     />
                   </div>
+
+                  <div>
+                    <label htmlFor="subject" className="block text-sm text-white/70 mb-2">
+                      Asunto
+                    </label>
+                    <input
+                      id="subject"
+                      name="subject"
+                      type="text"
+                      required
+                      className="w-full h-11 rounded-xl bg-black/30 border border-white/10 px-3 text-white placeholder-white/40
+                                 focus:outline-none focus:ring-2 focus:ring-[#E53935]/60 focus:border-[#E53935]/50 transition"
+                      placeholder="¿Sobre qué quieres hablar?"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label htmlFor="subject" className="block text-sm text-white/70 mb-2">
-                    Asunto
-                  </label>
-                  <input
-                    id="subject"
-                    name="subject"
-                    type="text"
-                    required
-                    className="w-full h-11 rounded-xl bg-black/30 border border-white/10 px-3 text-white placeholder-white/40
-                               focus:outline-none focus:ring-2 focus:ring-[#E53935]/60 focus:border-[#E53935]/50 transition"
-                    placeholder="¿Sobre qué quieres hablar?"
-                  />
-                </div>
-
-                {/* Bloque Mensaje: toma todo el espacio disponible */}
+                {/* MENSAJE: ocupa el resto de la altura disponible */}
                 <div className="flex-1 min-h-0 flex flex-col">
                   <label htmlFor="message" className="block text-sm text-white/70 mb-2">
                     Mensaje
@@ -156,9 +157,10 @@ export default function Contacto() {
                   />
                 </div>
 
+                {/* Estado */}
                 {ok === true && (
                   <p className="text-sm text-green-400">
-                    ¡Gracias! Hemos recibido tu mensaje y te contestaremos pronto.
+                    ¡Gracias! Hemos recibido tu mensaje y te contestaremos pronto!
                   </p>
                 )}
                 {ok === false && (
@@ -168,7 +170,7 @@ export default function Contacto() {
                 )}
               </div>
 
-              {/* Footer fijo al fondo */}
+              {/* Botón al fondo */}
               <div className="px-6 md:px-8 pb-6">
                 <button
                   type="submit"
