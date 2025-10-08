@@ -6,7 +6,7 @@ export default function Contacto() {
   const [loading, setLoading] = useState(false);
   const [ok, setOk] = useState(null);
 
-  // === SINCRONIZAR ALTURAS ===
+  // Igualar altura del formulario a la altura real de la imagen
   const imgRef = useRef(null);
   const [imgHeight, setImgHeight] = useState(null);
 
@@ -16,15 +16,12 @@ export default function Contacto() {
 
     const apply = () => setImgHeight(el.clientHeight || null);
 
-    // Aplica al montar y cuando cambie el tamaño del media
     const ro = new ResizeObserver(apply);
     ro.observe(el);
 
-    // Fallback por si la imagen aún no ha cargado
     if (el.complete) apply();
     else el.addEventListener("load", apply, { once: true });
 
-    // Recalcular al redimensionar ventana
     window.addEventListener("resize", apply);
     return () => {
       ro.disconnect();
@@ -71,10 +68,8 @@ export default function Contacto() {
             </p>
           </header>
 
-          {/* Importante: items-start para NO estirar las columnas automáticamente.
-             La altura del formulario se iguala por JS a la de la imagen */}
           <div className="mt-10 grid gap-10 md:grid-cols-2 items-start">
-            {/* COLUMNA IMAGEN: sin alturas fijas; la imagen define su propio alto */}
+            {/* Columna imagen: manda la altura */}
             <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03]">
               <img
                 ref={imgRef}
@@ -90,14 +85,14 @@ export default function Contacto() {
               />
             </div>
 
-            {/* COLUMNA FORM: igualamos altura exacta a la imagen; si el contenido excede, hace scroll interno */}
+            {/* Columna formulario: misma altura que la imagen */}
             <form
               onSubmit={onSubmit}
               className="rounded-2xl border border-white/10 bg-white/[0.03] flex flex-col min-h-0"
               style={imgHeight ? { height: imgHeight + "px" } : undefined}
             >
-              {/* padding dentro para que no afecte a la igualdad de altura exterior */}
-              <div className="p-6 md:p-8 flex-1 overflow-auto">
+              {/* Contenido con flex para que el textarea se lleve el espacio */}
+              <div className="p-6 md:p-8 flex flex-col gap-5 flex-1 min-h-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label htmlFor="name" className="block text-sm text-white/70 mb-2">
@@ -131,7 +126,7 @@ export default function Contacto() {
                   </div>
                 </div>
 
-                <div className="mt-5">
+                <div>
                   <label htmlFor="subject" className="block text-sm text-white/70 mb-2">
                     Asunto
                   </label>
@@ -146,34 +141,34 @@ export default function Contacto() {
                   />
                 </div>
 
-                <div className="mt-5">
+                {/* Bloque Mensaje: toma todo el espacio disponible */}
+                <div className="flex-1 min-h-0 flex flex-col">
                   <label htmlFor="message" className="block text-sm text-white/70 mb-2">
                     Mensaje
                   </label>
                   <textarea
                     id="message"
                     name="message"
-                    rows={6}
-                    required
-                    className="w-full rounded-xl bg-black/30 border border-white/10 px-3 py-3 text-white placeholder-white/40
-                               focus:outline-none focus:ring-2 focus:ring-[#E53935]/60 focus:border-[#E53935]/50 transition
-                               resize-none"
+                    className="flex-1 min-h-0 w-full rounded-xl bg-black/30 border border-white/10 px-3 py-3 text-white
+                               placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#E53935]/60 focus:border-[#E53935]/50
+                               transition resize-none overflow-auto"
                     placeholder="Cuéntanos con detalle cómo podemos ayudarte"
                   />
                 </div>
 
                 {ok === true && (
-                  <p className="mt-4 text-sm text-green-400">
+                  <p className="text-sm text-green-400">
                     ¡Gracias! Hemos recibido tu mensaje y te contestaremos pronto.
                   </p>
                 )}
                 {ok === false && (
-                  <p className="mt-4 text-sm text-red-400">
+                  <p className="text-sm text-red-400">
                     Ha habido un problema al enviar el mensaje. Inténtalo de nuevo.
                   </p>
                 )}
               </div>
 
+              {/* Footer fijo al fondo */}
               <div className="px-6 md:px-8 pb-6">
                 <button
                   type="submit"
