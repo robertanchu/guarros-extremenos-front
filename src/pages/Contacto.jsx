@@ -1,16 +1,41 @@
 // src/pages/Contacto.jsx
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Meta from "@/lib/Meta";
 
 export default function Contacto() {
   const [loading, setLoading] = useState(false);
   const [ok, setOk] = useState(null);
 
+  // === SINCRONIZAR ALTURAS ===
+  const imgRef = useRef(null);
+  const [imgHeight, setImgHeight] = useState(null);
+
+  useEffect(() => {
+    const el = imgRef.current;
+    if (!el) return;
+
+    const apply = () => setImgHeight(el.clientHeight || null);
+
+    // Aplica al montar y cuando cambie el tamaño del media
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+
+    // Fallback por si la imagen aún no ha cargado
+    if (el.complete) apply();
+    else el.addEventListener("load", apply, { once: true });
+
+    // Recalcular al redimensionar ventana
+    window.addEventListener("resize", apply);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", apply);
+    };
+  }, []);
+
   async function onSubmit(e) {
     e.preventDefault();
     setLoading(true);
     setOk(null);
-
     try {
       const form = new FormData(e.currentTarget);
       const payload = Object.fromEntries(form.entries());
@@ -46,11 +71,13 @@ export default function Contacto() {
             </p>
           </header>
 
-          {/* Igualamos alturas: la imagen fija la altura; el formulario se estira */}
-          <div className="mt-10 grid gap-10 md:grid-cols-2 items-stretch">
-            {/* Imagen: sin alturas fijas, deja que marque la altura total del bloque */}
-            <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] h-full">
+          {/* Importante: items-start para NO estirar las columnas automáticamente.
+             La altura del formulario se iguala por JS a la de la imagen */}
+          <div className="mt-10 grid gap-10 md:grid-cols-2 items-start">
+            {/* COLUMNA IMAGEN: sin alturas fijas; la imagen define su propio alto */}
+            <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03]">
               <img
+                ref={imgRef}
                 src="/images/contacto/contacto_banner_1500x1000.webp"
                 srcSet="
                   /images/contacto/contacto_banner_1000x667.webp 1000w,
@@ -63,96 +90,98 @@ export default function Contacto() {
               />
             </div>
 
-            {/* Formulario: se estira a la misma altura que la imagen */}
+            {/* COLUMNA FORM: igualamos altura exacta a la imagen; si el contenido excede, hace scroll interno */}
             <form
               onSubmit={onSubmit}
-              className="rounded-2xl border border-white/10 p-6 md:p-8 bg-white/[0.03] h-full flex flex-col"
+              className="rounded-2xl border border-white/10 bg-white/[0.03] flex flex-col min-h-0"
+              style={imgHeight ? { height: imgHeight + "px" } : undefined}
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label htmlFor="name" className="block text-sm text-white/70 mb-2">
-                    Nombre
+              {/* padding dentro para que no afecte a la igualdad de altura exterior */}
+              <div className="p-6 md:p-8 flex-1 overflow-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="name" className="block text-sm text-white/70 mb-2">
+                      Nombre
+                    </label>
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      required
+                      autoComplete="name"
+                      className="w-full h-11 rounded-xl bg-black/30 border border-white/10 px-3 text-white placeholder-white/40
+                                 focus:outline-none focus:ring-2 focus:ring-[#E53935]/60 focus:border-[#E53935]/50 transition"
+                      placeholder="Tu nombre"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="email" className="block text-sm text-white/70 mb-2">
+                      Email
+                    </label>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      className="w-full h-11 rounded-xl bg-black/30 border border-white/10 px-3 text-white placeholder-white/40
+                                 focus:outline-none focus:ring-2 focus:ring-[#E53935]/60 focus:border-[#E53935]/50 transition"
+                      placeholder="tucorreo@ejemplo.com"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-5">
+                  <label htmlFor="subject" className="block text-sm text-white/70 mb-2">
+                    Asunto
                   </label>
                   <input
-                    id="name"
-                    name="name"
+                    id="subject"
+                    name="subject"
                     type="text"
                     required
-                    autoComplete="name"
                     className="w-full h-11 rounded-xl bg-black/30 border border-white/10 px-3 text-white placeholder-white/40
                                focus:outline-none focus:ring-2 focus:ring-[#E53935]/60 focus:border-[#E53935]/50 transition"
-                    placeholder="Tu nombre"
+                    placeholder="¿Sobre qué quieres hablar?"
                   />
                 </div>
-                <div>
-                  <label htmlFor="email" className="block text-sm text-white/70 mb-2">
-                    Email
+
+                <div className="mt-5">
+                  <label htmlFor="message" className="block text-sm text-white/70 mb-2">
+                    Mensaje
                   </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
+                  <textarea
+                    id="message"
+                    name="message"
+                    rows={6}
                     required
-                    autoComplete="email"
-                    className="w-full h-11 rounded-xl bg-black/30 border border-white/10 px-3 text-white placeholder-white/40
-                               focus:outline-none focus:ring-2 focus:ring-[#E53935]/60 focus:border-[#E53935]/50 transition"
-                    placeholder="tucorreo@ejemplo.com"
+                    className="w-full rounded-xl bg-black/30 border border-white/10 px-3 py-3 text-white placeholder-white/40
+                               focus:outline-none focus:ring-2 focus:ring-[#E53935]/60 focus:border-[#E53935]/50 transition
+                               resize-none"
+                    placeholder="Cuéntanos con detalle cómo podemos ayudarte"
                   />
                 </div>
+
+                {ok === true && (
+                  <p className="mt-4 text-sm text-green-400">
+                    ¡Gracias! Hemos recibido tu mensaje y te contestaremos pronto.
+                  </p>
+                )}
+                {ok === false && (
+                  <p className="mt-4 text-sm text-red-400">
+                    Ha habido un problema al enviar el mensaje. Inténtalo de nuevo.
+                  </p>
+                )}
               </div>
 
-              <div className="mt-5">
-                <label htmlFor="subject" className="block text-sm text-white/70 mb-2">
-                  Asunto
-                </label>
-                <input
-                  id="subject"
-                  name="subject"
-                  type="text"
-                  required
-                  className="w-full h-11 rounded-xl bg-black/30 border border-white/10 px-3 text-white placeholder-white/40
-                             focus:outline-none focus:ring-2 focus:ring-[#E53935]/60 focus:border-[#E53935]/50 transition"
-                  placeholder="¿Sobre qué quieres hablar?"
-                />
-              </div>
-
-              <div className="mt-5">
-                <label htmlFor="message" className="block text-sm text-white/70 mb-2">
-                  Mensaje
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={6}
-                  required
-                  className="w-full rounded-xl bg-black/30 border border-white/10 px-3 py-3 text-white placeholder-white/40
-                             focus:outline-none focus:ring-2 focus:ring-[#E53935]/60 focus:border-[#E53935]/50 transition
-                             resize-none"
-                  placeholder="Cuéntanos con detalle cómo podemos ayudarte"
-                />
-              </div>
-
-              {/* Estado / alertas */}
-              {ok === true && (
-                <p className="mt-4 text-sm text-green-400">
-                  ¡Gracias! Hemos recibido tu mensaje y te contestaremos pronto.
-                </p>
-              )}
-              {ok === false && (
-                <p className="mt-4 text-sm text-red-400">
-                  Ha habido un problema al enviar el mensaje. Inténtalo de nuevo.
-                </p>
-              )}
-
-              {/* Botón canalla al final (empujado con mt-auto si quieres pegarlo abajo) */}
-              <div className="mt-6 md:mt-auto">
+              <div className="px-6 md:px-8 pb-6">
                 <button
                   type="submit"
                   disabled={loading}
                   className="relative inline-flex items-center justify-center rounded-xl h-11 px-5
                              font-stencil tracking-wide text-black bg-[#E53935] hover:bg-[#992623]
                              transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
-                             disabled:opacity-60 disabled:cursor-not-allowed"
+                             disabled:opacity-60 disabled:cursor-not-allowed w-full"
                 >
                   {loading ? "Enviando…" : "Enviar"}
                   <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 hover:ring-[#992623]/50 transition-all" />
