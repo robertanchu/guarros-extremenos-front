@@ -1,144 +1,133 @@
 // src/components/JamonCard.jsx
-import React from "react";
-import { formatEUR } from "@/utils/format";
+import React, { useMemo, useState } from "react";
 import { useCart } from "@/store/cart";
-import { useUI } from "@/store/ui";
 
-export default function JamonCard({ product }){
-  const { addItem } = useCart();
-  const { openCart } = useUI();
-  const [qty, setQty] = React.useState(1);
-  const ref = React.useRef(null);
-  const raf = React.useRef(0);
+export default function JamonCard({ product }) {
+  const addItem = useCart((s) => s.addItem);
 
-  const price = Number(product.priceFrom ?? product.price ?? 0);
+  const [sliced, setSliced] = useState(false);
+  const [qty, setQty] = useState(1);
 
-  // === NUEVO: resolución de imagen + srcSet ===
-  const fallbackBySlug = product?.slug
-    ? `/images/jamones/${product.slug}/cover.webp`
-    : null;
+  const priceId = useMemo(() => {
+    if (!product?.stripe) return null;
+    return sliced ? product.stripe.sliced : product.stripe.unsliced;
+  }, [product, sliced]);
 
-  const img1x =
-    product?.image ??
-    product?.cover ??
-    product?.media?.cover ??
-    fallbackBySlug;
+  const displayPrice = useMemo(() => {
+    if (!product?.basePrice) return null;
+    const base = product.basePrice;
+    const up = sliced ? (product.slicedUpchargeHint || 0) : 0;
+    return (base + up) / 100;
+  }, [product, sliced]);
 
-  const img2x =
-    product?.image2x ??
-    product?.cover2x ??
-    product?.media?.cover2x ??
-    img1x; // si no hay 2x, reutilizamos 1x
+  const inc = () => setQty((q) => Math.min(99, q + 1));
+  const dec = () => setQty((q) => Math.max(1, q - 1));
 
-  const alt = product?.alt || product?.name || "Producto";
-
-  const dec = () => setQty(q => Math.max(1, q - 1));
-  const inc = () => setQty(q => Math.min(99, q + 1));
-
-  const handleAdd = () => {
+  const onAdd = () => {
+    if (!priceId) return;
     addItem({
-      id: product.id ?? product.slug ?? product.name,
-      name: product.name,
-      price,
+      id: `${product.id}_${sliced ? "sliced" : "unsliced"}`, // agrupa por peso + loncheado
+      name: `${product.name}${sliced ? " (loncheado)" : ""}`,
+      image: product.image,
+      kind: "product",
       qty,
-      image: img1x,
-      type: "product",
+      priceId,
+      meta: { sliced, productId: product.id },
     });
-    openCart();
-  };
-
-  // Tilt effect on mouse move (skips when reduced motion)
-  const onMove = (e) => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;  // 0..1
-    const y = (e.clientY - rect.top) / rect.height;  // 0..1
-    const rotY = (x - 0.5) * 6; // deg
-    const rotX = (0.5 - y) * 6; // deg
-    cancelAnimationFrame(raf.current);
-    raf.current = requestAnimationFrame(() => {
-      el.style.setProperty('--rx', rotX.toFixed(2) + 'deg');
-      el.style.setProperty('--ry', rotY.toFixed(2) + 'deg');
-      el.style.transform = 'perspective(900px) rotateX(var(--rx)) rotateY(var(--ry))';
-    });
-  };
-  const onLeave = () => {
-    const el = ref.current;
-    if (!el) return;
-    el.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg)';
   };
 
   return (
-    <article
-      ref={ref}
-      onMouseMove={onMove}
-      onMouseLeave={onLeave}
-      className="group h-full rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition-colors flex flex-col will-change-transform"
-      style={{ transform: 'perspective(900px) rotateX(0deg) rotateY(0deg)' }}
-    >
-      {/* Media */}
-      <div className="aspect-square overflow-hidden">
-        {img1x ? (
+    <div className="group rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden flex flex-col">
+      <div className="aspect-[4/3] bg-black/40">
+        {product.imageSet ? (
           <img
-            src={img1x}
-            srcSet={`${img1x} 1x, ${img2x} 2x`}
-            alt={alt}
+            src={product.imageSet.src}
+            srcSet={product.imageSet.srcSet}
+            sizes={product.imageSet.sizes}
+            alt={product.name}
+            className="w-full h-full object-cover"
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
           />
         ) : (
-          <div className="h-full w-full bg-gradient-to-br from-brand/15 via-black/10 to-transparent grid place-items-center">
-            <span className="text-white/50 text-sm">Imagen</span>
-          </div>
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
         )}
       </div>
 
-      {/* Content */}
       <div className="p-4 flex-1 flex flex-col">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h3 className="text-white font-medium leading-tight line-clamp-2">{product.name}</h3>
-            {product.description && (
-              <p className="text-white/60 text-sm mt-1 line-clamp-2">{product.description}</p>
-            )}
+        <h3 className="text-lg font-stencil text-white">{product.name}</h3>
+        <p className="mt-1 text-sm text-white/60">{product.short}</p>
+
+        {/* Badges (opcional) */}
+        {product.badges?.length ? (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {product.badges.map((b) => (
+              <span key={b} className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-white/80">
+                {b}
+              </span>
+            ))}
           </div>
-          {Number.isFinite(price) && price > 0 && (
-            <div className="shrink-0 text-right">
-              <div className="text-brand font-semibold text-base md:text-lg leading-none">
-                {formatEUR(price)}
-              </div>
-              <div className="text-[11px] text-white/50 mt-1">IVA incl.</div>
-            </div>
-          )}
+        ) : null}
+
+        {/* Toggle loncheado */}
+        <div className="mt-4 flex items-center justify-between">
+          <span className="text-sm text-white/80">Loncheado</span>
+          <button
+            type="button"
+            aria-pressed={sliced}
+            onClick={() => setSliced((x) => !x)}
+            className={`inline-flex h-7 w-12 items-center rounded-full transition
+              ${sliced ? "bg-[#E53935]" : "bg-white/15"}`}
+          >
+            <span
+              className={`h-6 w-6 bg-white rounded-full transform transition
+                ${sliced ? "translate-x-6" : "translate-x-1"}`}
+            />
+          </button>
         </div>
 
-        {/* Actions pinned to bottom */}
-        <div className="mt-4 pt-2 border-t border-white/10 flex items-center gap-3 md:gap-4 mt-auto">
-          <div className="inline-flex items-center rounded-xl border border-white/15 overflow-hidden">
-            <button onClick={dec} className="h-10 w-9 text-white/80 hover:bg-white/10">−</button>
-            <span className="w-10 text-center text-white/90">{qty}</span>
-            <button onClick={inc} className="h-10 w-9 text-white/80 hover:bg-white/10">+</button>
+        {/* Precio + cantidad + CTA */}
+        <div className="mt-4 grid grid-cols-[1fr,auto] gap-3 items-center">
+          <div>
+            <div className="text-white text-lg font-medium">
+              {displayPrice ? `${displayPrice.toFixed(2)}€` : "—"}
+            </div>
+            {sliced && product.slicedUpchargeHint ? (
+              <div className="text-xs text-white/50">Incluye loncheado</div>
+            ) : null}
           </div>
 
-          {/* Botón canalla */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={dec}
+              className="h-9 w-9 rounded-lg border border-white/10 text-white hover:bg-white/10"
+            >−</button>
+            <div className="min-w-[2ch] text-center text-white">{qty}</div>
+            <button
+              onClick={inc}
+              className="h-9 w-9 rounded-lg border border-white/10 text-white hover:bg-white/10"
+            >+</button>
+          </div>
+        </div>
+
+        <div className="mt-4">
           <button
-            onClick={handleAdd}
-            className="relative btn-shiny flex-1 inline-flex items-center justify-center gap-2
-                       rounded-xl px-4 h-10 md:h-11
-                       font-stencil tracking-wide
-                       text-black bg-[#E53935] hover:bg-[#992623]
-                       transition-transform transition-colors duration-200
-                       focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
-                       active:scale-[0.98]"
-            aria-label={`Añadir ${product.name} al carrito`}
+            onClick={onAdd}
+            disabled={!priceId}
+            className="relative inline-flex items-center justify-center rounded-xl h-11 px-5
+                       font-stencil tracking-wide text-black bg-[#E53935] hover:bg-[#992623]
+                       transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
+                       disabled:opacity-60 disabled:cursor-not-allowed w-full"
           >
             Añadir al carrito
-            <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
+            <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 hover:ring-[#992623]/50 transition-all" />
           </button>
         </div>
       </div>
-    </article>
+    </div>
   );
 }

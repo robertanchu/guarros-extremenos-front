@@ -1,12 +1,60 @@
-// Productos del catálogo
-export const PRODUCTS = [
-  { id:"entero", slug:"jamon-entero", name:"Jamón Ibérico 100% Bellota (Entero)", priceFrom:500, priceId:"price_1SBNqiRPLp0YiQTHu36Jac2s", type:"one_time", description:"La pata negra sin filtros. Curación lenta, sabor largo, actitud canalla." },
-  { id:"loncheado", slug:"jamon-loncheado", name:"Jamón Ibérico 100% Bellota (Loncheado)", priceFrom:530, priceId:"price_1SBNsDRPLp0YiQTHAwdqrQE4", type:"one_time", description:"Listo para devorar. Lonchas finas, perfume brutal y cero ceremonia." },
-  { id:"sub_500", slug:"suscripcion-500", name:"Suscripción 500 g/mes", priceFrom:40, priceId:"price_1SBNszRPLp0YiQTHO3EGpjcv", type:"recurring", description:"Media ración mensual para los que no perdonan el embutido del finde." },
-  { id:"sub_1000", slug:"suscripcion-1000", name:"Suscripción 1 kg/mes", priceFrom:70, priceId:"price_1SBNtdRPLp0YiQTHrhnTXCr7", type:"recurring", description:"La dosis seria. Un kilo por mes para casas sin vergüenza." },
+// src/data/products.js
+export const products = [
+  {
+    id: "jamon-6-7",
+    name: "Jamón Canalla 6–7 kg",
+    kind: "jamon-weight",
+    image: "/images/jamones/jamon_6-7.webp", // ← pon aquí tu imagen
+    imageSet: {
+      src: "/images/jamones/jamon_6-7.webp",
+      srcSet: "/images/jamones/jamon_6-7_1000.webp 1000w, /images/jamones/jamon_6-7.webp 1500w",
+      sizes: "(max-width: 768px) 100vw, 33vw"
+    },
+    basePrice: 18900, // en céntimos -> 189,00 €
+    slicedUpchargeHint: 1500, // +15,00€ (solo para mostrar; Stripe manda el precio real)
+    stripe: {
+      unsliced: "price_1SK1S7RPLp0YiQTHnULknVOE",    // ⬅️ REEMPLAZA
+      sliced:   "price_1SK1T8RPLp0YiQTHmjuD39B1"  // ⬅️ REEMPLAZA
+    },
+    badges: ["D.O.P. Extremadura", "Curación lenta"],
+    short: "Selección 6–7 kg. Sabor largo, textura sedosa.",
+  },
+  {
+    id: "jamon-7-8",
+    name: "Jamón Canalla 7–8 kg",
+    kind: "jamon-weight",
+    image: "/images/jamones/jamon_7-8.webp",
+    imageSet: {
+      src: "/images/jamones/jamon_7-8.webp",
+      srcSet: "/images/jamones/jamon_7-8_1000.webp 1000w, /images/jamones/jamon_7-8.webp 1500w",
+      sizes: "(max-width: 768px) 100vw, 33vw"
+    },
+    basePrice: 21900,
+    slicedUpchargeHint: 1500,
+    stripe: {
+      unsliced: "price_1SK1fPRPLp0YiQTHAx0Ymfht",    // ⬅️ REEMPLAZA
+      sliced:   "price_1SK1gGRPLp0YiQTH56cyp4wn"  // ⬅️ REEMPLAZA
+    },
+    badges: ["D.O.P. Extremadura", "Curación lenta"],
+    short: "Selección 7–8 kg. Corte limpio, veta impecable.",
+  },
+  {
+    id: "jamon-8-9",
+    name: "Jamón Canalla 8–9 kg",
+    kind: "jamon-weight",
+    image: "/images/jamones/jamon_8-9.webp",
+    imageSet: {
+      src: "/images/jamones/jamon_8-9.webp",
+      srcSet: "/images/jamones/jamon_8-9_1000.webp 1000w, /images/jamones/jamon_8-9.webp 1500w",
+      sizes: "(max-width: 768px) 100vw, 33vw"
+    },
+    basePrice: 24900,
+    slicedUpchargeHint: 1500,
+    stripe: {
+      unsliced: "price_1SK1hnRPLp0YiQTHGy4mFkcB",    // ⬅️ REEMPLAZA
+      sliced:   "price_1SK1iaRPLp0YiQTHUopSIXxs"  // ⬅️ REEMPLAZA
+    },
+    badges: ["D.O.P. Extremadura", "Curación lenta"],
+    short: "Selección 8–9 kg. Potente, canalla, elegante.",
+  },
 ];
-
-// Hidrata en cliente para que el detalle resuelva por slug aunque entres por URL directa / refresques
-if (typeof window !== "undefined") {
-  window.__PRODUCTS__ = PRODUCTS;
-}
