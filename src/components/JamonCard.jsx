@@ -2,105 +2,102 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/store/cart";
 
-// Cache en memoria para no pedir lo mismo varias veces
-const priceCache = new Map(); // key: priceId, value: { unit_amount, currency, ... }
-let inFlight = null;
-
-// === Ajuste 1: usar POST /prices/resolve (tu backend actual) ===
-async function fetchPricesOnce(baseUrl, ids) {
-  const missing = ids.filter((id) => id && !priceCache.has(id));
-  if (!missing.length) return;
-
-  const url = `${baseUrl.replace(/\/$/, "")}/prices/resolve`;
-  // Evita peticiones paralelas duplicadas
-  inFlight =
-    inFlight ||
-    fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: missing }),
-    })
-      .then((r) => r.json())
-      .finally(() => {
-        inFlight = null;
-      });
-
-  const data = await inFlight;
-  if (data && data.prices) {
-    for (const [id, val] of Object.entries(data.prices)) {
-      priceCache.set(id, val);
-    }
+// Formateador €
+function formatMoney(cents, currency = "EUR") {
+  if (typeof cents !== "number") return "—";
+  try {
+    return new Intl.NumberFormat("es-ES", { style: "currency", currency }).format(cents / 100);
+  } catch {
+    return `${(cents / 100).toFixed(2)} ${currency}`;
   }
 }
 
-export default function JamonCard({ product }) {
+// Selecciona priceId "base" y "loncheado" entre varias posibles claves del producto
+function pickPriceIds(product) {
+  const baseCandidates = [
+    product?.stripe?.unsliced,
+    product?.priceIdBase,
+    product?.unslicedPriceId,
+    product?.priceId,
+    product?.priceID,
+    product?.price_id,
+  ];
+  const slicedCandidates = [
+    product?.stripe?.sliced,
+    product?.priceIdSliced,
+    product?.slicedPriceId,
+  ];
+
+  const base = baseCandidates.find((x) => typeof x === "string" && x.startsWith("price_")) || null;
+  const sliced = slicedCandidates.find((x) => typeof x === "string" && x.startsWith("price_")) || null;
+
+  // Si no hay nada, intenta descubrir cualquier price_ del objeto para base
+  let fallbackAny = null;
+  if (!base && !sliced) {
+    try {
+      const stack = [product];
+      const visited = new Set();
+      while (stack.length) {
+        const obj = stack.pop();
+        if (!obj || typeof obj !== "object" || visited.has(obj)) continue;
+        visited.add(obj);
+        for (const val of Object.values(obj)) {
+          if (typeof val === "string" && val.startsWith("price_")) {
+            fallbackAny = val;
+            break;
+          } else if (val && typeof val === "object") {
+            stack.push(val);
+          }
+        }
+        if (fallbackAny) break;
+      }
+    } catch {}
+  }
+
+  return {
+    basePriceId: base || fallbackAny,
+    slicedPriceId: sliced,
+  };
+}
+
+export default function JamonCard({ product, priceMap = {} }) {
   const addItem = useCart((s) => s.addItem);
   const [sliced, setSliced] = useState(false);
   const [qty, setQty] = useState(1);
 
-  // URL del backend
-  const API_BASE =
-    import.meta.env.VITE_API_BASE ||
-    "https://guarros-extremenos-api.onrender.com";
+  const { basePriceId, slicedPriceId } = useMemo(() => pickPriceIds(product), [product]);
+  const activePriceId = sliced ? (slicedPriceId || basePriceId) : basePriceId;
 
-  // === Ajuste 2: compatibilidad con products.js ===
-  // Prioriza tu forma antigua (product.stripe.*) y haz fallback a products.js
-  const priceIdUnsliced =
-    product?.stripe?.unsliced ||
-    product?.priceId ||
-    product?.priceIdBase ||
-    null;
+  // Lee precio del map precargado
+  const priceObj = activePriceId ? priceMap[activePriceId] : null;
+  const displayPrice = priceObj?.unit_amount != null
+    ? formatMoney(priceObj.unit_amount, (priceObj.currency || "EUR").toUpperCase())
+    : "—";
 
-  const priceIdSliced =
-    product?.stripe?.sliced ||
-    product?.priceIdSliced ||
-    product?.slicedPriceId ||
-    null;
-
-  const priceId = useMemo(
-    () => (sliced ? priceIdSliced : priceIdUnsliced),
-    [sliced, priceIdUnsliced, priceIdSliced]
-  );
-
-  // Carga unit_amount reales desde Stripe (vía backend)
-  const [, force] = useState(0);
-  const forceRerender = () => force((x) => x + 1);
-
-  const didFetchRef = useRef(false);
   useEffect(() => {
-    if (didFetchRef.current) return;
-    didFetchRef.current = true;
-    const ids = [priceIdUnsliced, priceIdSliced].filter(Boolean);
-    fetchPricesOnce(API_BASE, ids).then(() => {
-      // una vez llegan, re-render para mostrar los importes
-      forceRerender();
-    });
-  }, [API_BASE, priceIdUnsliced, priceIdSliced]);
-
-  // Precio para mostrar: el de Stripe
-  const stripePrice = priceCache.get(priceId || "");
-  const displayPrice =
-    stripePrice && Number.isFinite(stripePrice.unit_amount)
-      ? (stripePrice.unit_amount / 100).toFixed(2)
-      : null;
+    if (!activePriceId) {
+      console.warn("[JamonCard] No se pudo determinar un priceId para el producto:", {
+        id: product?.id, name: product?.name, product
+      });
+    }
+  }, [activePriceId, product]);
 
   const inc = () => setQty((q) => Math.min(99, q + 1));
   const dec = () => setQty((q) => Math.max(1, q - 1));
 
   const onAdd = () => {
-    if (!priceId) return;
+    if (!activePriceId) return;
     addItem({
       id: `${product.id}_${sliced ? "sliced" : "unsliced"}`,
       name: `${product.name}${sliced ? " (loncheado)" : ""}`,
       image: product.image,
       kind: "product",
       qty,
-      priceId,
+      priceId: activePriceId,
       meta: { sliced, productId: product.id },
     });
   };
 
-  // Si falta la imagen, no rompas la UI:
   const imgSrc = product?.image || "/images/placeholder.webp";
 
   return (
@@ -154,12 +151,10 @@ export default function JamonCard({ product }) {
         <div className="mt-4 grid grid-cols-[1fr,auto] gap-3 items-center">
           <div>
             <div className="text-white text-lg font-medium">
-              {displayPrice ? `${displayPrice}€` : "—"}
+              {displayPrice}
             </div>
             {sliced ? (
-              <div className="text-xs text-white/50">
-                Precio real de Stripe (loncheado)
-              </div>
+              <div className="text-xs text-white/50">Precio real de Stripe (loncheado)</div>
             ) : (
               <div className="text-xs text-white/50">Precio real de Stripe</div>
             )}
@@ -188,7 +183,7 @@ export default function JamonCard({ product }) {
         <div className="mt-4">
           <button
             onClick={onAdd}
-            disabled={!priceId}
+            disabled={!activePriceId}
             className="relative inline-flex items-center justify-center rounded-xl h-11 px-5
                        font-stencil tracking-wide text-black bg-[#E53935] hover:bg-[#992623]
                        transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
