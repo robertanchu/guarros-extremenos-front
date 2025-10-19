@@ -1,5 +1,5 @@
 // src/components/JamonCard.jsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/store/cart";
 
 // Formateador €
@@ -31,7 +31,7 @@ function pickPriceIds(product) {
   const base = baseCandidates.find((x) => typeof x === "string" && x.startsWith("price_")) || null;
   const sliced = slicedCandidates.find((x) => typeof x === "string" && x.startsWith("price_")) || null;
 
-  // Si no hay nada, intenta descubrir cualquier price_ del objeto para base
+  // Fallback: si no hay nada, intenta encontrar cualquier "price_" en el objeto
   let fallbackAny = null;
   if (!base && !sliced) {
     try {
@@ -70,9 +70,9 @@ export default function JamonCard({ product, priceMap = {} }) {
 
   // Lee precio del map precargado
   const priceObj = activePriceId ? priceMap[activePriceId] : null;
-  const displayPrice = priceObj?.unit_amount != null
-    ? formatMoney(priceObj.unit_amount, (priceObj.currency || "EUR").toUpperCase())
-    : "—";
+  const unitCents = Number.isFinite(priceObj?.unit_amount) ? priceObj.unit_amount : null;
+  const currency = (priceObj?.currency || "EUR").toUpperCase();
+  const displayPrice = unitCents != null ? formatMoney(unitCents, currency) : "—";
 
   useEffect(() => {
     if (!activePriceId) {
@@ -87,6 +87,17 @@ export default function JamonCard({ product, priceMap = {} }) {
 
   const onAdd = () => {
     if (!activePriceId) return;
+
+    // ⚠️ AQUI EL CAMBIO: incluimos precio y moneda (y alias compatibles) en el item
+    const priceFields = unitCents != null ? {
+      unit_amount: unitCents,          // estándar Stripe (en céntimos)
+      currency,                        // "EUR"
+      priceCents: unitCents,           // alias de compatibilidad
+      price: unitCents / 100,          // en euros (número)
+      unitPrice: unitCents / 100,      // alias
+      unitAmountCents: unitCents,      // alias
+    } : {};
+
     addItem({
       id: `${product.id}_${sliced ? "sliced" : "unsliced"}`,
       name: `${product.name}${sliced ? " (loncheado)" : ""}`,
@@ -95,6 +106,7 @@ export default function JamonCard({ product, priceMap = {} }) {
       qty,
       priceId: activePriceId,
       meta: { sliced, productId: product.id },
+      ...priceFields,                  // ← Los metadatos de precio para el carrito
     });
   };
 
@@ -160,7 +172,7 @@ export default function JamonCard({ product, priceMap = {} }) {
             )}
           </div>
 
-          {/* Cantidad */}
+        {/* Cantidad */}
           <div className="flex items-center gap-2">
             <button
               onClick={dec}
