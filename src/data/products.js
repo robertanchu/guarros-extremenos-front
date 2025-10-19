@@ -1,20 +1,21 @@
 // src/data/products.js
+// Asegúrate de que sea un **named export** llamado 'products'
 export const products = [
   {
     id: "jamon-6-7",
     name: "Jamón Canalla 6–7 kg",
     kind: "jamon-weight",
-    image: "/images/jamones/jamon_6-7.webp", // ← pon aquí tu imagen
+    image: "/images/jamones/jamon_6-7.webp", // asegúrate que existe
     imageSet: {
       src: "/images/jamones/jamon_6-7.webp",
       srcSet: "/images/jamones/jamon_6-7_1000.webp 1000w, /images/jamones/jamon_6-7.webp 1500w",
       sizes: "(max-width: 768px) 100vw, 33vw"
     },
-    basePrice: 18900, // en céntimos -> 189,00 €
-    slicedUpchargeHint: 1500, // +15,00€ (solo para mostrar; Stripe manda el precio real)
+    basePrice: 18900,
+    slicedUpchargeHint: 1500,
     stripe: {
-      unsliced: "price_1SK1S7RPLp0YiQTHnULknVOE",    // ⬅️ REEMPLAZA
-      sliced:   "price_1SK1T8RPLp0YiQTHmjuD39B1"  // ⬅️ REEMPLAZA
+      unsliced: "price_1SK1S7RPLp0YiQTHnULknVOE",
+      sliced:   "price_1SK1T8RPLp0YiQTHmjuD39B1"
     },
     badges: ["D.O.P. Extremadura", "Curación lenta"],
     short: "Selección 6–7 kg. Sabor largo, textura sedosa.",
@@ -32,8 +33,8 @@ export const products = [
     basePrice: 21900,
     slicedUpchargeHint: 1500,
     stripe: {
-      unsliced: "price_1SK1fPRPLp0YiQTHAx0Ymfht",    // ⬅️ REEMPLAZA
-      sliced:   "price_1SK1gGRPLp0YiQTH56cyp4wn"  // ⬅️ REEMPLAZA
+      unsliced: "price_1SK1fPRPLp0YiQTHAx0Ymfht", 
+      sliced:   "price_1SK1gGRPLp0YiQTH56cyp4wn" 
     },
     badges: ["D.O.P. Extremadura", "Curación lenta"],
     short: "Selección 7–8 kg. Corte limpio, veta impecable.",
@@ -51,10 +52,11 @@ export const products = [
     basePrice: 24900,
     slicedUpchargeHint: 1500,
     stripe: {
-      unsliced: "price_1SK1hnRPLp0YiQTHGy4mFkcB",    // ⬅️ REEMPLAZA
-      sliced:   "price_1SK1iaRPLp0YiQTHUopSIXxs"  // ⬅️ REEMPLAZA
+      unsliced: "price_1SK1hnRPLp0YiQTHGy4mFkcB",    
+      sliced:   "price_1SK1iaRPLp0YiQTHUopSIXxs"  
     },
     badges: ["D.O.P. Extremadura", "Curación lenta"],
     short: "Selección 8–9 kg. Potente, canalla, elegante.",
   },
 ];
+

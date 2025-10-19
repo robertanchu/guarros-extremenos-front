@@ -5,18 +5,27 @@ import { useCart } from "@/store/cart";
 export default function JamonCard({ product }) {
   const addItem = useCart((s) => s.addItem);
 
+  // Si el producto viene vacío, no romper
+  if (!product || !product.id) {
+    return (
+      <div className="rounded-2xl border border-white/10 p-6 text-white/70">
+        Producto no disponible
+      </div>
+    );
+  }
+
   const [sliced, setSliced] = useState(false);
   const [qty, setQty] = useState(1);
 
   const priceId = useMemo(() => {
-    if (!product?.stripe) return null;
-    return sliced ? product.stripe.sliced : product.stripe.unsliced;
+    const s = product?.stripe;
+    if (!s) return null;
+    return sliced ? s.sliced : s.unsliced;
   }, [product, sliced]);
 
   const displayPrice = useMemo(() => {
-    if (!product?.basePrice) return null;
-    const base = product.basePrice;
-    const up = sliced ? (product.slicedUpchargeHint || 0) : 0;
+    const base = product?.basePrice ?? 0;
+    const up = sliced ? (product?.slicedUpchargeHint ?? 0) : 0;
     return (base + up) / 100;
   }, [product, sliced]);
 
@@ -26,7 +35,7 @@ export default function JamonCard({ product }) {
   const onAdd = () => {
     if (!priceId) return;
     addItem({
-      id: `${product.id}_${sliced ? "sliced" : "unsliced"}`, // agrupa por peso + loncheado
+      id: `${product.id}_${sliced ? "sliced" : "unsliced"}`,
       name: `${product.name}${sliced ? " (loncheado)" : ""}`,
       image: product.image,
       kind: "product",
@@ -62,7 +71,6 @@ export default function JamonCard({ product }) {
         <h3 className="text-lg font-stencil text-white">{product.name}</h3>
         <p className="mt-1 text-sm text-white/60">{product.short}</p>
 
-        {/* Badges (opcional) */}
         {product.badges?.length ? (
           <div className="mt-2 flex flex-wrap gap-1.5">
             {product.badges.map((b) => (
@@ -73,7 +81,6 @@ export default function JamonCard({ product }) {
           </div>
         ) : null}
 
-        {/* Toggle loncheado */}
         <div className="mt-4 flex items-center justify-between">
           <span className="text-sm text-white/80">Loncheado</span>
           <button
@@ -90,11 +97,10 @@ export default function JamonCard({ product }) {
           </button>
         </div>
 
-        {/* Precio + cantidad + CTA */}
         <div className="mt-4 grid grid-cols-[1fr,auto] gap-3 items-center">
           <div>
             <div className="text-white text-lg font-medium">
-              {displayPrice ? `${displayPrice.toFixed(2)}€` : "—"}
+              {Number.isFinite(displayPrice) ? `${displayPrice.toFixed(2)}€` : "—"}
             </div>
             {sliced && product.slicedUpchargeHint ? (
               <div className="text-xs text-white/50">Incluye loncheado</div>
@@ -105,11 +111,13 @@ export default function JamonCard({ product }) {
             <button
               onClick={dec}
               className="h-9 w-9 rounded-lg border border-white/10 text-white hover:bg-white/10"
+              aria-label="Restar cantidad"
             >−</button>
             <div className="min-w-[2ch] text-center text-white">{qty}</div>
             <button
               onClick={inc}
               className="h-9 w-9 rounded-lg border border-white/10 text-white hover:bg-white/10"
+              aria-label="Sumar cantidad"
             >+</button>
           </div>
         </div>
