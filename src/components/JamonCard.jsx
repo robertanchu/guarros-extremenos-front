@@ -2,7 +2,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/store/cart";
 
-// Formateador €
+const API = import.meta.env.VITE_API_BASE || "https://guarros-extremenos-api.onrender.com";
+
 function formatMoney(cents, currency = "EUR") {
   if (typeof cents !== "number") return "—";
   try {
@@ -12,7 +13,6 @@ function formatMoney(cents, currency = "EUR") {
   }
 }
 
-// Selecciona priceId "base" y "loncheado" entre varias posibles claves del producto
 function pickPriceIds(product) {
   const baseCandidates = [
     product?.stripe?.unsliced,
@@ -31,56 +31,30 @@ function pickPriceIds(product) {
   const base = baseCandidates.find((x) => typeof x === "string" && x.startsWith("price_")) || null;
   const sliced = slicedCandidates.find((x) => typeof x === "string" && x.startsWith("price_")) || null;
 
-  // Fallback: si no hay nada, intenta encontrar cualquier "price_" en el objeto
+  // Fallback: busca cualquier "price_"
   let fallbackAny = null;
   if (!base && !sliced) {
     try {
-      const stack = [product];
-      const visited = new Set();
+      const stack = [product]; const seen = new Set();
       while (stack.length) {
         const obj = stack.pop();
-        if (!obj || typeof obj !== "object" || visited.has(obj)) continue;
-        visited.add(obj);
-        for (const val of Object.values(obj)) {
-          if (typeof val === "string" && val.startsWith("price_")) {
-            fallbackAny = val;
-            break;
-          } else if (val && typeof val === "object") {
-            stack.push(val);
-          }
+        if (!obj || typeof obj !== "object" || seen.has(obj)) continue;
+        seen.add(obj);
+        for (const v of Object.values(obj)) {
+          if (typeof v === "string" && v.startsWith("price_")) { fallbackAny = v; break; }
+          else if (v && typeof v === "object") stack.push(v);
         }
         if (fallbackAny) break;
       }
     } catch {}
   }
 
-  return {
-    basePriceId: base || fallbackAny,
-    slicedPriceId: sliced,
-  };
+  return { basePriceId: base || fallbackAny, slicedPriceId: sliced };
 }
 
 export default function JamonCard({ product, priceMap = {} }) {
-  // store
   const addItem = useCart((s) => s.addItem || s.add || s.addToCart || s.addProduct);
-  const store = useCart(); // para funciones de apertura que puedan existir
-
-  // helper robusto para abrir el carrito
-  const safeOpenCart = () => {
-    const candidates = [
-      store.open,
-      store.openCart,
-      store.openDrawer,
-      store.toggle,
-      store.toggleCart,
-      store.setOpen,
-    ].filter((fn) => typeof fn === "function");
-
-    for (const fn of candidates) {
-      try { fn(true); return; } catch {}
-      try { fn(); return; } catch {}
-    }
-  };
+  const store = useCart();
 
   const [sliced, setSliced] = useState(false);
   const [qty, setQty] = useState(1);
@@ -88,36 +62,69 @@ export default function JamonCard({ product, priceMap = {} }) {
   const { basePriceId, slicedPriceId } = useMemo(() => pickPriceIds(product), [product]);
   const activePriceId = sliced ? (slicedPriceId || basePriceId) : basePriceId;
 
-  // Lee precio del map precargado (lo carga Jamones.jsx)
-  const priceObj = activePriceId ? priceMap[activePriceId] : null;
-  const unitCents = Number.isFinite(priceObj?.unit_amount) ? priceObj.unit_amount : null;
-  const currency = (priceObj?.currency || "EUR").toUpperCase();
-  const displayPrice = unitCents != null ? formatMoney(unitCents, currency) : "—";
+  // 1) Intentar leer del map precargado
+  let priceObj = activePriceId ? priceMap[activePriceId] : null;
+  const [fallbackPrice, setFallbackPrice] = useState(null);
+  const [loadingFallback, setLoadingFallback] = useState(false);
+
+  // 2) Fallback: si no hay precio en el map, pedirlo individualmente
+  useEffect(() => {
+    let alive = true;
+    async function load() {
+      if (!activePriceId) { setFallbackPrice(null); return; }
+      if (priceObj && priceObj.unit_amount != null) { setFallbackPrice(null); return; }
+      setLoadingFallback(true);
+      try {
+        const r = await fetch(`${API}/price/${encodeURIComponent(activePriceId)}`);
+        if (!r.ok) throw new Error("no price");
+        const p = await r.json(); // {id, unit_amount, currency}
+        if (alive) setFallbackPrice(p);
+      } catch {
+        if (alive) setFallbackPrice(null);
+      } finally {
+        if (alive) setLoadingFallback(false);
+      }
+    }
+    load();
+    return () => { alive = false; };
+  }, [activePriceId, priceObj]);
+
+  const unitCents =
+    priceObj?.unit_amount ?? (fallbackPrice?.unit_amount ?? null);
+  const currency = (priceObj?.currency || fallbackPrice?.currency || "EUR").toUpperCase();
+  const displayPrice =
+    unitCents != null ? formatMoney(unitCents, currency) : (loadingFallback ? "…" : "—");
 
   useEffect(() => {
     if (!activePriceId) {
-      console.warn("[JamonCard] No se pudo determinar un priceId para el producto:", {
-        id: product?.id, name: product?.name, product
-      });
+      console.warn("[JamonCard] No se pudo determinar un priceId para:", { id: product?.id, name: product?.name, product });
     }
   }, [activePriceId, product]);
 
   const inc = () => setQty((q) => Math.min(99, q + 1));
   const dec = () => setQty((q) => Math.max(1, q - 1));
 
+  const safeOpenCart = () => {
+    const fns = [store.open, store.openCart, store.openDrawer, store.toggle, store.toggleCart, store.setOpen]
+      .filter((fn) => typeof fn === "function");
+    for (const fn of fns) {
+      try { fn(true); return; } catch {}
+      try { fn(); return; } catch {}
+    }
+  };
+
   const onAdd = () => {
     if (!activePriceId || !addItem) return;
 
     const priceFields = unitCents != null ? {
-      unit_amount: unitCents,          // en céntimos (Stripe)
-      currency,                        // "EUR"
-      priceCents: unitCents,           // alias
-      price: unitCents / 100,          // en euros
-      unitPrice: unitCents / 100,      // alias
-      unitAmountCents: unitCents,      // alias
+      unit_amount: unitCents,
+      currency,
+      priceCents: unitCents,
+      price: unitCents / 100,
+      unitPrice: unitCents / 100,
+      unitAmountCents: unitCents,
     } : {};
 
-    // Añadir al carrito (firma flexible)
     let added = false;
     try {
       addItem({
@@ -132,16 +139,9 @@ export default function JamonCard({ product, priceMap = {} }) {
       });
       added = true;
     } catch {
-      try {
-        addItem(product, qty, activePriceId); // fallback
-        added = true;
-      } catch {}
+      try { addItem(product, qty, activePriceId); added = true; } catch {}
     }
-
-    if (added) {
-      // Abrir el carrito al añadir
-      safeOpenCart();
-    }
+    if (added) safeOpenCart();
   };
 
   const imgSrc = product?.image || "/images/placeholder.webp";
@@ -161,17 +161,11 @@ export default function JamonCard({ product, priceMap = {} }) {
         <h3 className="text-lg font-stencil text-white">
           {product?.name || "Jamón"}
         </h3>
-        {product?.short ? (
-          <p className="mt-1 text-sm text-white/60">{product.short}</p>
-        ) : null}
-
+        {product?.short ? <p className="mt-1 text-sm text-white/60">{product.short}</p> : null}
         {product?.badges?.length ? (
           <div className="mt-2 flex flex-wrap gap-1.5">
             {product.badges.map((b) => (
-              <span
-                key={b}
-                className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-white/80"
-              >
+              <span key={b} className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-white/80">
                 {b}
               </span>
             ))}
@@ -184,21 +178,15 @@ export default function JamonCard({ product, priceMap = {} }) {
             type="button"
             aria-pressed={sliced}
             onClick={() => setSliced((x) => !x)}
-            className={`inline-flex h-7 w-12 items-center rounded-full transition
-              ${sliced ? "bg-[#E53935]" : "bg-white/15"}`}
+            className={`inline-flex h-7 w-12 items-center rounded-full transition ${sliced ? "bg-[#E53935]" : "bg-white/15"}`}
           >
-            <span
-              className={`h-6 w-6 bg-white rounded-full transform transition
-                ${sliced ? "translate-x-6" : "translate-x-1"}`}
-            />
+            <span className={`h-6 w-6 bg-white rounded-full transform transition ${sliced ? "translate-x-6" : "translate-x-1"}`} />
           </button>
         </div>
 
         <div className="mt-4 grid grid-cols-[1fr,auto] gap-3 items-center">
           <div>
-            <div className="text-white text-lg font-medium">
-              {displayPrice}
-            </div>
+            <div className="text-white text-lg font-medium">{displayPrice}</div>
             {sliced ? (
               <div className="text-xs text-white/50">Precio real de Stripe (loncheado)</div>
             ) : (
@@ -206,23 +194,10 @@ export default function JamonCard({ product, priceMap = {} }) {
             )}
           </div>
 
-          {/* Cantidad */}
           <div className="flex items-center gap-2">
-            <button
-              onClick={dec}
-              className="h-9 w-9 rounded-lg border border-white/10 text-white hover:bg-white/10"
-              aria-label="Restar cantidad"
-            >
-              −
-            </button>
+            <button onClick={dec} className="h-9 w-9 rounded-lg border border-white/10 text-white hover:bg-white/10" aria-label="Restar cantidad">−</button>
             <div className="min-w-[2ch] text-center text-white">{qty}</div>
-            <button
-              onClick={inc}
-              className="h-9 w-9 rounded-lg border border-white/10 text-white hover:bg-white/10"
-              aria-label="Aumentar cantidad"
-            >
-              +
-            </button>
+            <button onClick={inc} className="h-9 w-9 rounded-lg border border-white/10 text-white hover:bg-white/10" aria-label="Aumentar cantidad">+</button>
           </div>
         </div>
 
