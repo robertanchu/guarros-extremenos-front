@@ -61,14 +61,34 @@ function pickPriceIds(product) {
 }
 
 export default function JamonCard({ product, priceMap = {} }) {
-  const addItem = useCart((s) => s.addItem);
+  // store
+  const addItem = useCart((s) => s.addItem || s.add || s.addToCart || s.addProduct);
+  const store = useCart(); // para funciones de apertura que puedan existir
+
+  // helper robusto para abrir el carrito
+  const safeOpenCart = () => {
+    const candidates = [
+      store.open,
+      store.openCart,
+      store.openDrawer,
+      store.toggle,
+      store.toggleCart,
+      store.setOpen,
+    ].filter((fn) => typeof fn === "function");
+
+    for (const fn of candidates) {
+      try { fn(true); return; } catch {}
+      try { fn(); return; } catch {}
+    }
+  };
+
   const [sliced, setSliced] = useState(false);
   const [qty, setQty] = useState(1);
 
   const { basePriceId, slicedPriceId } = useMemo(() => pickPriceIds(product), [product]);
   const activePriceId = sliced ? (slicedPriceId || basePriceId) : basePriceId;
 
-  // Lee precio del map precargado
+  // Lee precio del map precargado (lo carga Jamones.jsx)
   const priceObj = activePriceId ? priceMap[activePriceId] : null;
   const unitCents = Number.isFinite(priceObj?.unit_amount) ? priceObj.unit_amount : null;
   const currency = (priceObj?.currency || "EUR").toUpperCase();
@@ -86,28 +106,42 @@ export default function JamonCard({ product, priceMap = {} }) {
   const dec = () => setQty((q) => Math.max(1, q - 1));
 
   const onAdd = () => {
-    if (!activePriceId) return;
+    if (!activePriceId || !addItem) return;
 
-    // ⚠️ AQUI EL CAMBIO: incluimos precio y moneda (y alias compatibles) en el item
     const priceFields = unitCents != null ? {
-      unit_amount: unitCents,          // estándar Stripe (en céntimos)
+      unit_amount: unitCents,          // en céntimos (Stripe)
       currency,                        // "EUR"
-      priceCents: unitCents,           // alias de compatibilidad
-      price: unitCents / 100,          // en euros (número)
+      priceCents: unitCents,           // alias
+      price: unitCents / 100,          // en euros
       unitPrice: unitCents / 100,      // alias
       unitAmountCents: unitCents,      // alias
     } : {};
 
-    addItem({
-      id: `${product.id}_${sliced ? "sliced" : "unsliced"}`,
-      name: `${product.name}${sliced ? " (loncheado)" : ""}`,
-      image: product.image,
-      kind: "product",
-      qty,
-      priceId: activePriceId,
-      meta: { sliced, productId: product.id },
-      ...priceFields,                  // ← Los metadatos de precio para el carrito
-    });
+    // Añadir al carrito (firma flexible)
+    let added = false;
+    try {
+      addItem({
+        id: `${product.id}_${sliced ? "sliced" : "unsliced"}`,
+        name: `${product.name}${sliced ? " (loncheado)" : ""}`,
+        image: product.image,
+        kind: "product",
+        qty,
+        priceId: activePriceId,
+        meta: { sliced, productId: product.id },
+        ...priceFields,
+      });
+      added = true;
+    } catch {
+      try {
+        addItem(product, qty, activePriceId); // fallback
+        added = true;
+      } catch {}
+    }
+
+    if (added) {
+      // Abrir el carrito al añadir
+      safeOpenCart();
+    }
   };
 
   const imgSrc = product?.image || "/images/placeholder.webp";
@@ -118,7 +152,7 @@ export default function JamonCard({ product, priceMap = {} }) {
         <img
           src={imgSrc}
           alt={product?.name || "Jamón"}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           loading="lazy"
         />
       </div>
@@ -172,7 +206,7 @@ export default function JamonCard({ product, priceMap = {} }) {
             )}
           </div>
 
-        {/* Cantidad */}
+          {/* Cantidad */}
           <div className="flex items-center gap-2">
             <button
               onClick={dec}
@@ -185,7 +219,7 @@ export default function JamonCard({ product, priceMap = {} }) {
             <button
               onClick={inc}
               className="h-9 w-9 rounded-lg border border-white/10 text-white hover:bg-white/10"
-              aria-label="Sumar cantidad"
+              aria-label="Aumentar cantidad"
             >
               +
             </button>
