@@ -1,8 +1,10 @@
+// src/components/Header.jsx
 import { Link, NavLink } from "react-router-dom";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { useUI } from "@/store/ui";
 import React from "react";
+import { motion, useAnimation } from "framer-motion";
 
 function BrandLogo(){
   const [imgOk, setImgOk] = React.useState(true);
@@ -25,9 +27,33 @@ function BrandLogo(){
 }
 
 export default function Header(){
-  const { items } = useCart();
-  const { openCart } = useUI();
+  const { items, pulseTick } = useCart();
+  const { openCart } = useUI?.() || { openCart: () => {} };
   const itemsCount = items.reduce((a, x) => a + (x.qty ?? 1), 0);
+
+  // Animación del icono carrito al añadir
+  const controls = useAnimation();
+  React.useEffect(() => {
+    let mounted = true;
+    (async () => {
+      // secuencia: bump + pequeño glow
+      await controls.start({
+        scale: [1, 1.14, 0.98, 1],
+        rotate: [0, 6, 0, 0],
+        transition: { duration: 0.45, ease: "easeOut" }
+      });
+      if (!mounted) return;
+      await controls.start({
+        boxShadow: [
+          "0 0 0px rgba(214,40,40,0)",
+          "0 0 16px rgba(214,40,40,0.55)",
+          "0 0 0px rgba(214,40,40,0)"
+        ],
+        transition: { duration: 0.4 }
+      });
+    })();
+    return () => { mounted = false; };
+  }, [pulseTick, controls]);
 
   const linkBase = "text-white/80 hover:text-white transition-colors px-2 py-1 rounded-lg";
 
@@ -46,11 +72,12 @@ export default function Header(){
           <NavLink to="/contacto" className={({isActive}) => `${linkBase} ${isActive ? "text-white" : ""}`}>Contacto</NavLink>
         </nav>
 
-        {/* Carrito */}
-        <button
-          onClick={openCart}
+        {/* Carrito (con animación) */}
+        <motion.button
+          animate={controls}
           className="relative ml-3 inline-flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-all h-12 w-12 md:h-14 md:w-14"
           aria-label="Abrir carrito"
+          onClick={openCart}
         >
           <ShoppingCart className="h-6 w-6 md:h-7 md:w-7 text-white" />
           {itemsCount > 0 && (
@@ -58,7 +85,7 @@ export default function Header(){
               {itemsCount}
             </span>
           )}
-        </button>
+        </motion.button>
       </div>
     </header>
   );

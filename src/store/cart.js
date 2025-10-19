@@ -1,30 +1,18 @@
 // src/store/cart.js
-// v15 — Completa priceId desde el catálogo con importación tolerante + checkout -> /checkout
+// v16 — añade pulse visual para el icono del carrito + mantiene resolución tolerante de priceId
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 // ⚠️ Tolerante con cómo exportes el catálogo
-// (sirve si products.js hace export default [], o export const PRODUCTS = [], etc.)
 import * as CATALOG_SRC from "@/data/products";
 
 // Extrae un array de productos de cualquier forma común de exportación
 const extractCatalog = (mod) => {
   if (!mod) return [];
-  // candidatos típicos
-  const candidates = [
-    mod.products,
-    mod.default,
-    mod.PRODUCTS,
-    mod.items,
-    mod.catalog,
-  ].filter(Boolean);
+  const candidates = [mod.products, mod.default, mod.PRODUCTS, mod.items, mod.catalog].filter(Boolean);
   for (const c of candidates) if (Array.isArray(c)) return c;
-
-  // si exportaste varios named, intenta encontrar el primero que sea array
-  for (const v of Object.values(mod)) {
-    if (Array.isArray(v)) return v;
-  }
+  for (const v of Object.values(mod)) if (Array.isArray(v)) return v;
   return [];
 };
 
@@ -77,9 +65,7 @@ const findIndexByMatcher = (items, matcher) => {
 
 // ---------- Resolver priceId desde el catálogo ----------
 const norm = (v) => String(v ?? "").trim().toLowerCase();
-const candidateIds = (p = {}) => [
-  p.id, p.slug, p.sku, p.code, p.key, p.priceId, p.name, p.title,
-].map(norm);
+const candidateIds = (p = {}) => [p.id, p.slug, p.sku, p.code, p.key, p.priceId, p.name, p.title].map(norm);
 
 const priceIdFromCatalog = (p) => {
   try {
@@ -89,9 +75,7 @@ const priceIdFromCatalog = (p) => {
     const found =
       CATALOG.find((c) => {
         const cid = new Set(candidateIds(c));
-        // coincidir por identificadores
         for (const k of ids) if (k && cid.has(k)) return true;
-        // o por id + variante si existe
         const pv = norm(variantOf(p));
         const cv = norm(variantOf(c));
         if (pv && cid.has(norm(baseIdOf(c))) && pv === cv) return true;
@@ -117,6 +101,10 @@ export const useCart = create(
   persist(
     (set, get) => ({
       items: [],
+
+      // 👇 NUEVO: contador para disparar animación del icono
+      pulseTick: 0,
+      pulse: () => set((s) => ({ pulseTick: s.pulseTick + 1 })),
 
       subtotal() {
         return get().items.reduce(
@@ -157,6 +145,8 @@ export const useCart = create(
             const merged = { ...incoming, qty: 1 };
             if (subIdx !== -1) next[subIdx] = merged;
             else next.push(merged);
+            // 🔔 dispara pulso
+            setTimeout(() => get()?.pulse?.(), 0);
             return { items: next };
           }
 
@@ -165,6 +155,9 @@ export const useCart = create(
           } else {
             next.push({ ...incoming, qty: desiredQty });
           }
+
+          // 🔔 dispara pulso
+          setTimeout(() => get()?.pulse?.(), 0);
           return { items: next };
         }),
 
@@ -209,9 +202,9 @@ export const useCart = create(
     }),
     {
       name: "guarros-cart",
-      version: 15, // sube versión para forzar migrate
+      version: 16, // 🆙 versión para forzar migrate si hiciera falta
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ items: state.items }),
+      partialize: (state) => ({ items: state.items, pulseTick: state.pulseTick }),
       migrate: (persistedState) => {
         try {
           const s = persistedState || {};
@@ -228,9 +221,10 @@ export const useCart = create(
             }
             return normalized;
           });
+          if (typeof s.pulseTick !== "number") s.pulseTick = 0;
           return s;
         } catch {
-          return { items: [] };
+          return { items: [], pulseTick: 0 };
         }
       },
     }

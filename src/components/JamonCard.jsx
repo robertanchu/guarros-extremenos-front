@@ -54,7 +54,6 @@ function pickPriceIds(product) {
 
 export default function JamonCard({ product, priceMap = {} }) {
   const addItem = useCart((s) => s.addItem || s.add || s.addToCart || s.addProduct);
-  const store = useCart();
 
   const [sliced, setSliced] = useState(false);
   const [qty, setQty] = useState(1);
@@ -89,8 +88,7 @@ export default function JamonCard({ product, priceMap = {} }) {
     return () => { alive = false; };
   }, [activePriceId, priceObj]);
 
-  const unitCents =
-    priceObj?.unit_amount ?? (fallbackPrice?.unit_amount ?? null);
+  const unitCents = priceObj?.unit_amount ?? (fallbackPrice?.unit_amount ?? null);
   const currency = (priceObj?.currency || fallbackPrice?.currency || "EUR").toUpperCase();
   const displayPrice =
     unitCents != null ? formatMoney(unitCents, currency) : (loadingFallback ? "…" : "—");
@@ -104,15 +102,6 @@ export default function JamonCard({ product, priceMap = {} }) {
   const inc = () => setQty((q) => Math.min(99, q + 1));
   const dec = () => setQty((q) => Math.max(1, q - 1));
 
-  const safeOpenCart = () => {
-    const fns = [store.open, store.openCart, store.openDrawer, store.toggle, store.toggleCart, store.setOpen]
-      .filter((fn) => typeof fn === "function");
-    for (const fn of fns) {
-      try { fn(true); return; } catch {}
-      try { fn(); return; } catch {}
-    }
-  };
-
   const onAdd = () => {
     if (!activePriceId || !addItem) return;
 
@@ -125,7 +114,7 @@ export default function JamonCard({ product, priceMap = {} }) {
       unitAmountCents: unitCents,
     } : {};
 
-    let added = false;
+    // Añadir al carrito (la store disparará el "pulso" del icono)
     try {
       addItem({
         id: `${product.id}_${sliced ? "sliced" : "unsliced"}`,
@@ -137,11 +126,9 @@ export default function JamonCard({ product, priceMap = {} }) {
         meta: { sliced, productId: product.id },
         ...priceFields,
       });
-      added = true;
     } catch {
-      try { addItem(product, qty, activePriceId); added = true; } catch {}
+      try { addItem(product, qty, activePriceId); } catch {}
     }
-    if (added) safeOpenCart();
   };
 
   const imgSrc = product?.image || "/images/placeholder.webp";
