@@ -3,8 +3,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { products as ALL_PRODUCTS } from "@/data/products";
 import JamonCard from "@/components/JamonCard";
-
-const API = import.meta.env.VITE_API_BASE || "https://guarros-extremenos-api.onrender.com";
+import { usePrices } from "@/store/prices";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -15,7 +14,7 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 110, damping: 18 } },
 };
 
-// Escanea posibles campos que contengan priceId
+// Extrae todos los posibles priceId de un producto
 function collectPriceIdsFromProduct(p) {
   const ids = new Set();
   const keys = [
@@ -27,7 +26,7 @@ function collectPriceIdsFromProduct(p) {
   if (p?.stripe?.sliced) ids.add(p.stripe.sliced);
   keys.forEach(k => { const v = p?.[k]; if (typeof v === "string" && v.startsWith("price_")) ids.add(v); });
 
-  // búsqueda profunda de strings "price_..."
+  // búsqueda profunda
   try {
     const stack = [p]; const seen = new Set();
     while (stack.length) {
@@ -43,25 +42,9 @@ function collectPriceIdsFromProduct(p) {
   return Array.from(ids);
 }
 
-async function resolvePrices(ids = []) {
-  const uniq = Array.from(new Set(ids.filter(Boolean)));
-  if (!uniq.length) return {};
-  const res = await fetch(`${API}/prices/resolve`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ids: uniq }),
-  });
-  if (!res.ok) {
-    console.warn("[prices.resolve] fallo:", res.status);
-    return {};
-  }
-  const data = await res.json();
-  return data?.prices || {};
-}
-
 export default function Jamones() {
   const jamones = Array.isArray(ALL_PRODUCTS)
-    ? ALL_PRODUCTS.filter((p) => p?.kind === "jamon-weight")
+    ? ALL_PRODUCTS.filter((p) => p?.kind === "jamon-weight" || p?.category === "jamon")
     : [];
 
   const allIds = React.useMemo(() => {
@@ -70,13 +53,17 @@ export default function Jamones() {
     return Array.from(new Set(ids));
   }, [jamones]);
 
-  const [priceMap, setPriceMap] = React.useState({});
+  const prefetch = usePrices((s) => s.prefetch);
+  const pickMany = usePrices((s) => s.pickMany);
+  const loading = usePrices((s) => s.loading);
 
+  // Prefetch en el primer render / cambios de ids
   React.useEffect(() => {
-    let alive = true;
-    resolvePrices(allIds).then((map) => { if (alive) setPriceMap(map); });
-    return () => { alive = false; };
-  }, [allIds]);
+    if (allIds.length) prefetch(allIds);
+  }, [allIds, prefetch]);
+
+  // Mapa fresco para pasar a las tarjetas
+  const priceMap = pickMany(allIds);
 
   return (
     <section className="py-16 md:py-24">
@@ -97,7 +84,7 @@ export default function Jamones() {
           >
             {jamones.map((p) => (
               <motion.div key={p.id} variants={itemVariants}>
-                <JamonCard product={p} priceMap={priceMap} />
+                <JamonCard product={p} priceMap={priceMap} loadingPrices={loading} />
               </motion.div>
             ))}
           </motion.div>

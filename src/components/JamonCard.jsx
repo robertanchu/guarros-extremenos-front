@@ -1,8 +1,7 @@
 // src/components/JamonCard.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/store/cart";
-
-const API = import.meta.env.VITE_API_BASE || "https://guarros-extremenos-api.onrender.com";
+import { usePrices } from "@/store/prices";
 
 function formatMoney(cents, currency = "EUR") {
   if (typeof cents !== "number") return "—";
@@ -31,7 +30,7 @@ function pickPriceIds(product) {
   const base = baseCandidates.find((x) => typeof x === "string" && x.startsWith("price_")) || null;
   const sliced = slicedCandidates.find((x) => typeof x === "string" && x.startsWith("price_")) || null;
 
-  // Fallback: busca cualquier "price_"
+  // Fallback profundo a cualquier "price_"
   let fallbackAny = null;
   if (!base && !sliced) {
     try {
@@ -52,7 +51,7 @@ function pickPriceIds(product) {
   return { basePriceId: base || fallbackAny, slicedPriceId: sliced };
 }
 
-export default function JamonCard({ product, priceMap = {} }) {
+export default function JamonCard({ product, priceMap = {}, loadingPrices = false }) {
   const addItem = useCart((s) => s.addItem || s.add || s.addToCart || s.addProduct);
 
   const [sliced, setSliced] = useState(false);
@@ -61,43 +60,27 @@ export default function JamonCard({ product, priceMap = {} }) {
   const { basePriceId, slicedPriceId } = useMemo(() => pickPriceIds(product), [product]);
   const activePriceId = sliced ? (slicedPriceId || basePriceId) : basePriceId;
 
-  // 1) Intentar leer del map precargado
-  let priceObj = activePriceId ? priceMap[activePriceId] : null;
-  const [fallbackPrice, setFallbackPrice] = useState(null);
-  const [loadingFallback, setLoadingFallback] = useState(false);
+  const ensure = usePrices((s) => s.ensure);
+  const pickMany = usePrices((s) => s.pickMany);
+  const selection = pickMany(activePriceId ? [activePriceId] : []);
+  const priceObj = activePriceId ? selection[activePriceId] : null;
 
-  // 2) Fallback: si no hay precio en el map, pedirlo individualmente
   useEffect(() => {
-    let alive = true;
-    async function load() {
-      if (!activePriceId) { setFallbackPrice(null); return; }
-      if (priceObj && priceObj.unit_amount != null) { setFallbackPrice(null); return; }
-      setLoadingFallback(true);
-      try {
-        const r = await fetch(`${API}/price/${encodeURIComponent(activePriceId)}`);
-        if (!r.ok) throw new Error("no price");
-        const p = await r.json(); // {id, unit_amount, currency}
-        if (alive) setFallbackPrice(p);
-      } catch {
-        if (alive) setFallbackPrice(null);
-      } finally {
-        if (alive) setLoadingFallback(false);
-      }
-    }
-    load();
-    return () => { alive = false; };
-  }, [activePriceId, priceObj]);
+    if (activePriceId) ensure(activePriceId);
+    else console.warn("[JamonCard] Sin priceId:", product?.id, product?.name);
+  }, [activePriceId, ensure, product?.id, product?.name]);
 
-  const unitCents = priceObj?.unit_amount ?? (fallbackPrice?.unit_amount ?? null);
-  const currency = (priceObj?.currency || fallbackPrice?.currency || "EUR").toUpperCase();
+  // Fallback local si lo tienes
+  let fallbackCents = product?.fallbackCents || null;
+  if (!fallbackCents && product?.baseCents) {
+    const delta = sliced ? (product?.slicedDeltaCents || 0) : 0;
+    fallbackCents = product.baseCents + delta;
+  }
+
+  const unitCents = priceObj?.unit_amount ?? fallbackCents ?? null;
+  const currency = (priceObj?.currency || "EUR").toUpperCase();
   const displayPrice =
-    unitCents != null ? formatMoney(unitCents, currency) : (loadingFallback ? "…" : "—");
-
-  useEffect(() => {
-    if (!activePriceId) {
-      console.warn("[JamonCard] No se pudo determinar un priceId para:", { id: product?.id, name: product?.name, product });
-    }
-  }, [activePriceId, product]);
+    unitCents != null ? formatMoney(unitCents, currency) : (loadingPrices ? "…" : "—");
 
   const inc = () => setQty((q) => Math.min(99, q + 1));
   const dec = () => setQty((q) => Math.max(1, q - 1));
@@ -114,7 +97,6 @@ export default function JamonCard({ product, priceMap = {} }) {
       unitAmountCents: unitCents,
     } : {};
 
-    // Añadir al carrito (la store disparará el "pulso" del icono)
     try {
       addItem({
         id: `${product.id}_${sliced ? "sliced" : "unsliced"}`,
@@ -149,15 +131,6 @@ export default function JamonCard({ product, priceMap = {} }) {
           {product?.name || "Jamón"}
         </h3>
         {product?.short ? <p className="mt-1 text-sm text-white/60">{product.short}</p> : null}
-        {product?.badges?.length ? (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {product.badges.map((b) => (
-              <span key={b} className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-white/80">
-                {b}
-              </span>
-            ))}
-          </div>
-        ) : null}
 
         <div className="mt-4 flex items-center justify-between">
           <span className="text-sm text-white/80">Loncheado</span>
@@ -174,11 +147,9 @@ export default function JamonCard({ product, priceMap = {} }) {
         <div className="mt-4 grid grid-cols-[1fr,auto] gap-3 items-center">
           <div>
             <div className="text-white text-lg font-medium">{displayPrice}</div>
-            {sliced ? (
-              <div className="text-xs text-white/50">Precio real de Stripe (loncheado)</div>
-            ) : (
-              <div className="text-xs text-white/50">Precio real de Stripe</div>
-            )}
+            <div className="text-xs text-white/50">
+              {sliced ? "Precio Stripe (loncheado)" : "Precio Stripe"}
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
