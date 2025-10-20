@@ -30,12 +30,12 @@ export const products = [
     },
 
     // Fallback de precio en céntimos (por si Stripe tarda)
-    baseCents: 18900,          // 189,00 €
-    slicedDeltaCents: 1500,    // +15,00 € si loncheado
+    baseCents: 46100,          // 189,00 €
+    slicedDeltaCents: 3000,    // +15,00 € si loncheado
 
     // (Campos legacy que ya tenías: los mantenemos por compatibilidad)
-    basePrice: 18900,
-    slicedUpchargeHint: 1500,
+    basePrice: 46100,
+    slicedUpchargeHint: 3000,
 
     // Stripe (IDs reales)
     stripe: {
@@ -72,11 +72,11 @@ export const products = [
       sizes: "(max-width: 768px) 100vw, 33vw",
     },
 
-    baseCents: 21900,          // 219,00 €
-    slicedDeltaCents: 1500,    // +15,00 €
+    baseCents: 52000,          // 219,00 €
+    slicedDeltaCents: 3000,    // +15,00 €
 
-    basePrice: 21900,
-    slicedUpchargeHint: 1500,
+    basePrice: 52000,
+    slicedUpchargeHint:3000,
 
     stripe: {
       unsliced: "price_1SK1fPRPLp0YiQTHAx0Ymfht",
@@ -112,11 +112,11 @@ export const products = [
       sizes: "(max-width: 768px) 100vw, 33vw",
     },
 
-    baseCents: 24900,          // 249,00 €
-    slicedDeltaCents: 1500,    // +15,00 €
+    baseCents: 58000,          // 249,00 €
+    slicedDeltaCents: 3000,    // +15,00 €
 
-    basePrice: 24900,
-    slicedUpchargeHint: 1500,
+    basePrice: 58000,
+    slicedUpchargeHint: 3000,
 
     stripe: {
       unsliced: "price_1SK1hnRPLp0YiQTHGy4mFkcB",
