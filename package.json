@@ -13,6 +13,9 @@
     "brandize:check": "node scripts/brandize-all.cjs --dry",
     "brandize:apply": "node scripts/brandize-all.cjs"
   },
+  "engines": {
+    "node": ">=18 <21"
+  },
   "dependencies": {
     "framer-motion": "^12.23.22",
     "lucide-react": "^0.544.0",
