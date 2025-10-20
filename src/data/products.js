@@ -15,7 +15,7 @@ export const products = [
     slicedUpchargeHint: 1500,
     stripe: {
       unsliced: "price_1SK1S7RPLp0YiQTHnULknVOE",
-      sliced:   "price_1SK1T8RPLp0YiQTHmjuD39B1"
+      sliced:   "price_1SKKs5RPLp0YiQTHrgbZp8Am"
     },
     badges: ["D.O.P. Extremadura", "Curación lenta"],
     short: "Selección 6–7 kg. Sabor largo, textura sedosa.",
@@ -34,7 +34,7 @@ export const products = [
     slicedUpchargeHint: 1500,
     stripe: {
       unsliced: "price_1SK1fPRPLp0YiQTHAx0Ymfht", 
-      sliced:   "price_1SK1gGRPLp0YiQTH56cyp4wn" 
+      sliced:   "price_1SKKr0RPLp0YiQTHsvrM3Zil" 
     },
     badges: ["D.O.P. Extremadura", "Curación lenta"],
     short: "Selección 7–8 kg. Corte limpio, veta impecable.",
@@ -53,7 +53,7 @@ export const products = [
     slicedUpchargeHint: 1500,
     stripe: {
       unsliced: "price_1SK1hnRPLp0YiQTHGy4mFkcB",    
-      sliced:   "price_1SK1iaRPLp0YiQTHUopSIXxs"  
+      sliced:   "price_1SKKphRPLp0YiQTHXq4jEPvW"  
     },
     badges: ["D.O.P. Extremadura", "Curación lenta"],
     short: "Selección 8–9 kg. Potente, canalla, elegante.",
