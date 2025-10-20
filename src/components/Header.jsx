@@ -39,20 +39,25 @@ export default function Header(){
   React.useEffect(() => {
     let mounted = true;
     (async () => {
-      // secuencia visible: shake/bounce/tilt (icono)
+      // shake + bounce + tilt + blink brand
       await iconControls.start({
-        // pequeño “golpe” inicial
         scale: [1, 1.15, 0.9, 1.05, 1],
         rotate: [0, -10, 6, -3, 0],
         x: [0, -3, 3, -2, 0],
         y: [0, -2, 0, -1, 0],
-        transition: { duration: 0.55, ease: "easeOut" }
+        // 🔴 Parpadeo de color brand (#E53935) y vuelta a blanco
+        color: ["#FFFFFF", "#E53935", "#FFFFFF"],
+        transition: { duration: 0.6, ease: "easeOut" }
       });
       if (!mounted) return;
-      // micro pulso final
+      // glow rojo breve
       await iconControls.start({
-        scale: [1, 1.08, 1],
-        transition: { duration: 0.25, ease: "easeOut" }
+        boxShadow: [
+          "0 0 0px rgba(229,57,53,0)",
+          "0 0 18px rgba(229,57,53,0.85)",
+          "0 0 0px rgba(229,57,53,0)"
+        ],
+        transition: { duration: 0.4, ease: "easeOut" }
       });
     })();
     return () => { mounted = false; };
@@ -77,21 +82,21 @@ export default function Header(){
 
         {/* Carrito: botón estático; SOLO el icono se anima */}
         <button
-          className="relative ml-3 inline-flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition-all h-12 w-12 md:h-14 md:w-14"
+          className="relative ml-3 inline-flex items-center justify-center rounded-xl bg.white/5 hover:bg-white/10 transition-all h-12 w-12 md:h-14 md:w-14"
           aria-label="Abrir carrito"
           onClick={openCart}
         >
-          {/* Icono animado */}
+          {/* Icono animado: el color del SVG sigue 'currentColor' del wrapper */}
           <motion.span
             aria-hidden
             animate={iconControls}
             className="inline-flex"
-            style={{ display: "inline-flex" }}
+            style={{ display: "inline-flex", color: "#FFFFFF" }} // blanco por defecto
           >
-            <ShoppingCart className="h-6 w-6 md:h-7 md:w-7 text-white" />
+            <ShoppingCart className="h-6 w-6 md:h-7 md:w-7" />
           </motion.span>
 
-          {/* Badge (no se mueve) */}
+          {/* Badge (no se mueve ni parpadea) */}
           {itemsCount > 0 && (
             <span className="absolute -top-1 -right-1 text-[11px] font-bold leading-none bg-brand text-white rounded-full px-1.5 py-0.5 shadow">
               {itemsCount}
