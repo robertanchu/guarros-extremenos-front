@@ -188,7 +188,7 @@ export default function JamonCard({ product, priceMap = {}, loadingPrices = fals
           <div>
             <div className="text-white text-lg font-medium">{displayPrice}</div>
             <div className="text-xs text-white/50">
-              {sliced ? "Precio Stripe (loncheado)" : "Precio Stripe"}
+              {sliced ? "Precio (loncheado)" : "Precio"}
             </div>
           </div>
 
