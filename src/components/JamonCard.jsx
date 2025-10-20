@@ -51,6 +51,28 @@ function pickPriceIds(product) {
   return { basePriceId: base || fallbackAny, slicedPriceId: sliced };
 }
 
+// Utilidad para decidir imagen según estado
+function pickImages(product) {
+  const unsliced =
+    product?.imageUnsliced ||
+    product?.image ||
+    product?.images?.unsliced ||
+    product?.images?.default ||
+    "/images/placeholder.webp";
+
+  const sliced =
+    product?.imageSliced ||
+    product?.images?.sliced ||
+    product?.image || // fallback si no hay específica
+    unsliced;
+
+  // Retina opcionales (si existen)
+  const unsliced2x = product?.imageUnsliced2x || product?.images?.unsliced2x || null;
+  const sliced2x = product?.imageSliced2x || product?.images?.sliced2x || null;
+
+  return { unsliced, sliced, unsliced2x, sliced2x };
+}
+
 export default function JamonCard({ product, priceMap = {}, loadingPrices = false }) {
   const addItem = useCart((s) => s.addItem || s.add || s.addToCart || s.addProduct);
 
@@ -101,7 +123,9 @@ export default function JamonCard({ product, priceMap = {}, loadingPrices = fals
       addItem({
         id: `${product.id}_${sliced ? "sliced" : "unsliced"}`,
         name: `${product.name}${sliced ? " (loncheado)" : ""}`,
-        image: product.image,
+        image: sliced
+          ? (product?.imageSliced || product?.images?.sliced || product?.image)
+          : (product?.imageUnsliced || product?.image || product?.images?.unsliced),
         kind: "product",
         qty,
         priceId: activePriceId,
@@ -113,16 +137,30 @@ export default function JamonCard({ product, priceMap = {}, loadingPrices = fals
     }
   };
 
-  const imgSrc = product?.image || "/images/placeholder.webp";
+  // IMÁGENES (crossfade suave)
+  const { unsliced, sliced: slicedImg, unsliced2x, sliced2x } = useMemo(() => pickImages(product), [product]);
 
   return (
     <div className="group rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden flex flex-col">
-      <div className="aspect-[4/3] bg-black/40">
+      {/* Contenedor de imagen con dos capas para crossfade */}
+      <div className="relative aspect-[4/3] bg-black/40">
+        {/* UNSLICED */}
         <img
-          src={imgSrc}
-          alt={product?.name || "Jamón"}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          src={unsliced}
+          srcSet={unsliced2x ? `${unsliced} 1x, ${unsliced2x} 2x` : undefined}
+          alt={(product?.name || "Jamón") + " entero"}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-400 ${sliced ? "opacity-0" : "opacity-100"}`}
           loading="lazy"
+          draggable={false}
+        />
+        {/* SLICED */}
+        <img
+          src={slicedImg}
+          srcSet={sliced2x ? `${slicedImg} 1x, ${sliced2x} 2x` : undefined}
+          alt={(product?.name || "Jamón") + " loncheado"}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-400 ${sliced ? "opacity-100" : "opacity-0"}`}
+          loading="lazy"
+          draggable={false}
         />
       </div>
 
@@ -132,6 +170,7 @@ export default function JamonCard({ product, priceMap = {}, loadingPrices = fals
         </h3>
         {product?.short ? <p className="mt-1 text-sm text-white/60">{product.short}</p> : null}
 
+        {/* Toggle Loncheado */}
         <div className="mt-4 flex items-center justify-between">
           <span className="text-sm text-white/80">Loncheado</span>
           <button
@@ -144,6 +183,7 @@ export default function JamonCard({ product, priceMap = {}, loadingPrices = fals
           </button>
         </div>
 
+        {/* Precio + Cantidad */}
         <div className="mt-4 grid grid-cols-[1fr,auto] gap-3 items-center">
           <div>
             <div className="text-white text-lg font-medium">{displayPrice}</div>
@@ -159,6 +199,7 @@ export default function JamonCard({ product, priceMap = {}, loadingPrices = fals
           </div>
         </div>
 
+        {/* CTA */}
         <div className="mt-4">
           <button
             onClick={onAdd}
