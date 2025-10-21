@@ -1,48 +1,17 @@
 // src/components/SubscriptionPlans.jsx
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   SUBSCRIPTION_GRAMS,
   getPriceFor,
   clampToValidGrams
 } from "@/data/subscriptionPricing";
 
-// ==== RESOLUCIÓN ROBUSTA DE API_BASE ====
-// 1) .env de Vite
-// 2) variable global inyectable window.__API_BASE__ (por si la quieres setear en index.html)
-// 3) Deducción por dominio (si estás en guarrosextremenos.com, usa onrender)
-function resolveApiBase() {
-  const env = import.meta.env?.VITE_API_BASE;
-  if (env) return env.replace(/\/+$/, "");
-
-  if (typeof window !== "undefined") {
-    if (window.__API_BASE__) return String(window.__API_BASE__).replace(/\/+$/, "");
-
-    const host = window.location.hostname;
-    // Producción principal
-    if (host.endsWith("guarrosextremenos.com")) {
-      return "https://guarros-extremenos-api.onrender.com";
-    }
-    // Vercel preview fallback (si usas front vercel y backend onrender)
-    if (host.endsWith("vercel.app")) {
-      return "https://guarros-extremenos-api.onrender.com";
-    }
-    // Desarrollo local
-    if (host === "localhost" || host === "127.0.0.1") {
-      return "http://localhost:10000";
-    }
-  }
-  // Último recurso (evita "undefined/create-…")
-  return "https://guarros-extremenos-api.onrender.com";
-}
-
-const API_BASE = resolveApiBase();
-
 export default function SubscriptionPlans() {
   const [selectedGrams, setSelectedGrams] = useState(500); // default sugerido
   const price = useMemo(() => getPriceFor(selectedGrams), [selectedGrams]);
   const planOk = price != null;
-
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   // Exponer API global para preseleccionar plan desde la comparativa
   useEffect(() => {
@@ -57,51 +26,9 @@ export default function SubscriptionPlans() {
     };
   }, []);
 
-  async function startSubscriptionCheckout(e) {
-    e?.preventDefault?.();
-    if (!planOk || loading) return;
-
-    setLoading(true);
-    try {
-      const url = `${API_BASE}/create-subscription-session`;
-      const payload = { grams: selectedGrams };
-
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "omit", // el backend ya maneja CORS
-        body: JSON.stringify(payload)
-      });
-
-      // Intenta leer JSON; si falla, lee texto crudo para debug
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        const raw = await res.text();
-        console.error("[subscription] Respuesta no-JSON:", raw);
-        data = { error: raw || "Respuesta no válida del servidor." };
-      }
-
-      if (!res.ok) {
-        console.error("[subscription] fail:", data);
-        alert(data?.error || `No se pudo iniciar la suscripción (HTTP ${res.status}).`);
-        return;
-      }
-
-      if (data?.url) {
-        window.location.assign(data.url);
-      } else {
-        console.error("[subscription] falta url en respuesta:", data);
-        alert("No se pudo abrir el checkout de Stripe.");
-      }
-    } catch (err) {
-      console.error("[subscription] error:", err);
-      // Errores típicos: CORS, DNS, API_BASE mal, etc.
-      alert(`No se pudo iniciar la suscripción.\nDetalle: ${err?.message || err}`);
-    } finally {
-      setLoading(false);
-    }
+  function goToSubscriptionCheckout() {
+    if (!planOk) return;
+    navigate(`/subscription-checkout?grams=${selectedGrams}`);
   }
 
   return (
@@ -149,7 +76,7 @@ export default function SubscriptionPlans() {
         <div className="mt-5 md:mt-6">
           <button
             type="button"
-            onClick={startSubscriptionCheckout}
+            onClick={goToSubscriptionCheckout}
             className={[
               "relative inline-flex items-center justify-center",
               "rounded-xl px-5 py-3",
@@ -160,34 +87,14 @@ export default function SubscriptionPlans() {
               "transition-all",
               "hover:translate-y-[-1px] hover:shadow-[0_12px_28px_rgba(214,40,40,.45)]",
               "active:translate-y-[0px] active:shadow-[0_6px_16px_rgba(214,40,40,.35)]",
-              "w-full md:w-auto",
-              loading ? "opacity-80 cursor-not-allowed" : ""
+              "w-full md:w-auto"
             ].join(" ")}
-            disabled={!planOk || loading}
-            aria-label="Continuar al pago"
+            disabled={!planOk}
+            aria-label="Continuar al formulario"
           >
-            {loading ? (
-              <span className="inline-flex items-center gap-2">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
-                </svg>
-                Procesando…
-              </span>
-            ) : (
-              "Suscribirme"
-            )}
+            Suscribirme
           </button>
         </div>
-
-        {/* DEBUG opcional visible (comentado). Útil si vuelve a fallar: */}
-        {false && (
-          <pre className="mt-4 text-xs text-zinc-400/80">
-            API_BASE = {API_BASE}
-            {"\n"}selectedGrams = {selectedGrams}
-            {"\n"}price = {String(price)}
-          </pre>
-        )}
       </div>
     </div>
   );

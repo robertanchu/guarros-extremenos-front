@@ -1,23 +1,41 @@
 // src/pages/SubscriptionCheckout.jsx
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import Meta from "@/lib/Meta";
-import { createSubscriptionSession } from "@/lib/checkout";
+import {
+  SUBSCRIPTION_GRAMS,
+  getPriceFor,
+  clampToValidGrams
+} from "@/data/subscriptionPricing";
 
-const PRICE_500 = import.meta.env.VITE_SUB_500_PRICE_ID;
-const PRICE_1000 = import.meta.env.VITE_SUB_1000_PRICE_ID;
+// Resolución robusta del API base
+function resolveApiBase() {
+  const env = import.meta.env?.VITE_API_BASE;
+  if (env) return env.replace(/\/+$/, "");
+  if (typeof window !== "undefined") {
+    if (window.__API_BASE__) return String(window.__API_BASE__).replace(/\/+$/, "");
+    const host = window.location.hostname;
+    if (host.endsWith("guarrosextremenos.com") || host.endsWith("vercel.app")) {
+      return "https://guarros-extremenos-api.onrender.com";
+    }
+    if (host === "localhost" || host === "127.0.0.1") {
+      return "http://localhost:10000";
+    }
+  }
+  return "https://guarros-extremenos-api.onrender.com";
+}
+const API_BASE = resolveApiBase();
 
-const PLANS = [
-  { id: PRICE_500,  label: "Suscripción 500 g / mes — 40 €/mes", priceText: "40 €/mes", name: "Suscripción 500 g / mes" },
-  { id: PRICE_1000, label: "Suscripción 1 kg / mes — 70 €/mes",  priceText: "70 €/mes", name: "Suscripción 1 kg / mes" },
-].filter(p => !!p.id);
-
-export default function SubscriptionCheckout(){
+export default function SubscriptionCheckout() {
   const [search] = useSearchParams();
   const navigate = useNavigate();
 
-  const initialPlan = search.get("plan") || PRICE_500 || "";
-  const [plan, setPlan] = useState(initialPlan);
+  // Leer gramos de la query o usar 500 por defecto
+  const initialGrams = clampToValidGrams(search.get("grams") || 500);
+  const [grams, setGrams] = useState(initialGrams);
+
+  const price = useMemo(() => getPriceFor(grams), [grams]);
+  const planOk = price != null;
 
   const [form, setForm] = useState({
     name: "",
@@ -30,46 +48,79 @@ export default function SubscriptionCheckout(){
   });
   const [loading, setLoading] = useState(false);
 
-  const selectedPlan = useMemo(() => PLANS.find(p => p.id === plan) || null, [plan]);
-  const planOk = !!selectedPlan;
+  // Si el usuario cambia los gramos aquí, mantenemos el precio sincronizado
+  useEffect(() => {
+    const qg = search.get("grams");
+    if (qg) setGrams(clampToValidGrams(qg));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // solo al montar
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(s => ({ ...s, [name]: value }));
+    setForm((s) => ({ ...s, [name]: value }));
   };
 
-  async function handleSubmit(e){
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!planOk) return alert("Selecciona un plan de suscripción válido.");
+    if (!planOk) return alert("Selecciona una cantidad válida.");
+
     const required = ["name", "email", "address", "city", "postal_code"];
-    const missing = required.filter(k => !String(form[k] || "").trim());
+    const missing = required.filter((k) => !String(form[k] || "").trim());
     if (missing.length) return alert("Completa todos los campos obligatorios.");
 
     try {
       setLoading(true);
-      await createSubscriptionSession({
-        price: plan,
-        quantity: 1,
-        customer: { email: form.email, name: form.name, phone: form.phone },
-        shipping_address: {
-          address: form.address,
-          city: form.city,
-          postal_code: form.postal_code,
-          country: form.country || "ES",
-        },
-        metadata: {
-          name: form.name,
-          email: form.email,
-          phone: form.phone || "",
-          address: form.address,
-          city: form.city,
-          postal: form.postal_code,
-          country: form.country || "ES",
-          source: "guarros-front",
-          flow: "subscription-precheckout",
-        },
+
+      // Llamada al backend: creamos la sesión de suscripción con grams y metadata
+      const res = await fetch(`${API_BASE}/create-subscription-session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          grams,
+          // Información útil para metadata (webhooks, factura propia, etc.)
+          customer: { email: form.email, name: form.name, phone: form.phone },
+          shipping_address: {
+            address: form.address,
+            city: form.city,
+            postal_code: form.postal_code,
+            country: form.country || "ES",
+          },
+          metadata: {
+            name: form.name,
+            email: form.email,
+            phone: form.phone || "",
+            address: form.address,
+            city: form.city,
+            postal: form.postal_code,
+            country: form.country || "ES",
+            source: "guarros-front",
+            flow: "subscription-precheckout",
+            grams: String(grams),
+            displayed_price: String(price)
+          }
+        })
       });
-      // El helper redirige a Stripe si todo va bien
+
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        const raw = await res.text();
+        console.error("[subscription pre-checkout] respuesta no-JSON:", raw);
+        data = { error: raw || "Respuesta no válida del servidor." };
+      }
+
+      if (!res.ok) {
+        console.error("[subscription pre-checkout] fail:", data);
+        alert(data?.error || `No se pudo iniciar la suscripción (HTTP ${res.status}).`);
+        return;
+      }
+
+      if (data?.url) {
+        window.location.assign(data.url);
+      } else {
+        alert("No se pudo abrir el checkout de Stripe.");
+      }
     } catch (err) {
       console.error("[subscription pre-checkout] error:", err);
       alert(err?.message || "No se pudo iniciar la suscripción. Inténtalo de nuevo.");
@@ -95,51 +146,50 @@ export default function SubscriptionCheckout(){
         </div>
       </header>
 
-      {/* Grid idéntico al Checkout normal */}
+      {/* Grid similar al Checkout normal */}
       <section className="max-w-6xl mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
-          {/* Formulario (misma tarjeta y estilos que Checkout) */}
+          {/* Formulario */}
           <form
             onSubmit={handleSubmit}
             className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7 space-y-5"
           >
-            {/* Plan */}
+            {/* Cantidad (gramos) */}
             <div className="space-y-1.5">
-              <label className="block text-sm text-white/80">Plan</label>
+              <label className="block text-sm text-white/80">Cantidad mensual (gramos)</label>
               <select
-                value={plan}
-                onChange={(e)=>setPlan(e.target.value)}
+                value={grams}
+                onChange={(e)=>setGrams(clampToValidGrams(e.target.value))}
                 className="h-11 w-full rounded-xl bg-black/60 text-white border border-white/15 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
               >
-                <option value="">Selecciona un plan</option>
-                {PLANS.map(p => (
-                  <option key={p.id} value={p.id}>{p.label}</option>
+                {SUBSCRIPTION_GRAMS.map(g => (
+                  <option key={g} value={g}>{g} g / mes</option>
                 ))}
               </select>
             </div>
 
-            {/* Datos comprador/envío (mismo look) */}
+            {/* Datos comprador/envío */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <Field id="name" label="Nombre completo" autoComplete="name" required value={form.name} onChange={v => setForm(s => ({...s, name: v}))} placeholder="Tu nombre y apellidos" />
-              <Field id="email" label="Email" type="email" autoComplete="email" required value={form.email} onChange={v => setForm(s => ({...s, email: v}))} placeholder="tucorreo@ejemplo.com" />
+              <Field id="name" label="Nombre completo" autoComplete="name" required value={form.name} onChange={handleChange} placeholder="Tu nombre y apellidos" />
+              <Field id="email" label="Email" type="email" autoComplete="email" required value={form.email} onChange={handleChange} placeholder="tucorreo@ejemplo.com" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <Field id="phone" label="Teléfono" type="tel" autoComplete="tel" value={form.phone} onChange={v => setForm(s => ({...s, phone: v}))} placeholder="+34 600 000 000" />
-              <Field id="postal_code" label="Código Postal" autoComplete="postal-code" required value={form.postal_code} onChange={v => setForm(s => ({...s, postal_code: v}))} placeholder="28001" />
+              <Field id="phone" label="Teléfono" type="tel" autoComplete="tel" value={form.phone} onChange={handleChange} placeholder="+34 600 000 000" />
+              <Field id="postal_code" label="Código Postal" autoComplete="postal-code" required value={form.postal_code} onChange={handleChange} placeholder="28001" />
             </div>
 
-            <Field id="address" label="Dirección" autoComplete="address-line1" required value={form.address} onChange={v => setForm(s => ({...s, address: v}))} placeholder="Calle y número" />
+            <Field id="address" label="Dirección" autoComplete="address-line1" required value={form.address} onChange={handleChange} placeholder="Calle y número" />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <Field id="city" label="Ciudad" autoComplete="address-level2" required value={form.city} onChange={v => setForm(s => ({...s, city: v}))} placeholder="Madrid" />
+              <Field id="city" label="Ciudad" autoComplete="address-level2" required value={form.city} onChange={handleChange} placeholder="Madrid" />
               <div className="space-y-1.5">
                 <label htmlFor="country" className="block text-sm text-white/80">País</label>
                 <select
                   id="country"
                   name="country"
                   value={form.country}
-                  onChange={(e)=>setForm(s => ({...s, country: e.target.value}))}
+                  onChange={handleChange}
                   className="h-11 w-full rounded-xl bg-black/60 text-white border border-white/15 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
                 >
                   <option value="ES">España</option>
@@ -149,7 +199,7 @@ export default function SubscriptionCheckout(){
               </div>
             </div>
 
-            {/* Botones: Volver (outline) + Continuar (rojo canalla) */}
+            {/* Botones: Volver + Continuar */}
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="button"
@@ -188,22 +238,22 @@ export default function SubscriptionCheckout(){
 
             {!planOk && (
               <p className="text-sm text-amber-300/90 pt-1">
-                Selecciona un plan válido para continuar.
+                Selecciona una cantidad válida para continuar.
               </p>
             )}
           </form>
 
-          {/* Resumen (igual estilo de tarjeta que en Checkout) */}
+          {/* Resumen (mismo look que Checkout) */}
           <aside className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7">
             <h2 className="text-xl font-semibold text-white mb-4">Resumen de la suscripción</h2>
 
-            {selectedPlan ? (
+            {planOk ? (
               <>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <div className="text-white">{selectedPlan.name}</div>
+                    <div className="text-white">Suscripción {grams} g / mes</div>
                   </div>
-                  <div className="text-white font-semibold">{selectedPlan.priceText}</div>
+                  <div className="text-white font-semibold">{price} €/mes</div>
                 </div>
 
                 <div className="mt-4 border-t border-white/10 pt-4">
@@ -217,7 +267,7 @@ export default function SubscriptionCheckout(){
                 <p className="mt-3 text-xs text-white/50">Los datos de facturación/entrega se aplicarán al iniciar el proceso de suscripción.</p>
               </>
             ) : (
-              <p className="text-white/70">Selecciona un plan para ver el resumen.</p>
+              <p className="text-white/70">Selecciona una cantidad para ver el resumen.</p>
             )}
           </aside>
         </div>
@@ -226,7 +276,7 @@ export default function SubscriptionCheckout(){
   );
 }
 
-/* Campo reutilizable (mismo look que Checkout normal) */
+/* Campo reutilizable */
 function Field({ id, label, type="text", autoComplete, value, onChange, required=false, placeholder }){
   return (
     <div className="space-y-1.5">
@@ -239,7 +289,7 @@ function Field({ id, label, type="text", autoComplete, value, onChange, required
         required={required}
         placeholder={placeholder}
         value={value}
-        onChange={(e)=>onChange(e.target.value)}
+        onChange={onChange}
         className="h-11 w-full rounded-xl bg-black/60 text-white border border-white/15 px-3 placeholder:text-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
       />
     </div>
