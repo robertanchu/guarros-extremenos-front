@@ -57,7 +57,9 @@ function Layout(){
 	
 	<Route path="/account" element={<Account />} />
 
+	{/* Ambas rutas válidas para el pre-checkout de suscripción */}
 	<Route path="/suscripcion-checkout" element={<SubscriptionCheckout />} />
+	<Route path="/subscription-checkout" element={<SubscriptionCheckout />} />
 
         {/* Rutas legales - nuevas /legal/* */}
         <Route path="/legal/terminos" element={<Terminos />} />
