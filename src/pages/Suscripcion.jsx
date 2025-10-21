@@ -2,7 +2,8 @@
 import React, { useEffect } from "react";
 import Meta from "../lib/Meta";
 import FAQ from "@/components/FAQ";
-import SubscriptionPlans from "@/components/SubscriptionPlans"; // ⬅️ NUEVO
+import SubscriptionPlans from "@/components/SubscriptionPlans";
+import PlansCompare from "@/components/PlansCompare"; // ⬅️ NUEVO
 import "@/styles/effects.css";
 
 import { useCart } from "@/store/cart";
@@ -16,12 +17,10 @@ const FAQS = [
 ];
 
 export default function Suscripcion() {
-  // Aviso si ya hay una suscripción en el carrito (mantenemos tu UX previa)
   const { items } = useCart();
   const openCart = () => useUI.getState().openCart();
   const hasSubscription = items.some(isSubscription);
 
-  // Efectos de aparición (reutilizamos tu lógica)
   useEffect(() => {
     const root = document.getElementById("plans-root");
     if (!root) return;
@@ -88,12 +87,7 @@ export default function Suscripcion() {
                 <div className="alert-desc">Solo puede haber una por carrito. Puedes cambiar de plan eliminando la actual.</div>
               </div>
               <div>
-                <button
-                  type="button"
-                  onClick={openCart}
-                  className="btn-secondary"
-                  aria-label="Ver carrito"
-                >
+                <button type="button" onClick={openCart} className="btn-secondary" aria-label="Ver carrito">
                   Ver carrito
                 </button>
               </div>
@@ -102,7 +96,10 @@ export default function Suscripcion() {
         </div>
       )}
 
-      {/* NUEVO: selector de planes por gramos */}
+      {/* NUEVO: Comparativa de planes (tarjetas grandes + highlight) */}
+      <PlansCompare />
+
+      {/* Selector interactivo por gramos */}
       <section id="plans-root" className="max-w-6xl mx-auto px-4" data-reveal>
         <SubscriptionPlans />
       </section>
