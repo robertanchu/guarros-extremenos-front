@@ -113,7 +113,7 @@ export default function SubscriptionPlans() {
             className="group relative inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide text-black bg-[#E53935] transition-colors duration-200 shadow-lg hover:bg-[#992623] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed w-full md:w-auto"
             aria-label="Continuar al formulario"
           >
-            <span className="relative z-10">Suscribirme</span>
+            <span className="inline-flex items-center justify-center">Suscribirme</span>
             <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
           </button>
         </div>
