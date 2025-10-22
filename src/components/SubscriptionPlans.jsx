@@ -28,7 +28,7 @@ export default function SubscriptionPlans() {
 
   function goToSubscriptionCheckout() {
     if (!planOk) return;
-    navigate(`/subscription-checkout?grams=${selectedGrams}`);
+    navigate(`/subscription-checkout?grams=${selectedGrms}`);
   }
 
   return (
@@ -74,25 +74,16 @@ export default function SubscriptionPlans() {
         </div>
 
         <div className="mt-5 md:mt-6">
+          {/* Botón igualado al rojo canalla (como “Ver Jamones”) */}
           <button
             type="button"
             onClick={goToSubscriptionCheckout}
-            className={[
-              "relative inline-flex items-center justify-center",
-              "rounded-xl px-5 py-3",
-              "font-black tracking-wide uppercase",
-              "bg-brand text-white",
-              "shadow-[0_8px_22px_rgba(214,40,40,.35)]",
-              "ring-1 ring-brand/30",
-              "transition-all",
-              "hover:translate-y-[-1px] hover:shadow-[0_12px_28px_rgba(214,40,40,.45)]",
-              "active:translate-y-[0px] active:shadow-[0_6px_16px_rgba(214,40,40,.35)]",
-              "w-full md:w-auto"
-            ].join(" ")}
             disabled={!planOk}
+            className="group relative inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide text-black bg-[#E53935] transition-colors duration-200 shadow-lg hover:bg-[#992623] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed w-full md:w-auto"
             aria-label="Continuar al formulario"
           >
-            Suscribirme
+            <span className="relative z-10">Suscribirme</span>
+            <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
           </button>
         </div>
       </div>
