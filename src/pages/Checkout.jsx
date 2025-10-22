@@ -9,14 +9,13 @@ const FRONT_BASE =
   import.meta.env.VITE_FRONT_BASE || "https://guarrosextremenos.com";
 
 export default function Checkout() {
-  const { items, clear } = useCart();
+  const { items } = useCart();
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
 
   const hasItems = items && items.length > 0;
 
   const totals = useMemo(() => {
-    // Cada item debería traer unit_amount o priceUnit; si no, calculamos desde total/qty como fallback visual.
     let subtotal = 0;
     for (const it of items) {
       const lineTotal =
@@ -39,12 +38,11 @@ export default function Checkout() {
       setErr("");
       setLoading(true);
 
-      // Construimos los items mínimos para el backend:
       const payloadItems = items.map((it) => ({
         price: it.priceId || it.price, // Stripe PriceID
         quantity: it.qty || 1,
         title: it.title || it.name,
-        image: it.image, // si la tienes; el backend la hará absoluta
+        image: it.image,
       }));
 
       const res = await fetch(`${API_BASE}/create-checkout-session`, {
@@ -63,7 +61,6 @@ export default function Checkout() {
         throw new Error(data?.error || "Error al crear la sesión de pago");
       }
 
-      // Redirigimos a Stripe
       window.location.href = data.url;
     } catch (e) {
       console.error("[checkout] error:", e);
@@ -83,17 +80,21 @@ export default function Checkout() {
             Tu carrito está vacío. Añade algún producto antes de continuar.
           </p>
           <div className="mt-6 flex justify-center gap-3">
+            {/* Inicio → estilo “Ver Jamones” */}
             <Link
               to="/"
-              className="inline-flex items-center justify-center rounded-2xl px-5 py-3 font-black uppercase tracking-wide btn-primary btn-shiny"
+              className="group relative inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide text-black bg-[#E53935] transition-colors duration-200 shadow-lg hover:bg-[#992623] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-[0.98]"
             >
-              Inicio
+              <span className="relative z-10">Inicio</span>
+              <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
             </Link>
+
+            {/* Ver jamones (equivalente a “Seguir comprando”) → estilo “Suscripción” */}
             <Link
               to="/jamones"
-              className="inline-flex items-center justify-center rounded-2xl px-5 py-3 font-black uppercase tracking-wide btn-ghost"
+              className="inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide text-white border border-white/20 transition-colors duration-200 hover:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-[0.98]"
             >
-              Ver jamones
+              Ver Jamones
             </Link>
           </div>
         </div>
@@ -109,7 +110,7 @@ export default function Checkout() {
         </h1>
 
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Resumen de productos */}
+          {/* Resumen */}
           <section className="lg:col-span-7 bg-white/5 border border-white/10 rounded-2xl p-5">
             <h2 className="text-lg font-black text-white tracking-wide mb-3 uppercase">
               Resumen del pedido
@@ -189,17 +190,21 @@ export default function Checkout() {
             </button>
 
             <div className="mt-4 flex justify-between gap-3 text-sm">
+              {/* Seguir comprando → estilo “Suscripción” */}
               <Link
                 to="/jamones"
-                className="inline-flex items-center justify-center rounded-2xl px-4 py-2 font-black uppercase tracking-wide btn-ghost"
+                className="inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide text-white border border-white/20 transition-colors duration-200 hover:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-[0.98]"
               >
                 Seguir comprando
               </Link>
+
+              {/* Inicio → estilo “Ver Jamones” */}
               <Link
                 to="/"
-                className="inline-flex items-center justify-center rounded-2xl px-4 py-2 font-black uppercase tracking-wide btn-primary btn-shiny"
+                className="group relative inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide text-black bg-[#E53935] transition-colors duration-200 shadow-lg hover:bg-[#992623] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-[0.98]"
               >
-                Inicio
+                <span className="relative z-10">Inicio</span>
+                <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
               </Link>
             </div>
           </aside>

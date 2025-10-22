@@ -7,7 +7,7 @@ const API_BASE =
 const FRONT_BASE =
   import.meta.env.VITE_FRONT_BASE || "https://guarrosextremenos.com";
 
-// Tabla espejo SOLO para mostrar el precio al usuario (la autoridad real es el backend).
+// Solo para mostrar precio (la autoridad es el backend)
 const SUB_PRICE_TABLE = Object.freeze({
   100: 4600,
   200: 5800,
@@ -35,7 +35,7 @@ export default function SubscriptionCheckout() {
 
   const gramsFromState = location.state?.grams;
   const gramsFromQuery = Number(query.get("grams"));
-  const grams = gramsFromState || gramsFromQuery || 500; // por defecto 500g
+  const grams = gramsFromState || gramsFromQuery || 500;
 
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
@@ -88,7 +88,7 @@ export default function SubscriptionCheckout() {
         </h1>
 
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Resumen visual del plan */}
+          {/* Resumen plan */}
           <section className="lg:col-span-7 bg-white/5 border border-white/10 rounded-2xl p-5">
             <h2 className="text-lg font-black text-white tracking-wide mb-3 uppercase">
               Tu elección
@@ -103,9 +103,8 @@ export default function SubscriptionCheckout() {
                   {grams} g / mes — {priceFmt}
                 </p>
                 <p className="mt-2 text-white/60 text-sm">
-                  Gestiona o cancela tu suscripción cuando quieras desde el
-                  portal de cliente de Stripe (te enviaremos el enlace por
-                  email tras el primer pago).
+                  Gestiona o cancela tu suscripción desde el portal de cliente
+                  (te lo enviamos por correo tras el primer pago).
                 </p>
               </div>
             </div>
@@ -145,17 +144,21 @@ export default function SubscriptionCheckout() {
             </button>
 
             <div className="mt-4 flex justify-between gap-3 text-sm">
+              {/* Volver → estilo “Suscripción” */}
               <Link
                 to="/suscripcion"
-                className="inline-flex items-center justify-center rounded-2xl px-4 py-2 font-black uppercase tracking-wide btn-ghost"
+                className="inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide text-white border border-white/20 transition-colors duration-200 hover:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-[0.98]"
               >
                 Volver
               </Link>
+
+              {/* Inicio → estilo “Ver Jamones” */}
               <Link
                 to="/"
-                className="inline-flex items-center justify-center rounded-2xl px-4 py-2 font-black uppercase tracking-wide btn-primary btn-shiny"
+                className="group relative inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide text-black bg-[#E53935] transition-colors duration-200 shadow-lg hover:bg-[#992623] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-[0.98]"
               >
-                Inicio
+                <span className="relative z-10">Inicio</span>
+                <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
               </Link>
             </div>
 
