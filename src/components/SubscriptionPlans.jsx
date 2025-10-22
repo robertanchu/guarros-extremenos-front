@@ -104,7 +104,7 @@ export default function SubscriptionPlans() {
           </div>
         </div>
 
-        <div className="mt-5 md:mt-6">
+        <div className="mt-5 md:mt-6 flex justify-center">
           {/* Botón rojo canalla (igual que “Ver Jamones” del Hero) + funcionalidades conservadas */}
           <button
             type="button"
