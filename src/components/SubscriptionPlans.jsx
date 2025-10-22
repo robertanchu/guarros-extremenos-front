@@ -64,7 +64,7 @@ export default function SubscriptionPlans() {
     <div className="mx-auto max-w-4xl">
       {/* Selector de gramos */}
       <div className="rounded-2xl border border-white/10 bg-zinc-900/50 p-4 md:p-6">
-        <div className="flex justify-center flex-col md:flex-row md:items-end gap-4 md:gap-6">
+        <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6">
           <div className="flex-1">
             <label htmlFor="grams" className="block text-sm text-zinc-400 mb-2">
               Cantidad mensual (gramos)
@@ -93,7 +93,7 @@ export default function SubscriptionPlans() {
             </div>
           </div>
 
-          <div className="w-full md:w-64">
+          <div className="w-full md:w-64 justify-center">
             <div className="text-sm text-zinc-400 mb-1">Precio</div>
             <div className="text-3xl font-extrabold text-brand">
               {planOk ? `${priceLabel}/mes` : "—"}
