@@ -3,7 +3,19 @@ import React, { useMemo, useState } from "react";
 import { useCart } from "@/store/cart";
 import Meta from "@/lib/Meta";
 
-// Resolver API base (prod / vercel / local)
+// Provincias de España (canónicas para Stripe)
+const ES_PROVINCES = [
+  "Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila",
+  "Badajoz", "Baleares", "Barcelona", "Burgos", "Cáceres", "Cádiz",
+  "Cantabria", "Castellón", "Ciudad Real", "Córdoba", "Cuenca",
+  "Girona", "Granada", "Guadalajara", "Gipuzkoa", "Huelva", "Huesca",
+  "Jaén", "La Rioja", "Las Palmas", "León", "Lleida", "Lugo", "Madrid",
+  "Málaga", "Murcia", "Navarra", "Ourense", "Palencia", "Pontevedra",
+  "Salamanca", "Santa Cruz de Tenerife", "Segovia", "Sevilla", "Soria",
+  "Tarragona", "Teruel", "Toledo", "Valencia", "Valladolid", "Bizkaia",
+  "Zamora", "Zaragoza", "Ceuta", "Melilla"
+];
+
 function resolveApiBase() {
   const env = import.meta.env?.VITE_API_BASE;
   if (env) return env.replace(/\/+$/, "");
@@ -28,15 +40,12 @@ export default function Checkout() {
     phone: "",
     address: "",
     city: "",
-    province: "",       // ← NUEVO
+    province: "Madrid",
     postal_code: "",
     country: "ES",
   });
 
-  const totalQty = useMemo(
-    () => items.reduce((a, b) => a + (b.qty || 1), 0),
-    [items]
-  );
+  const totalQty = useMemo(() => items.reduce((a, b) => a + (b.qty || 1), 0), [items]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,11 +65,13 @@ export default function Checkout() {
 
     setLoading(true);
     try {
-      // Importante: priceId + quantity para Stripe
+      // Pasamos title e image para pintar nombre exacto en Stripe
       const lineItems = items
         .map((it) => ({
           price: it.priceId,
           quantity: it.qty || 1,
+          title: it.title || it.name,
+          image: it.image || it.img || undefined,
         }))
         .filter((li) => !!li.price);
 
@@ -69,7 +80,6 @@ export default function Checkout() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: lineItems,
-          // Datos de cliente para reusarlos en Stripe (el server hace ensureCustomer + customer_update)
           customer: {
             email: form.email,
             name: form.name,
@@ -78,9 +88,8 @@ export default function Checkout() {
             city: form.city,
             postal: form.postal_code,
             country: form.country || "ES",
-            province: form.province, // ← mapea a address.state en el server
+            province: form.province, // mapea a state en el server
           },
-          // Shipping para tu registro/PDF (y opcionalmente para Stripe si lo usas)
           shipping_address: {
             address: form.address,
             city: form.city,
@@ -88,7 +97,6 @@ export default function Checkout() {
             country: form.country || "ES",
             province: form.province,
           },
-          // Metadata para auditoría y factura propia
           metadata: {
             source: "guarros-front",
             flow: "oneoff-precheckout",
@@ -106,11 +114,7 @@ export default function Checkout() {
       });
 
       let data;
-      try {
-        data = await res.json();
-      } catch {
-        data = { error: await res.text() };
-      }
+      try { data = await res.json(); } catch { data = { error: await res.text() }; }
 
       if (!res.ok) {
         console.error("[checkout] fail:", data);
@@ -132,94 +136,45 @@ export default function Checkout() {
 
   return (
     <main className="shell py-12 md:py-16">
-      <Meta
-        title="Finalizar compra | Guarros Extremeños"
-        description="Introduce tus datos y paga de forma segura."
-      />
-
+      <Meta title="Finalizar compra | Guarros Extremeños" description="Introduce tus datos y paga de forma segura." />
       <header className="mb-8 md:mb-12 text-center">
         <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Finalizar compra</h1>
-        <p className="mt-3 text-zinc-300">
-          Datos de contacto y envío antes de ir al pago seguro.
-        </p>
+        <p className="mt-3 text-zinc-300">Datos de contacto y envío antes de ir al pago seguro.</p>
       </header>
 
       <section className="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
         {/* Formulario */}
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7 space-y-5"
-        >
+        <form onSubmit={handleSubmit} className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7 space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Field
-              id="name"
-              label="Nombre completo"
-              required
-              value={form.name}
-              onChange={handleChange}
-              placeholder="Tu nombre y apellidos"
-            />
-            <Field
-              id="email"
-              label="Email"
-              type="email"
-              required
-              value={form.email}
-              onChange={handleChange}
-              placeholder="tucorreo@ejemplo.com"
-            />
+            <Field id="name" label="Nombre completo" required value={form.name} onChange={handleChange} placeholder="Tu nombre y apellidos" />
+            <Field id="email" label="Email" type="email" required value={form.email} onChange={handleChange} placeholder="tucorreo@ejemplo.com" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Field
-              id="phone"
-              label="Teléfono"
-              type="tel"
-              value={form.phone}
-              onChange={handleChange}
-              placeholder="+34 600 000 000"
-            />
-            <Field
-              id="postal_code"
-              label="Código Postal"
-              required
-              value={form.postal_code}
-              onChange={handleChange}
-              placeholder="28001"
-            />
+            <Field id="phone" label="Teléfono" type="tel" value={form.phone} onChange={handleChange} placeholder="+34 600 000 000" />
+            <Field id="postal_code" label="Código Postal" required value={form.postal_code} onChange={handleChange} placeholder="28001" />
           </div>
 
-          <Field
-            id="address"
-            label="Dirección"
-            required
-            value={form.address}
-            onChange={handleChange}
-            placeholder="Calle y número"
-          />
+          <Field id="address" label="Dirección" required value={form.address} onChange={handleChange} placeholder="Calle y número" />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <Field
-              id="city"
-              label="Ciudad"
-              required
-              value={form.city}
-              onChange={handleChange}
-              placeholder="Madrid"
-            />
-            {/* NUEVO: Provincia */}
-            <Field
-              id="province"
-              label="Provincia"
-              required
-              value={form.province}
-              onChange={handleChange}
-              placeholder="Madrid"
-            />
+            <Field id="city" label="Ciudad" required value={form.city} onChange={handleChange} placeholder="Madrid" />
+            {/* Provincia como select */}
             <div className="space-y-1.5">
-              <label htmlFor="country" className="block text-sm text-white/80">
-                País
-              </label>
+              <label htmlFor="province" className="block text-sm text-white/80">Provincia</label>
+              <select
+                id="province"
+                name="province"
+                value={form.province}
+                onChange={handleChange}
+                className="h-11 w-full rounded-xl bg-black/60 text-white border border-white/15 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+              >
+                {ES_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="country" className="block text-sm text-white/80">País</label>
               <select
                 id="country"
                 name="country"
@@ -235,13 +190,7 @@ export default function Checkout() {
           </div>
 
           <div className="flex items-center gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => history.back()}
-              className="btn-secondary"
-            >
-              Volver
-            </button>
+            <button type="button" onClick={() => history.back()} className="btn-secondary">Volver</button>
             <button
               type="submit"
               disabled={loading || !items.length}
@@ -259,13 +208,8 @@ export default function Checkout() {
             <p className="text-zinc-300">Tu carrito está vacío.</p>
           ) : (
             items.map((it) => (
-              <div
-                key={`${it.id}-${it.priceId}`}
-                className="flex items-center justify-between py-2 border-b border-white/10"
-              >
-                <div className="text-white">
-                  {it.title} {it.variant ? `– ${it.variant}` : ""}
-                </div>
+              <div key={`${it.id}-${it.priceId}`} className="flex items-center justify-between py-2 border-b border-white/10">
+                <div className="text-white">{it.title} {it.variant ? `– ${it.variant}` : ""}</div>
                 <div className="text-white/90">x{it.qty || 1}</div>
               </div>
             ))
@@ -276,20 +220,10 @@ export default function Checkout() {
   );
 }
 
-function Field({
-  id,
-  label,
-  type = "text",
-  value,
-  onChange,
-  required = false,
-  placeholder,
-}) {
+function Field({ id, label, type = "text", value, onChange, required = false, placeholder }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-sm text-white/80">
-        {label}
-      </label>
+      <label htmlFor={id} className="block text-sm text-white/80">{label}</label>
       <input
         id={id}
         name={id}

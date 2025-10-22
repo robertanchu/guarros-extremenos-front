@@ -4,7 +4,19 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import Meta from "@/lib/Meta";
 import { SUBSCRIPTION_GRAMS, getPriceFor, clampToValidGrams } from "@/data/subscriptionPricing";
 
-/** Descubre la URL del API según entorno (Vercel, dominio propio o local) */
+// Provincias ES
+const ES_PROVINCES = [
+  "Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila",
+  "Badajoz", "Baleares", "Barcelona", "Burgos", "Cáceres", "Cádiz",
+  "Cantabria", "Castellón", "Ciudad Real", "Córdoba", "Cuenca",
+  "Girona", "Granada", "Guadalajara", "Gipuzkoa", "Huelva", "Huesca",
+  "Jaén", "La Rioja", "Las Palmas", "León", "Lleida", "Lugo", "Madrid",
+  "Málaga", "Murcia", "Navarra", "Ourense", "Palencia", "Pontevedra",
+  "Salamanca", "Santa Cruz de Tenerife", "Segovia", "Sevilla", "Soria",
+  "Tarragona", "Teruel", "Toledo", "Valencia", "Valladolid", "Bizkaia",
+  "Zamora", "Zaragoza", "Ceuta", "Melilla"
+];
+
 function resolveApiBase() {
   const env = import.meta.env?.VITE_API_BASE;
   if (env) return env.replace(/\/+$/, "");
@@ -39,7 +51,7 @@ export default function SubscriptionCheckout() {
     phone: "",
     address: "",
     city: "",
-    province: "",         // ← NUEVO: provincia
+    province: "Madrid",
     postal_code: "",
     country: "ES",
   });
@@ -74,7 +86,6 @@ export default function SubscriptionCheckout() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           grams,
-          // Estos datos el backend los pasa a Stripe.Customer (ensureCustomer) para no repetirlos
           customer: {
             email: form.email,
             name: form.name,
@@ -83,9 +94,8 @@ export default function SubscriptionCheckout() {
             city: form.city,
             postal: form.postal_code,
             country: form.country || "ES",
-            province: form.province, // ← se mapea a address.state en el server
+            province: form.province, // → state en server
           },
-          // (Opcional) shipping_address si quieres tenerlo por separado en tu server
           shipping_address: {
             address: form.address,
             city: form.city,
@@ -93,7 +103,6 @@ export default function SubscriptionCheckout() {
             country: form.country || "ES",
             province: form.province,
           },
-          // Guardamos también en metadata para consumo propio y PDF
           metadata: {
             source: "guarros-front",
             flow: "subscription-precheckout",
@@ -121,7 +130,7 @@ export default function SubscriptionCheckout() {
         return;
       }
       if (data?.url) {
-        window.location.assign(data.url); // → pasa directo a Stripe con customer ya creado/actualizado
+        window.location.assign(data.url);
       } else {
         alert("No se pudo abrir el checkout de Stripe.");
       }
@@ -135,10 +144,7 @@ export default function SubscriptionCheckout() {
 
   return (
     <main className="shell py-12 md:py-16">
-      <Meta
-        title="Finalizar suscripción | Guarros Extremeños"
-        description="Introduce tus datos para completar la suscripción."
-      />
+      <Meta title="Finalizar suscripción | Guarros Extremeños" description="Introduce tus datos para completar la suscripción." />
 
       <header className="mb-8 md:mb-12 text-center">
         <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Finalizar suscripción</h1>
@@ -156,7 +162,7 @@ export default function SubscriptionCheckout() {
               className="h-11 w-full rounded-xl bg-black/60 text-white border border-white/15 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             >
               {SUBSCRIPTION_GRAMS.map((g) => (
-                <option key={g} value={g}>{g} g / mes</option>
+                <option key={g} value={g}>{g} g / mes — {getPriceFor(g)} €/mes</option>
               ))}
             </select>
           </div>
@@ -175,7 +181,20 @@ export default function SubscriptionCheckout() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <Field id="city" label="Ciudad" required value={form.city} onChange={handleChange} placeholder="Madrid" />
-            <Field id="province" label="Provincia" required value={form.province} onChange={handleChange} placeholder="Madrid" />
+
+            <div className="space-y-1.5">
+              <label htmlFor="province" className="block text-sm text-white/80">Provincia</label>
+              <select
+                id="province"
+                name="province"
+                value={form.province}
+                onChange={handleChange}
+                className="h-11 w-full rounded-xl bg-black/60 text-white border border-white/15 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+              >
+                {ES_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+
             <div className="space-y-1.5">
               <label htmlFor="country" className="block text-sm text-white/80">País</label>
               <select
