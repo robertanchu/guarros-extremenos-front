@@ -159,6 +159,7 @@ export default function SubscriptionCheckout() {
               >
                 Inicio
               </Link>
+            </div>
 
             {!planOk && (
               <p className="mt-3 text-xs text-yellow-300/80">
