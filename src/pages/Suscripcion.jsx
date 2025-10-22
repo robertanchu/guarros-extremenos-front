@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import Meta from "../lib/Meta";
 import FAQ from "@/components/FAQ";
 import SubscriptionPlans from "@/components/SubscriptionPlans";
-import PlansCompare from "@/components/PlansCompare"; // ⬅️ NUEVO
+import PlansCompare from "@/components/PlansCompare";
 import "@/styles/effects.css";
 
 import { useCart } from "@/store/cart";
@@ -30,10 +30,12 @@ export default function Suscripcion() {
       el.classList.remove("revealed");
       el.style.transitionDelay = (Math.min(i, 8) * 60) + "ms";
     });
+
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       els.forEach((el) => el.classList.add("revealed"));
       return;
     }
+
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -59,9 +61,7 @@ export default function Suscripcion() {
       {/* Cabecera */}
       <header className="mb-8 md:mb-12">
         <div className="max-w-3xl mx-auto text-center px-4">
-          <h1 className="text-3xl md:text-5xl font-stencil text-brand">
-            Suscripción Jamón Canalla
-          </h1>
+          <h1 className="text-3xl md:text-5xl font-stencil text-brand">Suscripción Jamón Canalla</h1>
           <p className="mt-4 text-zinc-300">
             El sabor que manda, cada mes en tu casa. Sin postureo, sin esperas y con la pureza del 100% ibérico D.O.P Dehesa de Extremadura.
           </p>
@@ -96,7 +96,7 @@ export default function Suscripcion() {
         </div>
       )}
 
-      {/* NUEVO: Comparativa de planes (tarjetas grandes + highlight) */}
+      {/* Comparativa de planes (tarjetas grandes) */}
       <PlansCompare />
 
       {/* Selector interactivo por gramos */}

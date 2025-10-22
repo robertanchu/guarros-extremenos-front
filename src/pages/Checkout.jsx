@@ -1,159 +1,305 @@
-import React, { useMemo, useState, useEffect } from "react";
+// src/pages/Checkout.jsx
+import React, { useMemo, useState } from "react";
 import { useCart } from "@/store/cart";
+import Meta from "@/lib/Meta";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "https://guarros-extremenos-api.onrender.com";
+// Resolver API base (prod / vercel / local)
+function resolveApiBase() {
+  const env = import.meta.env?.VITE_API_BASE;
+  if (env) return env.replace(/\/+$/, "");
+  if (typeof window !== "undefined") {
+    if (window.__API_BASE__) return String(window.__API_BASE__).replace(/\/+$/, "");
+    const host = window.location.hostname;
+    if (host.endsWith("guarrosextremenos.com") || host.endsWith("vercel.app")) {
+      return "https://guarros-extremenos-api.onrender.com";
+    }
+    if (host === "localhost" || host === "127.0.0.1") return "http://localhost:10000";
+  }
+  return "https://guarros-extremenos-api.onrender.com";
+}
+const API_BASE = resolveApiBase();
 
 export default function Checkout() {
-  const { items, total, clear } = useCart();
+  const { items } = useCart();
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState("");
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    province: "",       // ← NUEVO
+    postal_code: "",
+    country: "ES",
+  });
 
-  // Datos del cliente
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [province, setProvince] = useState(""); // ← NUEVO
-  const [postal, setPostal] = useState("");
-  const [country, setCountry] = useState("ES");
+  const totalQty = useMemo(
+    () => items.reduce((a, b) => a + (b.qty || 1), 0),
+    [items]
+  );
 
-  useEffect(() => {
-    // precargar del localStorage si quisieras…
-  }, []);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((s) => ({ ...s, [name]: value }));
+  };
 
-  const cartForAPI = useMemo(() => {
-    // Asegúrate de tener title/imágenes en tus cards
-    return items.map((it) => ({
-      priceId: it.priceId,
-      quantity: it.qty || 1,
-      title: it.title || it.name || it.productName, // ← esto es lo que verá el usuario en Stripe
-      image: it.image || it.img || undefined,
-    }));
-  }, [items]);
-
-  const canSubmit = useMemo(() => {
-    return cartForAPI.length > 0 && email && name && address && city && postal && country;
-  }, [cartForAPI, email, name, address, city, postal, country]);
-
-  const onSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!canSubmit) return;
-    setLoading(true);
-    setErr("");
+    if (!items.length) return alert("Tu carrito está vacío.");
 
+    const required = ["name", "email", "address", "city", "province", "postal_code"];
+    const missing = required.filter((k) => !String(form[k] || "").trim());
+    if (missing.length) {
+      alert("Completa todos los campos obligatorios.");
+      return;
+    }
+
+    setLoading(true);
     try {
-      const r = await fetch(`${API_BASE}/create-checkout-session`, {
+      // Importante: priceId + quantity para Stripe
+      const lineItems = items
+        .map((it) => ({
+          price: it.priceId,
+          quantity: it.qty || 1,
+        }))
+        .filter((li) => !!li.price);
+
+      const res = await fetch(`${API_BASE}/create-checkout-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: cartForAPI,
-          customer: { name, email, phone, address, city, postal, country, province },
-          success_url: `${window.location.origin}/success`,
-          cancel_url: `${window.location.origin}/cancel`,
+          items: lineItems,
+          // Datos de cliente para reusarlos en Stripe (el server hace ensureCustomer + customer_update)
+          customer: {
+            email: form.email,
+            name: form.name,
+            phone: form.phone,
+            address: form.address,
+            city: form.city,
+            postal: form.postal_code,
+            country: form.country || "ES",
+            province: form.province, // ← mapea a address.state en el server
+          },
+          // Shipping para tu registro/PDF (y opcionalmente para Stripe si lo usas)
+          shipping_address: {
+            address: form.address,
+            city: form.city,
+            postal_code: form.postal_code,
+            country: form.country || "ES",
+            province: form.province,
+          },
+          // Metadata para auditoría y factura propia
+          metadata: {
+            source: "guarros-front",
+            flow: "oneoff-precheckout",
+            name: form.name,
+            email: form.email,
+            phone: form.phone || "",
+            address: form.address,
+            city: form.city,
+            province: form.province,
+            postal: form.postal_code,
+            country: form.country || "ES",
+            items_count: String(totalQty),
+          },
         }),
       });
-      const data = await r.json();
-      if (!r.ok || !data?.url) throw new Error(data?.error || "Error iniciando checkout");
-      window.location.href = data.url;
-    } catch (e) {
-      setErr(e.message || "Error");
+
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = { error: await res.text() };
+      }
+
+      if (!res.ok) {
+        console.error("[checkout] fail:", data);
+        alert(data?.error || `No se pudo iniciar el pago (HTTP ${res.status}).`);
+        return;
+      }
+      if (data?.url) {
+        window.location.assign(data.url);
+      } else {
+        alert("No se pudo abrir el checkout de Stripe.");
+      }
+    } catch (err) {
+      console.error("[checkout] error:", err);
+      alert(err?.message || "No se pudo iniciar el pago.");
+    } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-black text-white py-12">
-      <div className="mx-auto max-w-5xl px-4">
-        <h1 className="text-3xl md:text-5xl font-stencil text-brand-red mb-6">Finalizar compra</h1>
+    <main className="shell py-12 md:py-16">
+      <Meta
+        title="Finalizar compra | Guarros Extremeños"
+        description="Introduce tus datos y paga de forma segura."
+      />
 
-        {err && <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm">{err}</div>}
+      <header className="mb-8 md:mb-12 text-center">
+        <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Finalizar compra</h1>
+        <p className="mt-3 text-zinc-300">
+          Datos de contacto y envío antes de ir al pago seguro.
+        </p>
+      </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Resumen */}
-          <div className="rounded-2xl border border-white/10 p-4 md:p-6 bg-white/5">
-            <h2 className="text-xl font-bold mb-3">Tu pedido</h2>
-            <ul className="space-y-3">
-              {items.map((it) => (
-                <li key={(it.id || it.priceId) + '-' + (it.variant || '')} className="flex items-center gap-3">
-                  {it.image && <img src={it.image} alt="" className="w-14 h-14 object-cover rounded-lg" />}
-                  <div className="flex-1">
-                    <div className="font-semibold">{it.title || it.name}</div>
-                    <div className="text-sm text-white/70">
-                      {it.qty || 1} × {(it.priceAmountFormatted || it.priceLabel || "")}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-4 border-t border-white/10 pt-4 flex justify-between">
-              <span className="font-bold">Total</span>
-              <span className="font-bold">{total.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}</span>
+      <section className="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
+        {/* Formulario */}
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7 space-y-5"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Field
+              id="name"
+              label="Nombre completo"
+              required
+              value={form.name}
+              onChange={handleChange}
+              placeholder="Tu nombre y apellidos"
+            />
+            <Field
+              id="email"
+              label="Email"
+              type="email"
+              required
+              value={form.email}
+              onChange={handleChange}
+              placeholder="tucorreo@ejemplo.com"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Field
+              id="phone"
+              label="Teléfono"
+              type="tel"
+              value={form.phone}
+              onChange={handleChange}
+              placeholder="+34 600 000 000"
+            />
+            <Field
+              id="postal_code"
+              label="Código Postal"
+              required
+              value={form.postal_code}
+              onChange={handleChange}
+              placeholder="28001"
+            />
+          </div>
+
+          <Field
+            id="address"
+            label="Dirección"
+            required
+            value={form.address}
+            onChange={handleChange}
+            placeholder="Calle y número"
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <Field
+              id="city"
+              label="Ciudad"
+              required
+              value={form.city}
+              onChange={handleChange}
+              placeholder="Madrid"
+            />
+            {/* NUEVO: Provincia */}
+            <Field
+              id="province"
+              label="Provincia"
+              required
+              value={form.province}
+              onChange={handleChange}
+              placeholder="Madrid"
+            />
+            <div className="space-y-1.5">
+              <label htmlFor="country" className="block text-sm text-white/80">
+                País
+              </label>
+              <select
+                id="country"
+                name="country"
+                value={form.country}
+                onChange={handleChange}
+                className="h-11 w-full rounded-xl bg-black/60 text-white border border-white/15 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+              >
+                <option value="ES">España</option>
+                <option value="PT">Portugal</option>
+                <option value="FR">Francia</option>
+              </select>
             </div>
           </div>
 
-          {/* Formulario */}
-          <form onSubmit={onSubmit} className="rounded-2xl border border-white/10 p-4 md:p-6 bg-white/5">
-            <h2 className="text-xl font-bold mb-3">Datos del comprador</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label className="flex flex-col gap-1">
-                <span className="text-sm text-white/70">Nombre</span>
-                <input className="bg-black/40 rounded-xl border border-white/15 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-red/60"
-                  value={name} onChange={e=>setName(e.target.value)} required />
-              </label>
-              <label className="flex flex-col gap-1">
-                <span className="text-sm text-white/70">Email</span>
-                <input type="email" className="bg-black/40 rounded-xl border border-white/15 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-red/60"
-                  value={email} onChange={e=>setEmail(e.target.value)} required />
-              </label>
-              <label className="flex flex-col gap-1">
-                <span className="text-sm text-white/70">Teléfono</span>
-                <input className="bg-black/40 rounded-xl border border-white/15 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-red/60"
-                  value={phone} onChange={e=>setPhone(e.target.value)} />
-              </label>
-
-              <label className="flex flex-col gap-1 md:col-span-2">
-                <span className="text-sm text-white/70">Dirección</span>
-                <input className="bg-black/40 rounded-xl border border-white/15 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-red/60"
-                  value={address} onChange={e=>setAddress(e.target.value)} required />
-              </label>
-
-              <label className="flex flex-col gap-1">
-                <span className="text-sm text-white/70">Ciudad</span>
-                <input className="bg-black/40 rounded-xl border border-white/15 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-red/60"
-                  value={city} onChange={e=>setCity(e.target.value)} required />
-              </label>
-
-              <label className="flex flex-col gap-1">
-                <span className="text-sm text-white/70">Provincia</span>
-                <input className="bg-black/40 rounded-xl border border-white/15 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-red/60"
-                  value={province} onChange={e=>setProvince(e.target.value)} />
-              </label>
-
-              <label className="flex flex-col gap-1">
-                <span className="text-sm text-white/70">Código postal</span>
-                <input className="bg-black/40 rounded-xl border border-white/15 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-red/60"
-                  value={postal} onChange={e=>setPostal(e.target.value)} required />
-              </label>
-
-              <label className="flex flex-col gap-1">
-                <span className="text-sm text-white/70">País</span>
-                <input className="bg-black/40 rounded-xl border border-white/15 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-red/60"
-                  value={country} onChange={e=>setCountry(e.target.value)} />
-              </label>
-            </div>
-
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => history.back()}
+              className="btn-secondary"
+            >
+              Volver
+            </button>
             <button
               type="submit"
-              disabled={!canSubmit || loading}
-              className="mt-6 w-full rounded-2xl px-4 py-3 font-stencil text-lg tracking-wide bg-brand-red text-white hover:brightness-110 active:scale-[.98] transition"
+              disabled={loading || !items.length}
+              className="relative inline-flex items-center justify-center rounded-xl px-6 py-3 font-stencil bg-brand text-white ring-1 ring-brand/30 shadow-[0_8px_22px_rgba(214,40,40,.35)] hover:translate-y-[-1px] hover:shadow-[0_12px_28px_rgba(214,40,40,.45)]"
             >
-              {loading ? "Cargando…" : "Ir a pago seguro"}
+              {loading ? "Redirigiendo a Stripe..." : "Ir a pago seguro"}
             </button>
-          </form>
-        </div>
-      </div>
+          </div>
+        </form>
+
+        {/* Resumen */}
+        <aside className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7">
+          <h2 className="text-xl font-semibold text-white mb-4">Resumen</h2>
+          {!items.length ? (
+            <p className="text-zinc-300">Tu carrito está vacío.</p>
+          ) : (
+            items.map((it) => (
+              <div
+                key={`${it.id}-${it.priceId}`}
+                className="flex items-center justify-between py-2 border-b border-white/10"
+              >
+                <div className="text-white">
+                  {it.title} {it.variant ? `– ${it.variant}` : ""}
+                </div>
+                <div className="text-white/90">x{it.qty || 1}</div>
+              </div>
+            ))
+          )}
+        </aside>
+      </section>
+    </main>
+  );
+}
+
+function Field({
+  id,
+  label,
+  type = "text",
+  value,
+  onChange,
+  required = false,
+  placeholder,
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={id} className="block text-sm text-white/80">
+        {label}
+      </label>
+      <input
+        id={id}
+        name={id}
+        type={type}
+        required={required}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="h-11 w-full rounded-xl bg-black/60 text-white border border-white/15 px-3 placeholder:text-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+      />
     </div>
   );
 }
