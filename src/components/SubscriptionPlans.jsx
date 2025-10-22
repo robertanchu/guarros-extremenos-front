@@ -93,7 +93,7 @@ export default function SubscriptionPlans() {
             </div>
           </div>
 
-          <div className="w-full md:w-64">
+          <div className="w-full md:w-64 text-center">
             <div className="text-sm text-zinc-400 mb-1">Precio</div>
             <div className="text-3xl font-extrabold text-brand">
               {planOk ? `${priceLabel}/mes` : "—"}
