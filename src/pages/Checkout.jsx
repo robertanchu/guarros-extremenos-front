@@ -1,239 +1,210 @@
-// src/pages/Checkout.jsx
 import React, { useMemo, useState } from "react";
 import { useCart } from "@/store/cart";
-import Meta from "@/lib/Meta";
+import { Link } from "react-router-dom";
 
-// Provincias de España (canónicas para Stripe)
-const ES_PROVINCES = [
-  "Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila",
-  "Badajoz", "Baleares", "Barcelona", "Burgos", "Cáceres", "Cádiz",
-  "Cantabria", "Castellón", "Ciudad Real", "Córdoba", "Cuenca",
-  "Girona", "Granada", "Guadalajara", "Gipuzkoa", "Huelva", "Huesca",
-  "Jaén", "La Rioja", "Las Palmas", "León", "Lleida", "Lugo", "Madrid",
-  "Málaga", "Murcia", "Navarra", "Ourense", "Palencia", "Pontevedra",
-  "Salamanca", "Santa Cruz de Tenerife", "Segovia", "Sevilla", "Soria",
-  "Tarragona", "Teruel", "Toledo", "Valencia", "Valladolid", "Bizkaia",
-  "Zamora", "Zaragoza", "Ceuta", "Melilla"
-];
-
-function resolveApiBase() {
-  const env = import.meta.env?.VITE_API_BASE;
-  if (env) return env.replace(/\/+$/, "");
-  if (typeof window !== "undefined") {
-    if (window.__API_BASE__) return String(window.__API_BASE__).replace(/\/+$/, "");
-    const host = window.location.hostname;
-    if (host.endsWith("guarrosextremenos.com") || host.endsWith("vercel.app")) {
-      return "https://guarros-extremenos-api.onrender.com";
-    }
-    if (host === "localhost" || host === "127.0.0.1") return "http://localhost:10000";
-  }
-  return "https://guarros-extremenos-api.onrender.com";
-}
-const API_BASE = resolveApiBase();
+const API_BASE =
+  import.meta.env.VITE_API_BASE ||
+  "https://guarros-extremenos-api.onrender.com";
+const FRONT_BASE =
+  import.meta.env.VITE_FRONT_BASE || "https://guarrosextremenos.com";
 
 export default function Checkout() {
-  const { items } = useCart();
+  const { items, clear } = useCart();
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-    city: "",
-    province: "Madrid",
-    postal_code: "",
-    country: "ES",
-  });
+  const [err, setErr] = useState("");
 
-  const totalQty = useMemo(() => items.reduce((a, b) => a + (b.qty || 1), 0), [items]);
+  const hasItems = items && items.length > 0;
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((s) => ({ ...s, [name]: value }));
-  };
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!items.length) return alert("Tu carrito está vacío.");
-
-    const required = ["name", "email", "address", "city", "province", "postal_code"];
-    const missing = required.filter((k) => !String(form[k] || "").trim());
-    if (missing.length) {
-      alert("Completa todos los campos obligatorios.");
-      return;
+  const totals = useMemo(() => {
+    // Cada item debería traer unit_amount o priceUnit; si no, calculamos desde total/qty como fallback visual.
+    let subtotal = 0;
+    for (const it of items) {
+      const lineTotal =
+        typeof it.totalCents === "number"
+          ? it.totalCents
+          : (it.unitAmountCents || 0) * (it.qty || 1);
+      subtotal += lineTotal;
     }
+    return {
+      subtotalCents: subtotal,
+      subtotal: (subtotal / 100).toLocaleString("es-ES", {
+        style: "currency",
+        currency: "EUR",
+      }),
+    };
+  }, [items]);
 
-    setLoading(true);
+  async function handlePay() {
     try {
-      // Pasamos title e image para pintar nombre exacto en Stripe
-      const lineItems = items
-        .map((it) => ({
-          price: it.priceId,
-          quantity: it.qty || 1,
-          title: it.title || it.name,
-          image: it.image || it.img || undefined,
-        }))
-        .filter((li) => !!li.price);
+      setErr("");
+      setLoading(true);
+
+      // Construimos los items mínimos para el backend:
+      const payloadItems = items.map((it) => ({
+        price: it.priceId || it.price, // Stripe PriceID
+        quantity: it.qty || 1,
+        title: it.title || it.name,
+        image: it.image, // si la tienes; el backend la hará absoluta
+      }));
 
       const res = await fetch(`${API_BASE}/create-checkout-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: lineItems,
-          customer: {
-            email: form.email,
-            name: form.name,
-            phone: form.phone,
-            address: form.address,
-            city: form.city,
-            postal: form.postal_code,
-            country: form.country || "ES",
-            province: form.province, // mapea a state en el server
-          },
-          shipping_address: {
-            address: form.address,
-            city: form.city,
-            postal_code: form.postal_code,
-            country: form.country || "ES",
-            province: form.province,
-          },
-          metadata: {
-            source: "guarros-front",
-            flow: "oneoff-precheckout",
-            name: form.name,
-            email: form.email,
-            phone: form.phone || "",
-            address: form.address,
-            city: form.city,
-            province: form.province,
-            postal: form.postal_code,
-            country: form.country || "ES",
-            items_count: String(totalQty),
-          },
+          items: payloadItems,
+          success_url: `${FRONT_BASE}/success`,
+          cancel_url: `${FRONT_BASE}/cancel`,
+          metadata: { source: "front-checkout" },
         }),
       });
 
-      let data;
-      try { data = await res.json(); } catch { data = { error: await res.text() }; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.url) {
+        throw new Error(data?.error || "Error al crear la sesión de pago");
+      }
 
-      if (!res.ok) {
-        console.error("[checkout] fail:", data);
-        alert(data?.error || `No se pudo iniciar el pago (HTTP ${res.status}).`);
-        return;
-      }
-      if (data?.url) {
-        window.location.assign(data.url);
-      } else {
-        alert("No se pudo abrir el checkout de Stripe.");
-      }
-    } catch (err) {
-      console.error("[checkout] error:", err);
-      alert(err?.message || "No se pudo iniciar el pago.");
-    } finally {
+      // Redirigimos a Stripe
+      window.location.href = data.url;
+    } catch (e) {
+      console.error("[checkout] error:", e);
+      setErr(e.message || "Error al iniciar el pago");
       setLoading(false);
     }
   }
 
-  return (
-    <main className="shell py-12 md:py-16">
-      <Meta title="Finalizar compra | Guarros Extremeños" description="Introduce tus datos y paga de forma segura." />
-      <header className="mb-8 md:mb-12 text-center">
-        <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Finalizar compra</h1>
-        <p className="mt-3 text-zinc-300">Datos de contacto y envío antes de ir al pago seguro.</p>
-      </header>
-
-      <section className="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
-        {/* Formulario */}
-        <form onSubmit={handleSubmit} className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7 space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Field id="name" label="Nombre completo" required value={form.name} onChange={handleChange} placeholder="Tu nombre y apellidos" />
-            <Field id="email" label="Email" type="email" required value={form.email} onChange={handleChange} placeholder="tucorreo@ejemplo.com" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Field id="phone" label="Teléfono" type="tel" value={form.phone} onChange={handleChange} placeholder="+34 600 000 000" />
-            <Field id="postal_code" label="Código Postal" required value={form.postal_code} onChange={handleChange} placeholder="28001" />
-          </div>
-
-          <Field id="address" label="Dirección" required value={form.address} onChange={handleChange} placeholder="Calle y número" />
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <Field id="city" label="Ciudad" required value={form.city} onChange={handleChange} placeholder="Madrid" />
-            {/* Provincia como select */}
-            <div className="space-y-1.5">
-              <label htmlFor="province" className="block text-sm text-white/80">Provincia</label>
-              <select
-                id="province"
-                name="province"
-                value={form.province}
-                onChange={handleChange}
-                className="h-11 w-full rounded-xl bg-black/60 text-white border border-white/15 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-              >
-                {ES_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label htmlFor="country" className="block text-sm text-white/80">País</label>
-              <select
-                id="country"
-                name="country"
-                value={form.country}
-                onChange={handleChange}
-                className="h-11 w-full rounded-xl bg-black/60 text-white border border-white/15 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-              >
-                <option value="ES">España</option>
-                <option value="PT">Portugal</option>
-                <option value="FR">Francia</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 pt-2">
-            <button type="button" onClick={() => history.back()} className="btn-secondary">Volver</button>
-            <button
-              type="submit"
-              disabled={loading || !items.length}
-              className="relative inline-flex items-center justify-center rounded-xl px-6 py-3 font-stencil bg-brand text-white ring-1 ring-brand/30 shadow-[0_8px_22px_rgba(214,40,40,.35)] hover:translate-y-[-1px] hover:shadow-[0_12px_28px_rgba(214,40,40,.45)]"
+  if (!hasItems) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center px-4">
+        <div className="max-w-2xl w-full text-center">
+          <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">
+            Checkout
+          </h1>
+          <p className="mt-3 text-white/80">
+            Tu carrito está vacío. Añade algún producto antes de continuar.
+          </p>
+          <div className="mt-6 flex justify-center gap-3">
+            <Link
+              to="/"
+              className="inline-flex items-center justify-center rounded-2xl px-5 py-3 font-black uppercase tracking-wide btn-primary btn-shiny"
             >
-              {loading ? "Redirigiendo a Stripe..." : "Ir a pago seguro"}
-            </button>
+              Inicio
+            </Link>
+            <Link
+              to="/jamones"
+              className="inline-flex items-center justify-center rounded-2xl px-5 py-3 font-black uppercase tracking-wide btn-ghost"
+            >
+              Ver jamones
+            </Link>
           </div>
-        </form>
+        </div>
+      </div>
+    );
+  }
 
-        {/* Resumen */}
-        <aside className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7">
-          <h2 className="text-xl font-semibold text-white mb-4">Resumen</h2>
-          {!items.length ? (
-            <p className="text-zinc-300">Tu carrito está vacío.</p>
-          ) : (
-            items.map((it) => (
-              <div key={`${it.id}-${it.priceId}`} className="flex items-center justify-between py-2 border-b border-white/10">
-                <div className="text-white">{it.title} {it.variant ? `– ${it.variant}` : ""}</div>
-                <div className="text-white/90">x{it.qty || 1}</div>
-              </div>
-            ))
-          )}
-        </aside>
-      </section>
-    </main>
-  );
-}
-
-function Field({ id, label, type = "text", value, onChange, required = false, placeholder }) {
   return (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-sm text-white/80">{label}</label>
-      <input
-        id={id}
-        name={id}
-        type={type}
-        required={required}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="h-11 w-full rounded-xl bg-black/60 text-white border border-white/15 px-3 placeholder:text-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-      />
+    <div className="min-h-[70vh] w-full px-4">
+      <div className="mx-auto max-w-5xl py-10">
+        <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">
+          Checkout
+        </h1>
+
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Resumen de productos */}
+          <section className="lg:col-span-7 bg-white/5 border border-white/10 rounded-2xl p-5">
+            <h2 className="text-lg font-black text-white tracking-wide mb-3 uppercase">
+              Resumen del pedido
+            </h2>
+            <ul className="divide-y divide-white/10">
+              {items.map((it) => {
+                const lineTotal =
+                  typeof it.totalCents === "number"
+                    ? it.totalCents
+                    : (it.unitAmountCents || 0) * (it.qty || 1);
+                const lineTotalFmt = (lineTotal / 100).toLocaleString("es-ES", {
+                  style: "currency",
+                  currency: "EUR",
+                });
+
+                return (
+                  <li
+                    key={`${it.id || it.priceId}-${it.variant || "std"}`}
+                    className="py-4 flex items-center gap-4"
+                  >
+                    {it.image && (
+                      <img
+                        src={it.image}
+                        alt={it.title || "Producto"}
+                        className="w-16 h-16 object-cover rounded-lg border border-white/10"
+                        loading="lazy"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-bold">
+                        {it.title || it.name || "Producto"}
+                      </p>
+                      <p className="text-white/60 text-sm">
+                        Cantidad: {it.qty || 1}
+                        {it.variantLabel ? ` · ${it.variantLabel}` : ""}
+                      </p>
+                    </div>
+                    <div className="text-right text-white font-black">
+                      {lineTotalFmt}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+
+          {/* Total + acción */}
+          <aside className="lg:col-span-5 bg-white/5 border border-white/10 rounded-2xl p-5 h-fit">
+            <h2 className="text-lg font-black text-white tracking-wide mb-3 uppercase">
+              Total
+            </h2>
+            <div className="flex items-center justify-between py-3 border-b border-white/10">
+              <span className="text-white/70">Subtotal</span>
+              <span className="text-white font-bold">{totals.subtotal}</span>
+            </div>
+            <div className="flex items-center justify-between py-3">
+              <span className="text-white/70">Envío e impuestos</span>
+              <span className="text-white/60 text-sm">
+                Se calculan en Stripe
+              </span>
+            </div>
+
+            {err && (
+              <div className="mt-3 text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
+                {err}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handlePay}
+              disabled={loading}
+              className="mt-5 w-full inline-flex items-center justify-center rounded-2xl px-5 py-3 font-black uppercase tracking-wide btn-primary btn-shiny disabled:opacity-60"
+              aria-label="Ir a pago seguro"
+            >
+              {loading ? "Conectando con Stripe..." : "Ir a pago seguro"}
+            </button>
+
+            <div className="mt-4 flex justify-between gap-3 text-sm">
+              <Link
+                to="/jamones"
+                className="inline-flex items-center justify-center rounded-2xl px-4 py-2 font-black uppercase tracking-wide btn-ghost"
+              >
+                Seguir comprando
+              </Link>
+              <Link
+                to="/"
+                className="inline-flex items-center justify-center rounded-2xl px-4 py-2 font-black uppercase tracking-wide btn-primary btn-shiny"
+              >
+                Inicio
+              </Link>
+            </div>
+          </aside>
+        </div>
+      </div>
     </div>
   );
 }

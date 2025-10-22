@@ -1,275 +1,173 @@
-// src/pages/SubscriptionCheckout.jsx
-import React, { useMemo, useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import Meta from "@/lib/Meta";
-import { SUBSCRIPTION_GRAMS, getPriceFor, clampToValidGrams } from "@/data/subscriptionPricing";
+import React, { useMemo, useState } from "react";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 
-// Provincias ES
-const ES_PROVINCES = [
-  "Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila",
-  "Badajoz", "Baleares", "Barcelona", "Burgos", "Cáceres", "Cádiz",
-  "Cantabria", "Castellón", "Ciudad Real", "Córdoba", "Cuenca",
-  "Girona", "Granada", "Guadalajara", "Gipuzkoa", "Huelva", "Huesca",
-  "Jaén", "La Rioja", "Las Palmas", "León", "Lleida", "Lugo", "Madrid",
-  "Málaga", "Murcia", "Navarra", "Ourense", "Palencia", "Pontevedra",
-  "Salamanca", "Santa Cruz de Tenerife", "Segovia", "Sevilla", "Soria",
-  "Tarragona", "Teruel", "Toledo", "Valencia", "Valladolid", "Bizkaia",
-  "Zamora", "Zaragoza", "Ceuta", "Melilla"
-];
+const API_BASE =
+  import.meta.env.VITE_API_BASE ||
+  "https://guarros-extremenos-api.onrender.com";
+const FRONT_BASE =
+  import.meta.env.VITE_FRONT_BASE || "https://guarrosextremenos.com";
 
-function resolveApiBase() {
-  const env = import.meta.env?.VITE_API_BASE;
-  if (env) return env.replace(/\/+$/, "");
-  if (typeof window !== "undefined") {
-    if (window.__API_BASE__) return String(window.__API_BASE__).replace(/\/+$/, "");
-    const host = window.location.hostname;
-    if (host.endsWith("guarrosextremenos.com") || host.endsWith("vercel.app")) {
-      return "https://guarros-extremenos-api.onrender.com";
-    }
-    if (host === "localhost" || host === "127.0.0.1") return "http://localhost:10000";
-  }
-  return "https://guarros-extremenos-api.onrender.com";
+// Tabla espejo SOLO para mostrar el precio al usuario (la autoridad real es el backend).
+const SUB_PRICE_TABLE = Object.freeze({
+  100: 4600,
+  200: 5800,
+  300: 6900,
+  400: 8000,
+  500: 9100,
+  600: 10300,
+  700: 11400,
+  800: 12500,
+  900: 13600,
+  1000: 14800,
+  1500: 20400,
+  2000: 26000,
+});
+
+function useQuery() {
+  const { search } = useLocation();
+  return useMemo(() => new URLSearchParams(search), [search]);
 }
-const API_BASE = resolveApiBase();
 
 export default function SubscriptionCheckout() {
-  const [search] = useSearchParams();
+  const query = useQuery();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const clampSafe = (v) => {
-    try { return clampToValidGrams(v || 500); } catch { return 500; }
-  };
+  const gramsFromState = location.state?.grams;
+  const gramsFromQuery = Number(query.get("grams"));
+  const grams = gramsFromState || gramsFromQuery || 500; // por defecto 500g
 
-  const initialGrams = clampSafe(search.get("grams"));
-  const [grams, setGrams] = useState(initialGrams);
-  const price = useMemo(() => getPriceFor(grams), [grams]);
-  const planOk = price != null;
-
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-    city: "",
-    province: "Madrid",
-    postal_code: "",
-    country: "ES",
-  });
   const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
 
-  useEffect(() => {
-    const qg = search.get("grams");
-    if (qg) setGrams(clampSafe(qg));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const priceCents = SUB_PRICE_TABLE[grams];
+  const priceFmt = useMemo(() => {
+    if (!priceCents) return "-";
+    return (priceCents / 100).toLocaleString("es-ES", {
+      style: "currency",
+      currency: "EUR",
+    });
+  }, [priceCents]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((s) => ({ ...s, [name]: value }));
-  };
+  const planOk = Boolean(SUB_PRICE_TABLE[grams]);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!planOk) return alert("Selecciona una cantidad válida.");
-
-    const required = ["name", "email", "address", "city", "province", "postal_code"];
-    const missing = required.filter((k) => !String(form[k] || "").trim());
-    if (missing.length) {
-      alert("Completa todos los campos obligatorios.");
-      return;
-    }
-
-    setLoading(true);
+  async function handleStart() {
     try {
+      setErr("");
+      setLoading(true);
+
       const res = await fetch(`${API_BASE}/create-subscription-session`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           grams,
-          customer: {
-            email: form.email,
-            name: form.name,
-            phone: form.phone,
-            address: form.address,
-            city: form.city,
-            postal: form.postal_code,
-            country: form.country || "ES",
-            province: form.province, // → state en server
-          },
-          shipping_address: {
-            address: form.address,
-            city: form.city,
-            postal_code: form.postal_code,
-            country: form.country || "ES",
-            province: form.province,
-          },
-          metadata: {
-            source: "guarros-front",
-            flow: "subscription-precheckout",
-            grams: String(grams),
-            displayed_price: String(price),
-            name: form.name,
-            email: form.email,
-            phone: form.phone || "",
-            address: form.address,
-            city: form.city,
-            postal: form.postal_code,
-            country: form.country || "ES",
-            province: form.province,
-          },
+          success_url: `${FRONT_BASE}/success`,
+          cancel_url: `${FRONT_BASE}/cancel`,
+          metadata: { source: "front-subscription-checkout" },
         }),
       });
 
-      let data;
-      try { data = await res.json(); }
-      catch { data = { error: await res.text() }; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.url) {
+        throw new Error(data?.error || "No se pudo iniciar la suscripción");
+      }
 
-      if (!res.ok) {
-        console.error("[subscription pre-checkout] fail:", data);
-        alert(data?.error || `No se pudo iniciar la suscripción (HTTP ${res.status}).`);
-        return;
-      }
-      if (data?.url) {
-        window.location.assign(data.url);
-      } else {
-        alert("No se pudo abrir el checkout de Stripe.");
-      }
-    } catch (err) {
-      console.error("[subscription pre-checkout] error:", err);
-      alert(err?.message || "No se pudo iniciar la suscripción. Inténtalo de nuevo.");
-    } finally {
+      window.location.href = data.url;
+    } catch (e) {
+      console.error("[subscription] error:", e);
+      setErr(e.message || "Error al iniciar la suscripción");
       setLoading(false);
     }
   }
 
   return (
-    <main className="shell py-12 md:py-16">
-      <Meta title="Finalizar suscripción | Guarros Extremeños" description="Introduce tus datos para completar la suscripción." />
+    <div className="min-h-[70vh] w-full px-4">
+      <div className="mx-auto max-w-4xl py-10">
+        <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">
+          Suscripción — Resumen
+        </h1>
 
-      <header className="mb-8 md:mb-12 text-center">
-        <h1 className="mt-2 text-3xl md:text-5xl font-stencil text-brand">Finalizar suscripción</h1>
-        <p className="mt-3 text-zinc-300">Tus datos para la entrega y contacto antes de ir al pago seguro.</p>
-      </header>
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Resumen visual del plan */}
+          <section className="lg:col-span-7 bg-white/5 border border-white/10 rounded-2xl p-5">
+            <h2 className="text-lg font-black text-white tracking-wide mb-3 uppercase">
+              Tu elección
+            </h2>
 
-      <section className="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
-        {/* Formulario */}
-        <form onSubmit={handleSubmit} className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7 space-y-5">
-          <div className="space-y-1.5">
-            <label className="block text-sm text-white/80">Cantidad mensual (gramos)</label>
-            <select
-              value={grams}
-              onChange={(e) => setGrams(clampSafe(e.target.value))}
-              className="h-11 w-full rounded-xl bg-black/60 text-white border border-white/15 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-            >
-              {SUBSCRIPTION_GRAMS.map((g) => (
-                <option key={g} value={g}>{g} g / mes — {getPriceFor(g)} €/mes</option>
-              ))}
-            </select>
-          </div>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-white font-bold text-lg">
+                  Suscripción Jamón Canalla
+                </p>
+                <p className="text-white/70">
+                  {grams} g / mes — {priceFmt}
+                </p>
+                <p className="mt-2 text-white/60 text-sm">
+                  Gestiona o cancela tu suscripción cuando quieras desde el
+                  portal de cliente de Stripe (te enviaremos el enlace por
+                  email tras el primer pago).
+                </p>
+              </div>
+            </div>
+          </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Field id="name" label="Nombre completo" required value={form.name} onChange={handleChange} placeholder="Tu nombre y apellidos" />
-            <Field id="email" label="Email" type="email" required value={form.email} onChange={handleChange} placeholder="tucorreo@ejemplo.com" />
-          </div>
+          {/* Acción */}
+          <aside className="lg:col-span-5 bg-white/5 border border-white/10 rounded-2xl p-5 h-fit">
+            <h2 className="text-lg font-black text-white tracking-wide mb-3 uppercase">
+              Total primer mes
+            </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <Field id="phone" label="Teléfono" type="tel" value={form.phone} onChange={handleChange} placeholder="+34 600 000 000" />
-            <Field id="postal_code" label="Código Postal" required value={form.postal_code} onChange={handleChange} placeholder="28001" />
-          </div>
-
-          <Field id="address" label="Dirección" required value={form.address} onChange={handleChange} placeholder="Calle y número" />
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <Field id="city" label="Ciudad" required value={form.city} onChange={handleChange} placeholder="Madrid" />
-
-            <div className="space-y-1.5">
-              <label htmlFor="province" className="block text-sm text-white/80">Provincia</label>
-              <select
-                id="province"
-                name="province"
-                value={form.province}
-                onChange={handleChange}
-                className="h-11 w-full rounded-xl bg-black/60 text-white border border-white/15 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-              >
-                {ES_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
+            <div className="flex items-center justify-between py-3 border-b border-white/10">
+              <span className="text-white/70">Importe</span>
+              <span className="text-white font-bold">{priceFmt}</span>
+            </div>
+            <div className="flex items-center justify-between py-3">
+              <span className="text-white/70">Impuestos y envío</span>
+              <span className="text-white/60 text-sm">
+                Se calculan en Stripe
+              </span>
             </div>
 
-            <div className="space-y-1.5">
-              <label htmlFor="country" className="block text-sm text-white/80">País</label>
-              <select
-                id="country"
-                name="country"
-                value={form.country}
-                onChange={handleChange}
-                className="h-11 w-full rounded-xl bg-black/60 text-white border border-white/15 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-              >
-                <option value="ES">España</option>
-                <option value="PT">Portugal</option>
-                <option value="FR">Francia</option>
-              </select>
-            </div>
-          </div>
+            {err && (
+              <div className="mt-3 text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
+                {err}
+              </div>
+            )}
 
-          <div className="flex items-center gap-3 pt-2">
-            <button type="button" onClick={() => navigate(-1)} className="btn-secondary" aria-label="Volver">Volver</button>
             <button
-              type="submit"
+              type="button"
+              onClick={handleStart}
               disabled={loading || !planOk}
-              className="relative inline-flex items-center justify-center rounded-xl px-6 py-3 font-stencil bg-brand text-white ring-1 ring-brand/30 shadow-[0_8px_22px_rgba(214,40,40,.35)] hover:translate-y-[-1px] hover:shadow-[0_12px_28px_rgba(214,40,40,.45)]"
+              className="mt-5 w-full inline-flex items-center justify-center rounded-2xl px-5 py-3 font-black uppercase tracking-wide btn-primary btn-shiny disabled:opacity-60"
               aria-label="Continuar al pago"
             >
-              {loading ? "Redirigiendo a Stripe..." : "Continuar al pago"}
+              {loading ? "Conectando con Stripe..." : "Suscribirme"}
             </button>
-          </div>
-        </form>
 
-        {/* Resumen */}
-        <aside className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 md:p-7">
-          <h2 className="text-xl font-semibold text-white mb-4">Resumen de la suscripción</h2>
-          {planOk ? (
-            <>
-              <div className="flex items-start justify-between gap-4">
-                <div className="text-white">Suscripción {grams} g / mes</div>
-                <div className="text-white font-semibold">{price} €/mes</div>
-              </div>
+            <div className="mt-4 flex justify-between gap-3 text-sm">
+              <Link
+                to="/suscripcion"
+                className="inline-flex items-center justify-center rounded-2xl px-4 py-2 font-black uppercase tracking-wide btn-ghost"
+              >
+                Volver
+              </Link>
+              <Link
+                to="/"
+                className="inline-flex items-center justify-center rounded-2xl px-4 py-2 font-black uppercase tracking-wide btn-primary btn-shiny"
+              >
+                Inicio
+              </Link>
+            </div>
 
-              <div className="mt-4 border-t border-white/10 pt-4">
-                <h3 className="text-sm text-white/70 mb-2">Incluye</h3>
-                <ul className="text-white/85 text-sm space-y-2">
-                  <li>• 100% Ibérico D.O.P. Dehesa de Extremadura</li>
-                  <li>• Sobres al vacío, corte fino</li>
-                  <li>• Cancela cuando quieras</li>
-                </ul>
-              </div>
-
-              <p className="mt-3 text-xs text-white/50">
-                Tus datos viajan a Stripe y se guardan en el cliente para no volver a pedirlos.
+            {!planOk && (
+              <p className="mt-3 text-xs text-yellow-300/80">
+                Cantidad no válida. Vuelve atrás y selecciona un tramo permitido
+                (100–2000 g).
               </p>
-            </>
-          ) : (
-            <p className="text-white/70">Selecciona una cantidad para ver el resumen.</p>
-          )}
-        </aside>
-      </section>
-    </main>
-  );
-}
-
-function Field({ id, label, type = "text", value, onChange, required = false, placeholder }) {
-  return (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-sm text-white/80">{label}</label>
-      <input
-        id={id}
-        name={id}
-        type={type}
-        required={required}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="h-11 w-full rounded-xl bg-black/60 text-white border border-white/15 px-3 placeholder:text-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-      />
+            )}
+          </aside>
+        </div>
+      </div>
     </div>
   );
 }
