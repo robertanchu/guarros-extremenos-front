@@ -77,12 +77,6 @@ export default function PlansCompare() {
               </div>
             </div>
 
-            <ul className="mt-4 md:mt-5 text-sm text-zinc-300 space-y-1.5">
-              <li>✔ Corte a cuchillo al vacío</li>
-              <li>✔ Envío mensual incluido</li>
-              <li>✔ Sin permanencia</li>
-            </ul>
-
             <button
               type="button"
               onClick={() => onChoosePlan(p.g)}
