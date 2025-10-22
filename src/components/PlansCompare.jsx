@@ -108,7 +108,7 @@ export default function PlansCompare() {
       </div>
 
       <motion.p {...fadeUp} className="text-center text-zinc-400 text-sm mt-6">
-        Los importes mostrados son finales (IVA y envío incluidos). Gestiona tu suscripción cuando quieras desde tu portal de cliente.
+        Los importes mostrados son finales (IVA y envío incluidos). Gestiona tu suscripción cuando quieras desde el email de confirmación.
       </motion.p>
     </section>
   );
