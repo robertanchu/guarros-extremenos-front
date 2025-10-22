@@ -8,14 +8,17 @@ import {
 } from "@/data/subscriptionPricing";
 
 export default function SubscriptionPlans() {
-  const [selectedGrams, setSelectedGrams] = useState(500); // default sugerido
-  const price = useMemo(() => getPriceFor(selectedGrams), [selectedGrams]);
-  const planOk = price != null;
+  // Valor por defecto sugerido
+  const [selectedGrams, setSelectedGrams] = useState(500);
   const navigate = useNavigate();
 
-  // Exponer API global para preseleccionar plan desde la comparativa
+  // Precio calculado desde la tabla centralizada
+  const price = useMemo(() => getPriceFor(selectedGrams), [selectedGrams]);
+  const planOk = price != null;
+
+  // Exponer función global para seleccionar plan desde la comparativa
   useEffect(() => {
-    const handler = (grams) => setSelectedGrams(clampToValidGrams(grams));
+    const handler = (grams) => setSelectedGrams(clampToValidGrmsSafe(grams));
     if (typeof window !== "undefined") {
       window.selectPlan = handler;
     }
@@ -26,10 +29,36 @@ export default function SubscriptionPlans() {
     };
   }, []);
 
+  // Wrapper seguro por si llega algo raro
+  function clampToValidGrmsSafe(g) {
+    try {
+      return clampToValidGrams(g);
+    } catch {
+      return 500;
+    }
+  }
+
+  // Navegación al checkout de suscripción (conservar funcionalidad)
   function goToSubscriptionCheckout() {
     if (!planOk) return;
-    navigate(`/subscription-checkout?grams=${selectedGrms}`);
+    // ✅ Corregido: usar selectedGrams (antes había un typo)
+    navigate(`/subscription-checkout?grams=${selectedGrams}`);
   }
+
+  // Formateo de precio (por si getPriceFor devuelve número en euros)
+  const priceLabel = useMemo(() => {
+    if (price == null) return "—";
+    try {
+      return Number(price).toLocaleString("es-ES", {
+        style: "currency",
+        currency: "EUR",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      });
+    } catch {
+      return `${price} €`;
+    }
+  }, [price]);
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -67,14 +96,16 @@ export default function SubscriptionPlans() {
           <div className="w-full md:w-64">
             <div className="text-sm text-zinc-400 mb-1">Precio</div>
             <div className="text-3xl font-extrabold text-brand">
-              {planOk ? `${price} €/mes` : "—"}
+              {planOk ? `${priceLabel}/mes` : "—"}
             </div>
-            <div className="text-xs text-zinc-500">IVA y envío incluidos</div>
+            <div className="text-xs text-zinc-500">
+              IVA y envío calculados en Stripe
+            </div>
           </div>
         </div>
 
         <div className="mt-5 md:mt-6">
-          {/* Botón igualado al rojo canalla (como “Ver Jamones”) */}
+          {/* Botón rojo canalla (igual que “Ver Jamones” del Hero) + funcionalidades conservadas */}
           <button
             type="button"
             onClick={goToSubscriptionCheckout}
