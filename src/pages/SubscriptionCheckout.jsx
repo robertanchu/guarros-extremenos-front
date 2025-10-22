@@ -123,7 +123,7 @@ export default function SubscriptionCheckout() {
             <div className="flex items-center justify-between py-3">
               <span className="text-white/70">Impuestos y envío</span>
               <span className="text-white/60 text-sm">
-                Se calculan en Stripe
+                Incluidos
               </span>
             </div>
 

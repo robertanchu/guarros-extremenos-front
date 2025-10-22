@@ -169,7 +169,7 @@ export default function Checkout() {
             <div className="flex items-center justify-between py-3">
               <span className="text-white/70">Envío e impuestos</span>
               <span className="text-white/60 text-sm">
-                Se calculan en Stripe
+                Incluidos
               </span>
             </div>
 
