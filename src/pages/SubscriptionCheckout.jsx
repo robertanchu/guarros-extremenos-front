@@ -152,13 +152,12 @@ export default function SubscriptionCheckout() {
                 <span className="relative z-10">Volver</span>
                 <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
               </Link>
-            </div>
 
               <Link
                 to="/"
                 className="inline-flex items-center justify-center rounded-xl px-6 py-3 text-base font-stencil tracking-wide text-white border border-white/20 transition-colors duration-200 hover:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 active:scale-[0.98]"
               >
-		Inicio
+                Inicio
               </Link>
 
             {!planOk && (
