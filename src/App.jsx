@@ -31,6 +31,7 @@ import Success from "@/pages/Success";
 import Cancel from "@/pages/Cancel";
 import SubscriptionCheckout from "@/pages/SubscriptionCheckout";
 import Account from "@/pages/Account";
+import ScrollToTop from "@/components/ScrollToTop";
 
 function Layout(){
   // Hidrata catálogo para que /producto/:slug funcione también con refresh/URL directa
@@ -41,6 +42,7 @@ function Layout(){
 
   return (
     <>
+      <ScrollToTop />
       <Header />
 
       <Routes>
