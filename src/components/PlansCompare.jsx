@@ -21,7 +21,7 @@ function onChoosePlan(grams) {
   try {
     if (typeof window !== "undefined") {
       window.selectPlan?.(grams);
-      document.querySelector("#plans-root")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.querySelector("#plans-root")?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   } catch (_) {}
 }
