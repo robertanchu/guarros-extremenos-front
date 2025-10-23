@@ -143,7 +143,7 @@ export default function JamonCard({ product, priceMap = {}, loadingPrices = fals
   return (
     <div className="group rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden flex flex-col 
                    transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-xl hover:shadow-black/40 
-                   hover:ring-2 hover:ring-[#E53935]/80"> {/* <-- Resalte rojo añadido aquí */}
+                   hover:ring-2 hover:ring-[#E53935]/80">
       
       {/* Contenedor de imagen con dos capas para crossfade */}
       <div className="relative aspect-[4/3] bg-black/40 overflow-hidden">
@@ -175,7 +175,11 @@ export default function JamonCard({ product, priceMap = {}, loadingPrices = fals
 
         {/* Toggle Loncheado */}
         <div className="mt-4 flex items-center justify-between">
-          <span className="text-sm text-white/80">Loncheado</span>
+          
+          {/* ----- TEXTO "LONCHEADO" MODIFICADO ----- */}
+          <span className="text-lg font-stencil text-[#E53935]">Loncheado</span>
+          {/* ----------------------------------------- */}
+
           <button
             type="button"
             aria-pressed={sliced}
