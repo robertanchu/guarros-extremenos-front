@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom"; // <-- 1. IMPORTA LINK
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -8,18 +9,19 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
-            <a href="/" className="inline-flex items-center gap-3">
+            <Link to="/" className="inline-flex items-center gap-3"> {/* <-- 2. CAMBIADO */}
               <img
                 src="/logo/logo_horizontal2.png"
                 alt="Guarros Extremeños"
                 className="h-8 md:h-10 w-auto"
                 loading="lazy"
               />
-            </a>
+            </Link>
             <p className="mt-3 text-white/70 text-sm max-w-xs">
               Jamón ibérico 100% bellota D.O.P. Dehesa de Extremadura. Directo de la dehesa a tu mesa.
             </p>
             <div className="mt-4 flex items-center gap-3">
+              {/* Estos se quedan como <a> porque son externos */}
               <a href="https://instagram.com/guarrosextremenos" aria-label="Instagram" className="text-white/70 hover:text-white transition-colors">
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm5 3.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11zm0 2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM18 6.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
@@ -37,11 +39,11 @@ export default function Footer() {
           <nav aria-labelledby="footer-shop">
             <h3 id="footer-shop" className="text-white font-semibold">Tienda</h3>
             <ul className="mt-3 space-y-2 text-sm">
-              <li><a href="/" className="text-white/70 hover:text-white transition-colors">Inicio</a></li>
-              <li><a href="/jamones" className="text-white/70 hover:text-white transition-colors">Jamones</a></li>
-              <li><a href="/suscripcion" className="text-white/70 hover:text-white transition-colors">Suscripción</a></li>
-              <li><a href="/dehesa" className="text-white/70 hover:text-white transition-colors">Dehesa</a></li>
-              <li><a href="/contacto" className="text-white/70 hover:text-white transition-colors">Contacto</a></li>
+              <li><Link to="/" className="text-white/70 hover:text-white transition-colors">Inicio</Link></li> {/* <-- CAMBIADO */}
+              <li><Link to="/jamones" className="text-white/70 hover:text-white transition-colors">Jamones</Link></li> {/* <-- CAMBIADO */}
+              <li><Link to="/suscripcion" className="text-white/70 hover:text-white transition-colors">Suscripción</Link></li> {/* <-- CAMBIADO */}
+              <li><Link to="/dehesa" className="text-white/70 hover:text-white transition-colors">Dehesa</Link></li> {/* <-- CAMBIADO */}
+              <li><Link to="/contacto" className="text-white/70 hover:text-white transition-colors">Contacto</Link></li> {/* <-- CAMBIADO */}
             </ul>
           </nav>
 
@@ -49,10 +51,10 @@ export default function Footer() {
           <nav aria-labelledby="footer-legal">
             <h3 id="footer-legal" className="text-white font-semibold">Legal</h3>
             <ul className="mt-3 space-y-2 text-sm">
-              <li><a href="/legal/terminos" className="text-white/70 hover:text-white transition-colors">Términos y condiciones</a></li>
-              <li><a href="/legal/privacidad" className="text-white/70 hover:text-white transition-colors">Política de privacidad</a></li>
-              <li><a href="/legal/cookies" className="text-white/70 hover:text-white transition-colors">Política de cookies</a></li>
-              <li><a href="/legal/aviso-legal" className="text-white/70 hover:text-white transition-colors">Aviso legal</a></li>
+              <li><Link to="/legal/terminos" className="text-white/70 hover:text-white transition-colors">Términos y condiciones</Link></li> {/* <-- CAMBIADO */}
+              <li><Link to="/legal/privacidad" className="text-white/70 hover:text-white transition-colors">Política de privacidad</Link></li> {/* <-- CAMBIADO */}
+              <li><Link to="/legal/cookies" className="text-white/70 hover:text-white transition-colors">Política de cookies</Link></li> {/* <-- CAMBIADO */}
+              <li><Link to="/legal/aviso-legal" className="text-white/70 hover:text-white transition-colors">Aviso legal</Link></li> {/* <-- CAMBIADO */}
             </ul>
           </nav>
 
@@ -82,11 +84,11 @@ export default function Footer() {
         <div className="container max-w-7xl px-4 mx-auto py-4 flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-white/60">
           <div>© {year} Guarros Extremeños — Todos los derechos reservados.</div>
           <div className="flex items-center gap-3">
-            <a href="/legal/privacidad" className="hover:text-white">Privacidad</a>
+            <Link to="/legal/privacidad" className="hover:text-white">Privacidad</Link> {/* <-- CAMBIADO */}
             <span aria-hidden="true">•</span>
-            <a href="/legal/cookies" className="hover:text-white">Cookies</a>
+            <Link to="/legal/cookies" className="hover:text-white">Cookies</Link> {/* <-- CAMBIADO */}
             <span aria-hidden="true">•</span>
-            <a href="/legal/terminos" className="hover:text-white">Términos</a>
+            <Link to="/legal/terminos" className="hover:text-white">Términos</Link> {/* <-- CAMBIADO */}
           </div>
         </div>
       </div>
