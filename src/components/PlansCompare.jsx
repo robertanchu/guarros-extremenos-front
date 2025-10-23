@@ -7,7 +7,7 @@ import {
 
 const BADGES = {
   500: "Más popular",
-  1000: "Mejor valor",
+  2000: "Mejor valor",
 };
 
 const fadeUp = {
