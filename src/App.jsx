@@ -78,6 +78,8 @@ function Layout(){
       {/* Footer profesional */}
       <Footer />
 
+      <ScrollRestoration />	
+
       {/* Cart Drawer */}
       <CartDrawer
         isOpen={cartOpen}
