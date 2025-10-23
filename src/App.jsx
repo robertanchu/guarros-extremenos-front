@@ -42,7 +42,6 @@ function Layout(){
 
   return (
     <>
-      <ScrollToTop />
       <Header />
 
       <Routes>
@@ -99,6 +98,7 @@ export default function App(){
     <ConsentProvider>
       <Meta />
       <OgPerRoute />
+      <ScrollToTop />
       <Layout />
       <CookieBanner />
     </ConsentProvider>
