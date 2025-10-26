@@ -138,7 +138,6 @@ export default function JamonCard({ product, priceMap = {}, loadingPrices = fals
   };
 
   // IMÁGENES (crossfade suave)
-  // --- 1. CORRECCIÓN AQUÍ ---
   const { unsliced, sliced: slicedImg, unsliced2x, sliced2x } = useMemo(() => pickImages(product), [product]);
 
   return (
@@ -152,7 +151,8 @@ export default function JamonCard({ product, priceMap = {}, loadingPrices = fals
         {/* UNSLICED */}
         <img
           src={unsliced}
-          srcSet={unsliced2x ? `${unsliced} 1x, ${unsliced2x} 2x` : undefined}
+          // --- 1. LÍNEA ELIMINADA ---
+          // srcSet={unsliced2x ? `${unsliced} 1x, ${unsliced2x} 2x` : undefined} 
           alt={(product?.name || "Jamón") + " entero"}
           className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out md:group-hover:scale-[1.05] ${sliced ? "opacity-0" : "opacity-100"}`}
           loading="lazy"
@@ -161,8 +161,8 @@ export default function JamonCard({ product, priceMap = {}, loadingPrices = fals
         {/* SLICED */}
         <img
           src={slicedImg}
-          // --- 2. CORRECCIÓN AQUÍ ---
-          srcSet={sliced2x ? `${slicedImg} 1x, ${sliced2x} 2x` : undefined}
+          // --- 2. LÍNEA ELIMINADA ---
+          // srcSet={sliced2x ? `${slicedImg} 1x, ${sliced2x} 2x` : undefined}
           alt={(product?.name || "Jamón") + " loncheado"}
           className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out md:group-hover:scale-[1.05] ${sliced ? "opacity-100" : "opacity-0"}`}
           loading="lazy"
