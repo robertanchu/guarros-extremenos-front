@@ -38,7 +38,7 @@ export default function Dehesa(){
   // ===========================================
   const cardData = [
     { title: "Bellota Pura y Dura", text: "Aquí no hay trampas. Bellotas de encina y alcornoque a discreción. La base de un sabor que no pide permiso." },
-    { title: "Curación sin Prisas", text: "Meses de paciencia en bodega. El tiempo es el único secreto para esa textura que se deshace, no que se rompe." },
+    { title: "Curación sin Prisas", text: "Meses de paciencia en secadero. El tiempo es el único secreto para esa textura que se deshace, no que se rompe." },
     { title: "Corte Preciso (¡A Máquina!)", text: "Sí, usamos máquina. ¿Por qué? Porque clava la loncha perfecta siempre. Consistencia canalla para tu disfrute." }
   ];
   // ===========================================
@@ -90,16 +90,16 @@ export default function Dehesa(){
                 Esto no es una granja bonita, es la Dehesa de Extremadura. Kilómetros de encinas y aire libre donde nuestros bichos se ponen finos a bellota. Sin estrés, sin tonterías.
               </p>
               <p className="text-zinc-300 mt-4">
-                El sello D.O.P. Dehesa de Extremadura no es postureo, es la garantía de que aquí se hacen las cosas bien. Y nosotros lo llevamos a rajatabla. Por eso nos llamamos Guarros Extremeños: somos transparentes. Nuestros cerdos viven como lo que son, guarros felices revolcándose y buscando las mejores bellotas. ¿El resultado? Un jamón con carácter, sin atajos.
+                El sello D.O.P. Dehesa de Extremadura no es postureo, es la garantía de que aquí se hacen las cosas bien. Y nosotros lo llevamos a rajatabla. Por eso nos llamamos Guarros Extremeños: somos transparentes. Nuestros cerdos viven como lo que son, guarros felices revolcándose y buscando las mejores bellotas. ¿El resultado? Un jamón con carácter.
               </p>
               {/* ===== FIN TEXTO PRINCIPAL ===== */}
 
               {/* ===== LISTA ACTUALIZADA ===== */}
               <ul className="mt-8 space-y-3 text-zinc-200 font-medium"> {/* Más espacio y fuente */}
-                <li><span className="text-brand mr-2">✓</span> D.O.P. Dehesa de Extremadura: Calidad sellada, no inventada.</li>
-                <li><span className="text-brand mr-2">✓</span> Curación natural: Dejamos que el tiempo haga su trabajo sucio.</li>
-                <li><span className="text-brand mr-2">✓</span> Trazabilidad sin cuentos: Sabes lo que comes, de principio a fin.</li>
-                <li><span className="text-brand mr-2">✓</span> Sabor que engancha: Largo, intenso, con el toque justo de Dehesa.</li>
+                <li><span className="text-brand mr-2">✓</span> D.O.P. Dehesa de Extremadura. Calidad sellada, no inventada.</li>
+                <li><span className="text-brand mr-2">✓</span> Curación natural. Dejamos que el tiempo haga su trabajo sucio.</li>
+                <li><span className="text-brand mr-2">✓</span> Trazabilidad sin cuentos. Sabes lo que comes, de principio a fin.</li>
+                <li><span className="text-brand mr-2">✓</span> Sabor que engancha. Largo, intenso, con el toque justo de Dehesa.</li>
               </ul>
               {/* ===== FIN LISTA ===== */}
 
