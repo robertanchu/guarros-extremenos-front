@@ -3,7 +3,7 @@
 export const products = [
   {
     id: "jamon-6-7",
-    name: "Jamón Canalla 6–7 kg",
+    name: "Jamón Canallita 6–7 kg",
     kind: "jamon-weight",
 
     // IMÁGENES — entero vs loncheado (ambas soportadas por JamonCard)
@@ -89,7 +89,7 @@ export const products = [
 
   {
     id: "jamon-8-9",
-    name: "Jamón Canalla 8–9 kg",
+    name: "Jamón Canallote 8–9 kg",
     kind: "jamon-weight",
 
     image: "/images/jamones/jamon_8-9.webp",
