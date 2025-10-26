@@ -36,12 +36,21 @@
 
 /*
  * ========================================
- * Estilos Personalizados para Swiper Arrows
- * (Versión 2: Reemplazo de icono SVG)
+ * Estilos Personalizados para Swiper (V3)
+ * (Usando Variables CSS - El método correcto)
  * ========================================
  */
 
-/* 1. Estilo base del botón (círculo oscuro)
+/* 1. Definimos las variables de color globales de Swiper
+   Esto le dice a Swiper que use tu color brand
+*/
+.swiper {
+  --swiper-navigation-color: #E53935 !important; /* Color de las flechas */
+  --swiper-pagination-color: #E53935 !important;  /* Color del punto de paginación ACTIVO */
+}
+
+/* 2. Estilo de los BOTONES de flecha (el círculo)
+   Esto se queda igual que antes.
 */
 .swiper-button-next,
 .swiper-button-prev {
@@ -53,8 +62,6 @@
   transition: all 0.2s ease-in-out !important;
 }
 
-/* 2. Efecto hover
-*/
 .swiper-button-next:hover,
 .swiper-button-prev:hover {
   opacity: 1 !important;
@@ -62,37 +69,34 @@
   transform: scale(1.05);
 }
 
-/* 3. Preparar el contenedor del icono
-   (Borramos el icono de fuente por defecto)
-*/
-.swiper-button-next::after,
-.swiper-button-prev::after {
-  content: "" !important; /* Borra el contenido de texto (ej. "next") */
-  
-  /* Quita las propiedades de fuente que ya no aplican */
-  font-size: initial !important;
-  font-weight: initial !important;
-  color: transparent !important; /* Oculta cualquier color de fuente */
-
-  /* Propiedades del nuevo icono SVG */
-  background-size: 18px 18px !important; /* Tamaño del icono */
-  background-repeat: no-repeat !important;
-  background-position: center !important;
-}
-
-/* 4. Icono "Next" (flecha derecha) con tu color brand */
-.swiper-button-next::after {
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23E53935"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>') !important;
-}
-
-/* 5. Icono "Prev" (flecha izquierda) con tu color brand */
-.swiper-button-prev::after {
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23E53935"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01.02 1.06L8.832 10l3.978 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" /></svg>') !important;
-}
-
-/* 6. Ocultar flechas deshabilitadas
-*/
 .swiper-button-disabled {
   opacity: 0 !important;
   pointer-events: none !important;
+}
+
+/* 3. Estilo del ICONO de la flecha (el tamaño)
+   El color ya lo coge de la variable que definimos arriba.
+*/
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 20px !important;
+  font-weight: 900 !important;
+}
+
+/* 4. Estilo de los PUNTOS de Paginación 
+   (Arreglamos esto que también estaba azul)
+*/
+
+/* Puntos inactivos: un rojo transparente */
+.swiper-pagination-bullet {
+  background-color: #E53935 !important;
+  opacity: 0.3 !important; /* Más sutil */
+  transition: all 0.2s ease !important;
+}
+
+/* Punto activo: rojo sólido y un poco más grande */
+.swiper-pagination-bullet-active {
+  background-color: #E53935 !important;
+  opacity: 1 !important;
+  transform: scale(1.2);
 }
