@@ -33,18 +33,21 @@ export default function Dehesa(){
     }
   };
 
-  // Datos para las tarjetas (para facilitar el map)
+  // ===========================================
+  // ===== TEXTO DE LAS TARJETAS ACTUALIZADO =====
+  // ===========================================
   const cardData = [
-    { title: "Selección de bellota", text: "Cada pieza se mima. Elegimos bellota madura para un sabor auténtico y profundo." },
-    { title: "Curación lenta", text: "Dejamos que el tiempo haga su magia en nuestras bodegas naturales. Paciencia es sabor." },
-    { title: "Corte fino", text: "Maestros cortadores preparan cada loncha para que disfrutes de la textura y aroma perfectos." }
+    { title: "Bellota Pura y Dura", text: "Aquí no hay trampas. Bellotas de encina y alcornoque a discreción. La base de un sabor que no pide permiso." },
+    { title: "Curación sin Prisas", text: "Meses de paciencia en bodega. El tiempo es el único secreto para esa textura que se deshace, no que se rompe." },
+    { title: "Corte Preciso (¡A Máquina!)", text: "Sí, usamos máquina. ¿Por qué? Porque clava la loncha perfecta siempre. Consistencia canalla para tu disfrute." }
   ];
+  // ===========================================
 
   return (
     <>
       <Meta
-        title="La Dehesa · Origen y Filosofía"
-        description="D.O.P Extremadura, bellota a saco y jamón sin postureo. Así se cría el descaro."
+        title="La Dehesa · Origen y Filosofía Canalla" // Título Meta actualizado
+        description="Extremadura pura. Bellota hasta las trancas y jamón sin gilipolleces. Así criamos el descaro." // Descripción Meta actualizada
       />
 
       {/* Sección principal: header + grid con stagger */}
@@ -57,7 +60,7 @@ export default function Dehesa(){
             whileInView="visible"
             viewport={{ once: true, amount: 0.4 }}
           >
-            <h1 className="text-3xl md:text-5xl font-stencil text-brand">La Dehesa</h1>
+            <h1 className="text-3xl md:text-5xl font-stencil text-brand">La Dehesa: Territorio Canalla</h1> {/* Título actualizado */}
           </motion.div>
 
           {/* Grid 2 columnas animadas en secuencia */}
@@ -74,44 +77,45 @@ export default function Dehesa(){
               src={imgBase}
               srcSet={imgSrcSet}
               sizes={imgSizes}
-              alt="Dehesa de encinas en Extremadura al atardecer"
+              alt="Dehesa extremeña, donde campan a sus anchas nuestros guarros" // Alt actualizado
               loading="lazy"
-              className="w-full rounded-2xl border border-white/10 object-cover sticky top-24" // Añadido sticky para que se quede visible
+              className="w-full rounded-2xl border border-white/10 object-cover sticky top-24"
             />
 
             {/* ---- COLUMNA DERECHA: TEXTO + TARJETAS ---- */}
             <motion.div variants={fadeUp}>
-              {/* Texto principal */}
-              <p className="text-zinc-300">
-                Encinas, alcornoques y silencio. Aquí engordan nuestros ibéricos: a base de bellota y
-                libertad. Sin prisas. Sin disfraces. Con la D.O.P. Extremadura marcando el listón.
-              </p>
-              <p className="text-zinc-300 mt-3">
-                Creemos en el oficio bien hecho y en una filosofía simple: <em>menos ceremonia y más sabor</em>.
-                Por eso nos llamamos Guarros. Porque somos honestos: los nuestros están tan guarros
-                que sólo comen bellotas.
-              </p>
-              <ul className="mt-6 space-y-2 text-zinc-200">
-                <li>• D.O.P. Dehesa de Extremadura</li>
-                <li>• Curación lenta y controlada</li>
-                <li>• Trazabilidad total y respeto animal</li>
-                <li>• Sabor largo, textura sedosa, aroma de encina</li>
-              </ul>
 
-              {/* ----- SECCIÓN DE TARJETAS MOVIDA AQUÍ ----- */}
+              {/* ===== TEXTO PRINCIPAL ACTUALIZADO ===== */}
+              <p className="text-zinc-200 text-lg font-semibold leading-relaxed"> {/* Texto más destacado */}
+                Esto no es una granja bonita, es la Dehesa de Extremadura. Kilómetros de encinas y aire libre donde nuestros bichos se ponen finos a bellota. Sin estrés, sin tonterías.
+              </p>
+              <p className="text-zinc-300 mt-4">
+                El sello D.O.P. Dehesa de Extremadura no es postureo, es la garantía de que aquí se hacen las cosas bien. Y nosotros lo llevamos a rajatabla. Por eso nos llamamos Guarros Extremeños: somos transparentes. Nuestros cerdos viven como lo que son, guarros felices revolcándose y buscando las mejores bellotas. ¿El resultado? Un jamón con carácter, sin atajos.
+              </p>
+              {/* ===== FIN TEXTO PRINCIPAL ===== */}
+
+              {/* ===== LISTA ACTUALIZADA ===== */}
+              <ul className="mt-8 space-y-3 text-zinc-200 font-medium"> {/* Más espacio y fuente */}
+                <li><span className="text-brand mr-2">✓</span> D.O.P. Dehesa de Extremadura: Calidad sellada, no inventada.</li>
+                <li><span className="text-brand mr-2">✓</span> Curación natural: Dejamos que el tiempo haga su trabajo sucio.</li>
+                <li><span className="text-brand mr-2">✓</span> Trazabilidad sin cuentos: Sabes lo que comes, de principio a fin.</li>
+                <li><span className="text-brand mr-2">✓</span> Sabor que engancha: Largo, intenso, con el toque justo de Dehesa.</li>
+              </ul>
+              {/* ===== FIN LISTA ===== */}
+
+              {/* ----- SECCIÓN DE TARJETAS (MOVIMIENTO Y TEXTO ACTUALIZADO) ----- */}
               <motion.div
-                // Hereda la animación stagger del padre, por eso no necesita 'variants' propias
-                className="grid grid-cols-1 gap-6 mt-8" // Cambiado a 1 columna y añadido margen superior
+                className="grid grid-cols-1 gap-6 mt-10" // Más margen superior
               >
                 {cardData.map((card, i) => (
                   <motion.div
                     key={i}
-                    variants={fadeUp} // Animación individual para cada tarjeta
-                    className="rounded-2xl border border-white/10 p-6 bg-white/5 
-                               transition-colors duration-300 ease-in-out hover:border-brand"
+                    variants={fadeUp}
+                    className="rounded-2xl border border-white/10 p-6 bg-white/[0.03] 
+                               transition-colors duration-300 ease-in-out hover:border-brand" // Mantenemos bg-white/[0.03]
                   >
-                    <h3 className="font-stencil text-brand text-xl">{card.title}</h3>
-                    <p className="text-zinc-300 mt-2 text-sm">{card.text}</p> {/* Texto más pequeño */}
+                    <h3 className="font-stencil text-brand text-xl">{card.title}</h3> {/* Título actualizado */}
+                    <p className="text-zinc-300 mt-2 text-sm">{card.text}</p> {/* Texto actualizado */}
                   </motion.div>
                 ))}
               </motion.div>
@@ -123,8 +127,6 @@ export default function Dehesa(){
           </motion.div>
         </div>
       </section>
-
-      {/* ELIMINADA la <section> de las tarjetas que estaba aquí antes */}
     </>
   );
 }
