@@ -22,6 +22,7 @@ export default function Suscripcion() {
   const hasSubscription = items.some(isSubscription);
 
   useEffect(() => {
+    // ... (el useEffect se queda igual, no es necesario cambiarlo) ...
     const root = document.getElementById("plans-root");
     if (!root) return;
     const els = Array.from(root.querySelectorAll("[data-reveal]"));
@@ -71,6 +72,7 @@ export default function Suscripcion() {
       {/* Aviso si ya hay suscripción en el carrito */}
       {hasSubscription && (
         <div className="max-w-4xl mx-auto px-4 mb-8">
+          {/* ... (el código del aviso se queda igual) ... */}
           <div className="alert">
             <div className="flex items-start gap-3">
               <div className="shrink-0 mt-0.5">
@@ -96,13 +98,27 @@ export default function Suscripcion() {
         </div>
       )}
 
-      {/* Comparativa de planes (tarjetas grandes) */}
-      <PlansCompare />
-
-      {/* Selector interactivo por gramos */}
+      {/* ----- 1. SECCIÓN PRINCIPAL MOVIDA AQUÍ ----- */}
+      {/* Selector interactivo (Acción Principal) */}
       <section id="plans-root" className="max-w-6xl mx-auto px-4" data-reveal>
         <SubscriptionPlans />
       </section>
+      
+      {/* ----- 2. SECCIÓN SECUNDARIA MOVIDA AQUÍ ----- */}
+      {/* Título para la comparativa */}
+      <div className="max-w-3xl mx-auto text-center px-4 mt-16 md:mt-24" data-reveal>
+        <h2 className="text-2xl md:text-3xl font-stencil text-brand">
+          O compara todos nuestros planes
+        </h2>
+        <p className="mt-2 text-zinc-300">
+          Precios finales, envío incluido. Sin permanencia.
+        </p>
+      </div>
+
+      {/* Comparativa de planes (Secundaria) */}
+      <div className="mt-8 md:mt-12" data-reveal>
+        <PlansCompare />
+      </div>
 
       {/* FAQ */}
       <section className="mt-16 md:mt-24" data-reveal>
