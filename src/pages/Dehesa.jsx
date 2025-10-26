@@ -108,7 +108,8 @@ export default function Dehesa(){
               <motion.div
                 key={i}
                 variants={fadeUp}
-                className="rounded-2xl border border-white/10 p-6 bg-white/5"
+                className="rounded-2xl border border-white/10 p-6 bg-white/5 
+                           transition-colors duration-300 ease-in-out hover:border-brand" // <-- CAMBIO AQUÍ
               >
                 <h3 className="font-stencil text-brand text-xl">{t}</h3>
                 <p className="text-zinc-300 mt-2">
