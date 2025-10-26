@@ -30,35 +30,37 @@ export default function Contacto() {
 // =========================================================
   // ===== FUNCIÓN 'onSubmit' MODIFICADA (FIRE-AND-FORGET) =====
   // =========================================================
-  async function onSubmit(e) {
+async function onSubmit(e) {
     e.preventDefault();
+    
+    // --- ¡LA SOLUCIÓN! ---
+    // 1. Guardamos una referencia estable al formulario
+    //    porque 'e' se reciclará.
+    const form = e.currentTarget; 
+    // ---------------------
+
     setLoading(true); // <-- Muestra "Enviando..."
     setOk(null);
 
-    // 1. Obtenemos los datos del formulario
-    const form = new FormData(e.currentTarget);
-    const payload = Object.fromEntries(form.entries());
+    // 2. Obtenemos los datos del formulario (usando la nueva variable)
+    const formData = new FormData(form);
+    const payload = Object.fromEntries(formData.entries());
 
-    // 2. "Disparamos" la petición al servidor.
-    //    NO usamos 'await', así que no esperamos la respuesta.
+    // 3. "Disparamos" la petición al servidor (sin await)
     fetch(import.meta.env.VITE_CONTACT_ENDPOINT || "/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     }).catch(err => {
-      // Si el envío falla en segundo plano (ej. sin conexión),
-      // simplemente lo registramos en la consola. El usuario
-      // ya ha visto el mensaje de éxito.
       console.error("Error de envío (segundo plano):", err);
     });
 
-    // 3. Mostramos el mensaje de éxito INMEDIATAMENTE
-    //    Usamos un pequeño retraso para que parezca "real".
+    // 4. Mostramos el éxito y limpiamos (usando la variable)
     setTimeout(() => {
       setOk(true); // <-- Muestra "¡Gracias!"
-      e.currentTarget.reset(); // <-- Limpia el formulario
+      form.reset(); // <-- Limpia el formulario (usando la variable estable)
       setLoading(false); // <-- ¡QUITA EL "Enviando..."!
-    }, 600); // 0.6 segundos de retraso
+    }, 600); 
   }
   // =========================================================
   // ===== FIN DE LA MODIFICACIÓN ============================
