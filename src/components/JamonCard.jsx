@@ -138,12 +138,13 @@ export default function JamonCard({ product, priceMap = {}, loadingPrices = fals
   };
 
   // IMÁGENES (crossfade suave)
-  const { unsliced, sliced: slicedImg, unsliced2x, sliced2x } = useMemo(() => pickImages(product), [product]);
+  const { unsliced, sliced: slicedImg, unsliced2x, slicedx } = useMemo(() => pickImages(product), [product]);
 
   return (
     <div className="group rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden flex flex-col 
-                   transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-xl hover:shadow-black/40 
-                   hover:ring-2 hover:ring-[#E53935]/80">
+                   transition-all duration-300 ease-in-out 
+                   md:hover:scale-[1.02] md:hover:shadow-xl md:hover:shadow-black/40 
+                   md:hover:ring-2 md:hover:ring-[#E53935]/80"> {/* <-- CAMBIOS AQUÍ: "md:" añadido */}
       
       {/* Contenedor de imagen con dos capas para crossfade */}
       <div className="relative aspect-[4/3] bg-black/40 overflow-hidden">
@@ -152,16 +153,16 @@ export default function JamonCard({ product, priceMap = {}, loadingPrices = fals
           src={unsliced}
           srcSet={unsliced2x ? `${unsliced} 1x, ${unsliced2x} 2x` : undefined}
           alt={(product?.name || "Jamón") + " entero"}
-          className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out group-hover:scale-[1.05] ${sliced ? "opacity-0" : "opacity-100"}`}
+          className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out md:group-hover:scale-[1.05] ${sliced ? "opacity-0" : "opacity-100"}`} {/* <-- CAMBIO AQUÍ: "md:" añadido */}
           loading="lazy"
           draggable={false}
         />
         {/* SLICED */}
         <img
           src={slicedImg}
-          srcSet={sliced2x ? `${slicedImg} 1x, ${sliced2x} 2x` : undefined}
+          srcSet={slicedx ? `${slicedImg} 1x, ${slicedx} 2x` : undefined}
           alt={(product?.name || "Jamón") + " loncheado"}
-          className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out group-hover:scale-[1.05] ${sliced ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out md:group-hover:scale-[1.05] ${sliced ? "opacity-100" : "opacity-0"}`} {/* <-- CAMBIO AQUÍ: "md:" añadido */}
           loading="lazy"
           draggable={false}
         />
@@ -200,9 +201,9 @@ export default function JamonCard({ product, priceMap = {}, loadingPrices = fals
           </div>
 
           <div className="flex items-center gap-2">
-            <button onClick={dec} className="h-9 w-9 rounded-lg border border-white/10 text-white hover:bg-white/10" aria-label="Restar cantidad">−</button>
+            <button onClick={dec} className="h-9 w-9 rounded-lg border border-white/10 text-white md:hover:bg-white/10" aria-label="Restar cantidad">−</button> {/* <-- "md:" añadido */}
             <div className="min-w-[2ch] text-center text-white">{qty}</div>
-            <button onClick={inc} className="h-9 w-9 rounded-lg border border-white/10 text-white hover:bg-white/10" aria-label="Aumentar cantidad">+</button>
+            <button onClick={inc} className="h-9 w-9 rounded-lg border border-white/10 text-white md:hover:bg-white/10" aria-label="Aumentar cantidad">+</button> {/* <-- "md:" añadido */}
           </div>
         </div>
 
@@ -212,12 +213,12 @@ export default function JamonCard({ product, priceMap = {}, loadingPrices = fals
             onClick={onAdd}
             disabled={!activePriceId}
             className="relative inline-flex items-center justify-center rounded-xl h-11 px-5
-                       font-stencil tracking-wide text-black bg-[#E53935] hover:bg-[#992623]
+                       font-stencil tracking-wide text-black bg-[#E53935] md:hover:bg-[#992623]
                        transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
                        disabled:opacity-60 disabled:cursor-not-allowed w-full"
           >
             Añadir al carrito
-            <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 hover:ring-[#992323]/50 transition-all" />
+            <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 md:hover:ring-[#992323]/50 transition-all" /> {/* <-- "md:" añadido */}
           </button>
         </div>
       </div>
