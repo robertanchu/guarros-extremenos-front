@@ -1,8 +1,8 @@
 // src/pages/Suscripcion.jsx
-import React, { useEffect } from "react";
+import React from "react"; // 'useEffect' ya no es necesario aquí
 import Meta from "../lib/Meta";
 import FAQ from "@/components/FAQ";
-import SubscriptionPlans from "@/components/SubscriptionPlans";
+// import SubscriptionPlans from "@/components/SubscriptionPlans"; // ELIMINADO
 import PlansCompare from "@/components/PlansCompare";
 import "@/styles/effects.css";
 
@@ -21,36 +21,9 @@ export default function Suscripcion() {
   const openCart = () => useUI.getState().openCart();
   const hasSubscription = items.some(isSubscription);
 
-  useEffect(() => {
-    // ... (el useEffect se queda igual, no es necesario cambiarlo) ...
-    const root = document.getElementById("plans-root");
-    if (!root) return;
-    const els = Array.from(root.querySelectorAll("[data-reveal]"));
-    els.forEach((el, i) => {
-      el.classList.add("reveal");
-      el.classList.remove("revealed");
-      el.style.transitionDelay = (Math.min(i, 8) * 60) + "ms";
-    });
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      els.forEach((el) => el.classList.add("revealed"));
-      return;
-    }
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add("revealed");
-            io.unobserve(e.target);
-          }
-        });
-      },
-      { rootMargin: "0px 0px -10% 0px", threshold: 0.12 }
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, []);
+  // 'useEffect' para las animaciones de 'plans-root' ha sido ELIMINADO
+  // porque el componente 'SubscriptionPlans' ya no existe.
+  // Las animaciones de 'PlansCompare' (motion) son independientes.
 
   return (
     <main className="shell py-12 md:py-16">
@@ -72,7 +45,6 @@ export default function Suscripcion() {
       {/* Aviso si ya hay suscripción en el carrito */}
       {hasSubscription && (
         <div className="max-w-4xl mx-auto px-4 mb-8">
-          {/* ... (el código del aviso se queda igual) ... */}
           <div className="alert">
             <div className="flex items-start gap-3">
               <div className="shrink-0 mt-0.5">
@@ -98,30 +70,13 @@ export default function Suscripcion() {
         </div>
       )}
 
-      {/* ----- 1. SECCIÓN PRINCIPAL MOVIDA AQUÍ ----- */}
-      {/* Selector interactivo (Acción Principal) */}
-      <section id="plans-root" className="max-w-6xl mx-auto px-4" data-reveal>
-        <SubscriptionPlans />
-      </section>
-      
-      {/* ----- 2. SECCIÓN SECUNDARIA MOVIDA AQUÍ ----- */}
-      {/* Título para la comparativa */}
-      <div className="max-w-3xl mx-auto text-center px-4 mt-16 md:mt-24" data-reveal>
-        <h2 className="text-2xl md:text-3xl font-stencil text-brand">
-          O compara todos nuestros planes
-        </h2>
-        <p className="mt-2 text-zinc-300">
-          Precios finales, envío incluido. Sin permanencia.
-        </p>
-      </div>
+      {/* Comparativa de planes (ahora es la acción principal) */}
+      <PlansCompare />
 
-      {/* Comparativa de planes (Secundaria) */}
-      <div className="mt-8 md:mt-12" data-reveal>
-        <PlansCompare />
-      </div>
+      {/* ELIMINADO el <section id="plans-root"> ... </section> */}
 
       {/* FAQ */}
-      <section className="mt-16 md:mt-24" data-reveal>
+      <section className="mt-16 md:mt-24"> {/* 'data-reveal' quitado, ya que el 'useEffect' se ha ido */}
         <div className="max-w-3xl mx-auto px-4">
           <h2 className="text-xl md:text-2xl font-semibold text-white mb-4 text-center md:text-left">
             Preguntas frecuentes
