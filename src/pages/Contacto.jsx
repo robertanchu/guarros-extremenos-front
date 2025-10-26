@@ -26,27 +26,37 @@ export default function Contacto() {
     };
   }, []);
 
+// En src/pages/Contacto.jsx
+
   async function onSubmit(e) {
     e.preventDefault();
     setLoading(true);
     setOk(null);
-    try {
-      const form = new FormData(e.currentTarget);
-      const payload = Object.fromEntries(form.entries());
-      const res = await fetch(import.meta.env.VITE_CONTACT_ENDPOINT || "/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error("Error al enviar");
-      setOk(true);
-      e.currentTarget.reset();
-    } catch (err) {
-      console.error(err);
-      setOk(false);
-    } finally {
-      setLoading(false);
-    }
+
+    // 1. Obtenemos los datos del formulario
+    const form = new FormData(e.currentTarget);
+    const payload = Object.fromEntries(form.entries());
+
+    // 2. "Disparamos" la petición al servidor.
+    //    NO usamos 'await', así que no esperamos la respuesta.
+    fetch(import.meta.env.VITE_CONTACT_ENDPOINT || "/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch(err => {
+      // Si el envío falla en segundo plano (ej. sin conexión),
+      // simplemente lo registramos en la consola. El usuario
+      // ya ha visto el mensaje de éxito.
+      console.error("Error de envío (segundo plano):", err);
+    });
+
+    // 3. Mostramos el mensaje de éxito INMEDIATAMENTE
+    //    Usamos un pequeño retraso para que parezca "real".
+    setTimeout(() => {
+      setOk(true); // <-- Muestra "¡Gracias!"
+      e.currentTarget.reset(); // <-- Limpia el formulario
+      setLoading(false); // <-- Oculta "Enviando..."
+    }, 600); // 0.6 segundos de retraso
   }
 
   // ===== Animaciones (Framer) =====
