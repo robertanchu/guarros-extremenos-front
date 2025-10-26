@@ -26,11 +26,13 @@ export default function Contacto() {
     };
   }, []);
 
-// En src/pages/Contacto.jsx
 
+// =========================================================
+  // ===== FUNCIÓN 'onSubmit' MODIFICADA (FIRE-AND-FORGET) =====
+  // =========================================================
   async function onSubmit(e) {
     e.preventDefault();
-    setLoading(true);
+    setLoading(true); // <-- Muestra "Enviando..."
     setOk(null);
 
     // 1. Obtenemos los datos del formulario
@@ -55,9 +57,13 @@ export default function Contacto() {
     setTimeout(() => {
       setOk(true); // <-- Muestra "¡Gracias!"
       e.currentTarget.reset(); // <-- Limpia el formulario
-      setLoading(false); // <-- Oculta "Enviando..."
+      setLoading(false); // <-- ¡QUITA EL "Enviando..."!
     }, 600); // 0.6 segundos de retraso
   }
+  // =========================================================
+  // ===== FIN DE LA MODIFICACIÓN ============================
+  // =========================================================
+
 
   // ===== Animaciones (Framer) =====
   const prefersReduced = useReducedMotion();
