@@ -37,24 +37,23 @@
 /*
  * ========================================
  * Estilos Personalizados para Swiper Arrows
+ * (Versión 2: Reemplazo de icono SVG)
  * ========================================
  */
 
 /* 1. Estilo base del botón (círculo oscuro)
-  Usamos `!important` para asegurarnos de sobreescribir 
-  los estilos por defecto de Swiper.
 */
 .swiper-button-next,
 .swiper-button-prev {
   width: 44px !important;
   height: 44px !important;
   background-color: rgba(0, 0, 0, 0.5) !important;
-  border-radius: 50% !important; /* Círculo */
+  border-radius: 50% !important;
   opacity: 0.7 !important;
   transition: all 0.2s ease-in-out !important;
 }
 
-/* 2. Efecto hover para hacerlo más visible
+/* 2. Efecto hover
 */
 .swiper-button-next:hover,
 .swiper-button-prev:hover {
@@ -63,20 +62,35 @@
   transform: scale(1.05);
 }
 
-/* 3. El icono de la flecha (aquí ponemos el color brand)
+/* 3. Preparar el contenedor del icono
+   (Borramos el icono de fuente por defecto)
 */
 .swiper-button-next::after,
 .swiper-button-prev::after {
-  /* ¡Tu color brand! */
-  color: #E53935 !important; 
+  content: "" !important; /* Borra el contenido de texto (ej. "next") */
   
-  /* Hacemos la flecha más pequeña y gruesa */
-  font-size: 20px !important; 
-  font-weight: 900 !important;
+  /* Quita las propiedades de fuente que ya no aplican */
+  font-size: initial !important;
+  font-weight: initial !important;
+  color: transparent !important; /* Oculta cualquier color de fuente */
+
+  /* Propiedades del nuevo icono SVG */
+  background-size: 18px 18px !important; /* Tamaño del icono */
+  background-repeat: no-repeat !important;
+  background-position: center !important;
 }
 
-/* 4. Ocultar flechas cuando están deshabilitadas 
-     (ej. al principio o al final del carrusel)
+/* 4. Icono "Next" (flecha derecha) con tu color brand */
+.swiper-button-next::after {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23E53935"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" /></svg>') !important;
+}
+
+/* 5. Icono "Prev" (flecha izquierda) con tu color brand */
+.swiper-button-prev::after {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23E53935"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01.02 1.06L8.832 10l3.978 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" /></svg>') !important;
+}
+
+/* 6. Ocultar flechas deshabilitadas
 */
 .swiper-button-disabled {
   opacity: 0 !important;
