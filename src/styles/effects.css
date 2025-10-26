@@ -62,7 +62,7 @@
 
   /* --- ¡POSICIÓN CORREGIDA! --- */
   /* Lo subimos al 40% (en vez del 50% por defecto) */
-  top: 40% !important; 
+  top: 45% !important; 
   /* Y lo centramos verticalmente en ese 40% */
   transform: translateY(-50%) !important; 
 }
