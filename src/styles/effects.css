@@ -33,3 +33,52 @@
   background: linear-gradient(0deg, rgba(195,52,46,.12), rgba(195,52,46,.06)); color: #ffd7d4; }
 .alert .alert-title { color: white; font-weight: 600; }
 .alert .alert-desc { opacity: .9; font-size: .9rem; }
+
+/*
+ * ========================================
+ * Estilos Personalizados para Swiper Arrows
+ * ========================================
+ */
+
+/* 1. Estilo base del botón (círculo oscuro)
+  Usamos `!important` para asegurarnos de sobreescribir 
+  los estilos por defecto de Swiper.
+*/
+.swiper-button-next,
+.swiper-button-prev {
+  width: 44px !important;
+  height: 44px !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  border-radius: 50% !important; /* Círculo */
+  opacity: 0.7 !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+/* 2. Efecto hover para hacerlo más visible
+*/
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  opacity: 1 !important;
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  transform: scale(1.05);
+}
+
+/* 3. El icono de la flecha (aquí ponemos el color brand)
+*/
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  /* ¡Tu color brand! */
+  color: #E53935 !important; 
+  
+  /* Hacemos la flecha más pequeña y gruesa */
+  font-size: 20px !important; 
+  font-weight: 900 !important;
+}
+
+/* 4. Ocultar flechas cuando están deshabilitadas 
+     (ej. al principio o al final del carrusel)
+*/
+.swiper-button-disabled {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
