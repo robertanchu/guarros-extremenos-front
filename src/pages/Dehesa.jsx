@@ -72,14 +72,14 @@ export default function Dehesa(){
             className="grid md:grid-cols-2 gap-10 items-start mt-6"
           >
             {/* ---- COLUMNA IZQUIERDA: IMAGEN ---- */}
-            <motion.img
+	     <motion.img
               variants={fadeUp}
               src={imgBase}
               srcSet={imgSrcSet}
               sizes={imgSizes}
               alt="Dehesa extremeña, donde campan a sus anchas nuestros guarros" // Alt actualizado
               loading="lazy"
-              className="w-full rounded-2xl border border-white/10 object-cover sticky top-24"
+              className="w-full rounded-2xl border border-white/10 object-cover md:sticky top-24" // <-- CLASE MODIFICADA
             />
 
             {/* ---- COLUMNA DERECHA: TEXTO + TARJETAS ---- */}
