@@ -138,11 +138,15 @@ async function onSubmit(e) {
             </motion.div>
 
             {/* COLUMNA FORM (misma altura que la imagen) */}
-            <motion.form
+	    <motion.form
               variants={fadeUp}
               onSubmit={onSubmit}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] flex flex-col min-h-0"
-              style={imgHeight ? { height: imgHeight + "px" } : undefined}
+              // --- CAMBIO AQUÍ ---
+              // Añadimos 'md:min-h-0' y quitamos 'min-h-0' global
+              className="rounded-2xl border border-white/10 bg-white/[0.03] flex flex-col md:min-h-0" 
+              // --- Y AQUÍ ---
+              // La altura fija solo se aplica desde 'md'
+              style={imgHeight ? { height: window.innerWidth >= 768 ? imgHeight + "px" : undefined } : undefined} 
             >
               {/* Contenido interior compacto (como lo tenías) */}
               <div className="p-5 md:p-6 flex-1 min-h-0 flex flex-col">
