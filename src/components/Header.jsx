@@ -14,7 +14,7 @@ function BrandLogo(){
         <img
           src="/logo/logo_horizontal_2.svg"
           alt="Guarros Extremeños"
-          className="w-auto"
+          className="w-auto h-auto"
           onError={() => setImgOk(false)}
           loading="eager"
           decoding="async"
