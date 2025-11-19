@@ -12,7 +12,7 @@ function BrandLogo(){
     <Link to="/" className="flex items-center gap-3" aria-label="Ir al inicio">
       {imgOk ? (
         <img
-          src="/logo/logo_horizontal_2.svg"
+          src="/logo/logo_horizontal.svg"
           alt="Guarros Extremeños"
           className="w-auto h-60 md:h-62"
           onError={() => setImgOk(false)}
