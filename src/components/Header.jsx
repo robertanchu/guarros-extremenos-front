@@ -11,14 +11,14 @@ function BrandLogo(){
   return (
     <Link to="/" className="flex items-center gap-3" aria-label="Ir al inicio">
       {imgOk ? (
-        <img
-          src="/logo/logo_horizontal.svg"
-          alt="Guarros Extremeños"
-          className="w-auto h-60 md:h-62"
-          onError={() => setImgOk(false)}
-          loading="eager"
-          decoding="async"
-        />
+<img
+  src="/logo/logo_horizontal.svg" 
+  alt="Guarros Extremeños"
+  className="w-auto h-14 md:h-20 object-contain" 
+  onError={() => setImgOk(false)}
+  loading="eager"
+  decoding="async"
+/>
       ) : (
         <span className="text-white font-semibold tracking-wide text-xl md:text-2xl">
           Guarros Extremeños
