@@ -28,7 +28,7 @@ export default function HeroPlus() {
             className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight text-white"
           >
             TAN GUARROS QUE{" "}
-            <span className="text-[#E53935]">SÓLO COMEN BELLOTAS</span>
+            <span className="text-[#E53935]">SÓLO COMEMOS BELLOTAS</span>
           </motion.h1>
 
           <motion.p
