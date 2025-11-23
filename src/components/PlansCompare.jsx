@@ -57,19 +57,25 @@ export default function PlansCompare() {
           768: { slidesPerView: 3, spaceBetween: 24 },
           1024: { slidesPerView: 4, spaceBetween: 24 },
         }}
-        // CORRECCIÓN 1: Añadimos padding (!pt-4 !px-4) al contenedor Swiper
-        // Esto crea espacio "dentro" del carrusel para que el zoom no se corte.
-        className="!pt-4 !px-4 !pb-14"
+        // CAMBIO 1 (Flechas): Añadido '!px-12 md:!px-16' para dejar sitio a las flechas a los lados
+        className="!pt-4 !pb-14 !px-12 md:!px-16"
       >
         {gramsList.map((g) => {
           const price = prices[g] / 100;
           const isBadge = !!BADGES[g];
 
+          // CAMBIO 2 (Formato Kg): Lógica para mostrar kg o g
+          let displayVal = g;
+          let displayUnit = "g";
+          
+          if (g >= 1000) {
+            // Convierte 1500 -> 1,5 (con coma española si el navegador está en es-ES)
+            displayVal = (g / 1000).toLocaleString("es-ES");
+            displayUnit = "kg";
+          }
+
           return (
             <SwiperSlide key={g} className="h-auto pb-2">
-              {/* CORRECCIÓN 2: Reducido padding de 'p-6' a 'p-4' para que sean menos "tochos".
-                  Mantiene el estilo 'JamonCard' (bg-white/[0.03], hover ring rojo, etc.)
-              */}
               <div className="group h-full relative rounded-2xl border border-white/10 bg-white/[0.03] p-4 flex flex-col items-center text-center 
                               transition-all duration-300 ease-in-out 
                               hover:scale-[1.02] hover:shadow-xl hover:shadow-black/40 
@@ -85,8 +91,9 @@ export default function PlansCompare() {
 
                 <div className="mt-2 mb-3">
                   <div className="text-xs uppercase tracking-widest text-zinc-500 font-bold mb-1">Suscripción</div>
+                  {/* Renderizado dinámico de gramos o kg */}
                   <h3 className="text-2xl md:text-3xl font-stencil text-white">
-                    {g} <span className="text-lg align-top text-white/60">g</span>
+                    {displayVal} <span className="text-lg align-top text-white/60">{displayUnit}</span>
                   </h3>
                 </div>
 
