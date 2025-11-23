@@ -57,15 +57,23 @@ export default function PlansCompare() {
           768: { slidesPerView: 3, spaceBetween: 24 },
           1024: { slidesPerView: 4, spaceBetween: 24 },
         }}
-        className="!pb-14" // Fuerza padding para la paginación
+        className="!pb-14"
       >
-        {gramsList.map((g, i) => {
+        {gramsList.map((g) => {
           const price = prices[g] / 100;
+          const isBadge = !!BADGES[g];
+
           return (
             <SwiperSlide key={g} className="h-auto pb-2">
-              <div className="group h-full relative rounded-2xl border border-white/10 bg-zinc-900/60 p-6 flex flex-col items-center text-center transition-all hover:border-brand/50 hover:bg-zinc-900 hover:shadow-2xl hover:shadow-brand/10 hover:-translate-y-1">
+              {/* CONTENEDOR: Copiado estilo exacto de JamonCard 
+                  (bg-white/[0.03], border-white/10, hover:scale-[1.02], hover:ring-[#E53935]/80)
+              */}
+              <div className="group h-full relative rounded-2xl border border-white/10 bg-white/[0.03] p-6 flex flex-col items-center text-center 
+                              transition-all duration-300 ease-in-out 
+                              hover:scale-[1.02] hover:shadow-xl hover:shadow-black/40 
+                              hover:ring-2 hover:ring-[#E53935]/80">
                 
-                {BADGES[g] && (
+                {isBadge && (
                   <div className="absolute -top-3 right-1/2 translate-x-1/2 md:translate-x-0 md:right-4">
                     <span className="inline-flex items-center rounded-full bg-brand text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 shadow-lg shadow-brand/20">
                       {BADGES[g]}
@@ -87,11 +95,19 @@ export default function PlansCompare() {
                     <span className="text-sm font-medium text-zinc-500 ml-1">/mes</span>
                   </div>
 
+                  {/* BOTÓN: Copiado estilo exacto de JamonCard
+                      (bg-[#E53935], text-black, font-stencil, span interno para el ring)
+                  */}
                   <button
                     onClick={() => onChoosePlan(g)}
-                    className="mt-6 w-full py-3 rounded-xl bg-brand text-black font-black uppercase tracking-wide hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
+                    className="mt-6 relative inline-flex items-center justify-center rounded-xl h-12 px-5
+                               font-stencil tracking-wide text-black bg-[#E53935] hover:bg-[#992623]
+                               transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
+                               w-full shadow-lg active:scale-[0.98]"
                   >
-                    Elegir
+                    <span className="relative z-10">ELEGIR</span>
+                    {/* Anillo interno decorativo idéntico al de producto */}
+                    <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992323]/50 transition-all" />
                   </button>
                 </div>
               </div>
