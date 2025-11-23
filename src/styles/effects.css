@@ -34,61 +34,72 @@
 .alert .alert-title { color: white; font-weight: 600; }
 .alert .alert-desc { opacity: .9; font-size: .9rem; }
 
+/*
+ * ========================================
+ * Estilos Personalizados para Swiper (V3)
+ * (Con flechas más arriba)
+ * ========================================
+ */
 
-
-/* ========================================
-   Estilos Personalizados para Swiper (Carrusel)
-   ======================================== */
-
-:root {
-  --swiper-navigation-color: #E53935; /* Flechas rojas */
-  --swiper-pagination-color: #E53935; /* Puntos rojos */
-}
-
+/* 1. Definimos las variables de color globales de Swiper
+*/
 .swiper {
-  padding-bottom: 3rem !important; /* Espacio para los puntos */
+  --swiper-navigation-color: #E53935 !important; /* Color de las flechas */
+  --swiper-pagination-color: #E53935 !important;  /* Color del punto de paginación ACTIVO */
 }
 
-/* Flechas de navegación */
+/* 2. Estilo de los BOTONES de flecha
+*/
 .swiper-button-next,
 .swiper-button-prev {
-  background-color: rgba(0, 0, 0, 0.5);
+  /* Estilos de apariencia */
   width: 44px !important;
   height: 44px !important;
-  border-radius: 50%;
-  backdrop-filter: blur(4px);
-  transition: all 0.2s ease;
-}
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  border-radius: 50% !important;
+  opacity: 0.7 !important;
+  transition: all 0.2s ease-in-out !important;
 
-.swiper-button-next::after,
-.swiper-button-prev::after {
-  font-size: 20px !important;
-  font-weight: bold;
+  /* --- ¡POSICIÓN CORREGIDA! --- */
+  /* Lo subimos al 40% (en vez del 50% por defecto) */
+  top: 45% !important; 
+  /* Y lo centramos verticalmente en ese 40% */
+  transform: translateY(-50%) !important; 
 }
 
 .swiper-button-next:hover,
 .swiper-button-prev:hover {
-  background-color: rgba(229, 57, 53, 0.9); /* Rojo brand al hover */
-  color: white !important; /* Flecha blanca al hover */
-  transform: scale(1.1);
+  opacity: 1 !important;
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  transform: translateY(-50%) scale(1.05) !important; /* Mantenemos el transform Y */
 }
 
 .swiper-button-disabled {
   opacity: 0 !important;
-  cursor: default;
+  pointer-events: none !important;
 }
 
-/* Puntos de paginación */
+/* 3. Estilo del ICONO de la flecha (el tamaño)
+*/
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 20px !important;
+  font-weight: 900 !important;
+}
+
+/* 4. Estilo de los PUNTOS de Paginación 
+*/
+
+/* Puntos inactivos: un rojo transparente */
 .swiper-pagination-bullet {
-  background: white;
-  opacity: 0.3;
-  width: 8px;
-  height: 8px;
-  transition: all 0.3s ease;
+  background-color: #E53935 !important;
+  opacity: 0.3 !important; 
+  transition: all 0.2s ease !important;
 }
 
+/* Punto activo: rojo sólido y un poco más grande */
 .swiper-pagination-bullet-active {
-  background: #E53935 !important;
-  opacity: 1;
-  transform: scale(1.4);
+  background-color: #E53935 !important;
+  opacity: 1 !important;
+  transform: scale(1.2);
 }
