@@ -89,7 +89,7 @@ export default function PlansCompare() {
 
                   <button
                     onClick={() => onChoosePlan(g)}
-                    className="mt-6 w-full py-3 rounded-xl bg-white text-black font-black uppercase tracking-wide hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
+                    className="mt-6 w-full py-3 rounded-xl bg-brand text-black font-black uppercase tracking-wide hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
                   >
                     Elegir
                   </button>

@@ -81,7 +81,7 @@ function SubscriptionRecovery() {
             <button
               type="submit"
               disabled={status === "loading"}
-              className="btn-primary rounded-xl px-6 py-3 font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              className="btn-primary rounded-xl px-6 py-3 text-black font-black font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
               {status === "loading" ? "Enviando..." : "Gestionar mi plan"}
             </button>
