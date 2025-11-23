@@ -1,3 +1,4 @@
+// src/pages/Suscripcion.jsx
 import React, { useState } from "react"; 
 import Meta from "../lib/Meta";
 import FAQ from "@/components/FAQ";
@@ -17,7 +18,7 @@ const FAQS = [
   { q: "¿Puedo cambiar de plan más adelante?", a: "Claro, puedes subir o bajar de gramos cuando quieras." },
 ];
 
-// --- COMPONENTE NUEVO: Formulario de recuperación ---
+// --- COMPONENTE DE RECUPERACIÓN (Con botón actualizado) ---
 function SubscriptionRecovery() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | success | error
@@ -54,7 +55,7 @@ function SubscriptionRecovery() {
         </h2>
         <p className="text-zinc-400 mb-6 text-sm md:text-base">
           Si necesitas cambiar tu tarjeta, ver facturas o cancelar y no encuentras el correo de acceso,
-          introduce tu email y te enviaremos un enlace mágico de acceso instantáneo.
+          introduce tu email y te enviaremos un enlace de acceso instantáneo.
         </p>
 
         {status === "success" ? (
@@ -78,12 +79,21 @@ function SubscriptionRecovery() {
               onChange={(e) => setEmail(e.target.value)}
               className="flex-1 bg-black/40 border border-white/20 text-white placeholder-white/30 rounded-xl px-4 py-3 outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all"
             />
+            {/* --- BOTÓN ACTUALIZADO (ESTILO CANALLA) --- */}
             <button
               type="submit"
               disabled={status === "loading"}
-              className="btn-primary rounded-xl px-6 py-3 text-black font-black font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              className="group relative inline-flex items-center justify-center rounded-xl px-6 py-3
+                         text-base font-stencil tracking-wide text-black bg-[#E53935]
+                         transition-colors duration-200 shadow-lg hover:bg-[#992623]
+                         focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
+                         active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
-              {status === "loading" ? "Enviando..." : "Gestionar mi plan"}
+              <span className="relative z-10">
+                {status === "loading" ? "Enviando..." : "Gestionar mi plan"}
+              </span>
+              {/* Anillo decorativo interno */}
+              <span className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-[#E53935]/50 group-hover:ring-[#992623]/50 transition-all" />
             </button>
           </form>
         )}
@@ -147,7 +157,7 @@ export default function Suscripcion() {
       {/* Comparativa de planes */}
       <PlansCompare />
 
-      {/* NUEVA SECCIÓN DE RECUPERACIÓN */}
+      {/* Sección de recuperación */}
       <SubscriptionRecovery />
 
       {/* FAQ */}
