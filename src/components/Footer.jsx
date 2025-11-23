@@ -11,7 +11,7 @@ export default function Footer() {
           <div>
             <Link to="/" className="inline-flex items-center gap-3"> {/* <-- 2. CAMBIADO */}
               <img
-                src="/logo/logo_horizontal2.png"
+                src="/logo/logo_horizontal.svg"
                 alt="Guarros Extremeños"
                 className="h-8 md:h-10 w-auto"
                 loading="lazy"
