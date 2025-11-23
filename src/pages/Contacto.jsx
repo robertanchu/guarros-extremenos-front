@@ -47,7 +47,7 @@ async function onSubmit(e) {
     const payload = Object.fromEntries(formData.entries());
 
     // 3. "Disparamos" la petición al servidor (sin await)
-    fetch(import.meta.env.VITE_CONTACT_ENDPOINT || "/api/contact", {
+    fetch(`${API_BASE}/api/contact`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -55,11 +55,11 @@ async function onSubmit(e) {
       console.error("Error de envío (segundo plano):", err);
     });
 
-    // 4. Mostramos el éxito y limpiamos (usando la variable)
+    // Simulamos éxito visual inmediato para el usuario
     setTimeout(() => {
-      setOk(true); // <-- Muestra "¡Gracias!"
-      form.reset(); // <-- Limpia el formulario (usando la variable estable)
-      setLoading(false); // <-- ¡QUITA EL "Enviando..."!
+      setOk(true);
+      form.reset();
+      setLoading(false);
     }, 600); 
   }
   // =========================================================
