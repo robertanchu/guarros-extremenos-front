@@ -80,6 +80,11 @@ export default function SubscriptionCheckout() {
     }
   }
 
+  // Formateo visual de gramos/kg (para consistencia con PlansCompare)
+  const displayWeight = grams >= 1000 
+    ? `${(grams / 1000).toLocaleString("es-ES")} kg` 
+    : `${grams} g`;
+
   return (
     <div className="min-h-[70vh] w-full px-4 bg-black">
       <div className="mx-auto max-w-4xl py-10">
@@ -100,9 +105,11 @@ export default function SubscriptionCheckout() {
                   Suscripción Jamón Canalla
                 </p>
                 <p className="text-white/70 text-lg mt-1">
-                  <span className="text-brand font-bold">{grams} g</span> / mes — {priceFmt}
+                  <span className="text-brand font-bold">{displayWeight}</span> / mes — {priceFmt}
                 </p>
+                {/* 🟢 CAMBIO DE TEXTO AQUÍ */}
                 <p className="mt-4 text-white/60 text-sm leading-relaxed">
+                  El cobro se realizará el <strong>día 1 de cada mes</strong>.
                   Gestiona o cancela tu suscripción fácilmente desde el portal de cliente.
                   Recibirás el acceso por correo tras el primer pago.
                 </p>
